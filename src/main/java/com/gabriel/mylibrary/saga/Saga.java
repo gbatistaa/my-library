@@ -1,8 +1,18 @@
 package com.gabriel.mylibrary.saga;
 
-import jakarta.persistence.Entity;
+import com.gabriel.mylibrary.common.BaseEntity;
+import com.gabriel.mylibrary.common.pipes.DatabaseEntity;
+import jakarta.persistence.Column;
 
-@Entity
-public class Saga {
+@DatabaseEntity(tableName = "saga")
+public class Saga extends BaseEntity {
 
+  @Column(name = "name", nullable = false, length = 100)
+  private String name;
+
+  @Column(name = "description", nullable = false)
+  private String description;
+
+  @Column(name = "total_books")
+  private Integer totalBooks;
 }
