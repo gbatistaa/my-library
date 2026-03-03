@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:8080/library
+
+### Get all books (Mock return)
+GET {{baseUrl}}/book
+Accept: application/json
+
+### Create Book 1: The Fellowship of the Ring
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "name": "The Fellowship of the Ring",
+  "author": "J.R.R. Tolkien",
+  "rating": 5,
+  "pages": 423,
+  "isbn": "9780618640157",
+  "genre": "Fantasy",
+  "status": "COMPLETED"
+}
+
+### Create Book 2: Clean Code
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "name": "Clean Code",
+  "author": "Robert C. Martin",
+  "rating": 5,
+  "pages": 464,
+  "isbn": "9780132350884",
+  "genre": "Technology",
+  "status": "READING"
+}
+
+### Create Book 3: 1984
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "name": "1984",
+  "author": "George Orwell",
+  "rating": 4,
+  "pages": 328,
+  "isbn": "9780451524935",
+  "genre": "Dystopian",
+  "status": "TO_READ"
+}
+
+### Create Book 4: The Pragmatic Programmer
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "name": "The Pragmatic Programmer",
+  "author": "Andrew Hunt",
+  "rating": 5,
+  "pages": 352,
+  "isbn": "9780135957059",
+  "genre": "Technology",
+  "status": "COMPLETED"
+}
+
+### Create Book 5: Harry Potter and the Sorcerer's Stone
+POST {{baseUrl}}/book
+Content-Type: application/json
+
+{
+  "name": "Harry Potter and the Sorcerer's Stone",
+  "author": "J.K. Rowling",
+  "rating": 5,
+  "pages": 309,
+  "isbn": "9780590353427",
+  "genre": "Fantasy",
+  "status": "TO_READ"
+}
