@@ -54,7 +54,7 @@ public class BookService {
   }
 
   @Transactional
-  public BookDTO update(UUID id, UpdateBookDTO dto) throws ResourceNotFoundException {
+  public BookDTO update(UUID id, @Valid UpdateBookDTO dto) throws ResourceNotFoundException {
     BookEntity book = bookRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
