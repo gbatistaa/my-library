@@ -2,6 +2,7 @@ package com.gabriel.mylibrary.books;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +31,7 @@ public class BookController {
   @PostMapping
   public ResponseEntity<BookDTO> create(@RequestBody CreateBookDTO dto) {
     BookDTO book = bookService.create(dto);
-    return ResponseEntity.ok(book);
+    return ResponseEntity.status(HttpStatus.CREATED).body(book);
   }
 
 }
