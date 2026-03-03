@@ -13,11 +13,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "categories")
 @NoArgsConstructor
-@Getter
-@Setter
 public class CategoryEntity extends BaseEntity {
   @Column(nullable = false, length = 50)
   private String name;
