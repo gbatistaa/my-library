@@ -3,6 +3,7 @@ package com.gabriel.mylibrary.books;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
@@ -11,6 +12,7 @@ import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,7 +29,7 @@ public class BookService {
         .toList();
   }
 
-  public BookDTO create(CreateBookDTO book) {
+  public BookDTO create(@Valid @RequestBody CreateBookDTO book) {
     BookEntity newBook = bookMapper.toEntity(book);
 
     if (bookRepository.existsByIsbn(newBook.getIsbn())) {
