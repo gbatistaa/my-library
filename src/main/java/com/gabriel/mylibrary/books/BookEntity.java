@@ -31,29 +31,29 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BookEntity extends BaseEntity {
 
-  @Column(name = "name", nullable = false, length = 100)
+  @Column(nullable = false, length = 100)
   private String name;
 
-  @Column(name = "author", nullable = false, length = 255)
+  @Column(nullable = false, length = 255)
   private String author;
 
   @Min(1)
   @Max(5)
-  @Column(name = "rating", nullable = false)
+  @Column(nullable = false)
   private Integer rating;
 
   @Min(1)
-  @Column(name = "pages", nullable = false)
+  @Column(nullable = false)
   private Integer pages;
 
-  @Column(name = "isbn", nullable = false, length = 13, unique = true)
+  @Column(nullable = false, length = 13, unique = true)
   private String isbn;
 
-  @Column(name = "genre", nullable = false, length = 100)
+  @Column(nullable = false, length = 100)
   private String genre;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
+  @Column(nullable = false)
   private BookStatus status;
 
   @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

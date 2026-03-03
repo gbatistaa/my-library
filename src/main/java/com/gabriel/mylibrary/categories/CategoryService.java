@@ -42,8 +42,8 @@ public class CategoryService {
   @Transactional
   public CategoryDTO create(@Valid @RequestBody CreateCategoryDTO category) {
     CategoryEntity newCategory = categoryMapper.toEntity(category);
-    if (categoryRepository.existsByTitle(category.getName())) {
-      throw new ResourceConflictException("Category with this title already exists: " + category.getName());
+    if (categoryRepository.existsByName(category.getName())) {
+      throw new ResourceConflictException("Category with this name already exists: " + category.getName());
     }
 
     CategoryEntity savedCategory = categoryRepository.save(newCategory);
