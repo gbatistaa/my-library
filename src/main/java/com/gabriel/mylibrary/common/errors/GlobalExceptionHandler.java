@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.springframework.security.access.AccessDeniedException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -47,6 +48,54 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
 
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthorized(
+      UnauthorizedException ex,
+      HttpServletRequest request) {
+
+    ErrorResponse response = ErrorResponse.builder()
+        .status(HttpStatus.UNAUTHORIZED.value())
+        .error("Unauthorized")
+        .message(ex.getMessage())
+        .path(request.getRequestURI())
+        .timestamp(LocalDateTime.now())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<ErrorResponse> handleForbidden(
+      ForbiddenException ex,
+      HttpServletRequest request) {
+
+    ErrorResponse response = ErrorResponse.builder()
+        .status(HttpStatus.FORBIDDEN.value())
+        .error("Forbidden")
+        .message(ex.getMessage())
+        .path(request.getRequestURI())
+        .timestamp(LocalDateTime.now())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDenied(
+      AccessDeniedException ex,
+      HttpServletRequest request) {
+
+    ErrorResponse response = ErrorResponse.builder()
+        .status(HttpStatus.FORBIDDEN.value())
+        .error("Forbidden")
+        .message("You do not have permission to access this resource")
+        .path(request.getRequestURI())
+        .timestamp(LocalDateTime.now())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidation(
       MethodArgumentNotValidException ex,
@@ -63,7 +112,7 @@ public class GlobalExceptionHandler {
     ErrorResponse response = ErrorResponse.builder()
         .status(HttpStatus.BAD_REQUEST.value())
         .error("Validation Error")
-        .message("Erro de validação nos campos")
+        .message("Validation error in fields")
         .path(request.getRequestURI())
         .timestamp(LocalDateTime.now())
         .fieldErrors(fieldErrors)
