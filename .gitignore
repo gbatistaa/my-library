@@ -35,3 +35,4 @@ build/
 app.log
 *.http
 flyway.conf
+PLAN.md
