@@ -1,18 +1,26 @@
 package com.gabriel.mylibrary.saga;
 
-import com.gabriel.mylibrary.common.BaseEntity;
-import com.gabriel.mylibrary.common.pipes.DatabaseEntity;
-import jakarta.persistence.Column;
+import java.util.*;
 
-@DatabaseEntity(tableName = "saga")
+import com.gabriel.mylibrary.books.Book;
+import com.gabriel.mylibrary.common.BaseEntity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import lombok.AllArgsConstructor;
+
+@Table(name = "saga")
+@AllArgsConstructor
+@Entity
 public class Saga extends BaseEntity {
 
-  @Column(name = "name", nullable = false, length = 100)
+  @Max(100)
+  @Column(nullable = false)
   private String name;
 
-  @Column(name = "description", nullable = false)
+  @Column(nullable = false)
   private String description;
 
-  @Column(name = "total_books")
-  private Integer totalBooks;
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<Book> books = new ArrayList<>();
 }

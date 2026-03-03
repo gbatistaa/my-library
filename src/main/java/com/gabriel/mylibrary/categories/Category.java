@@ -19,10 +19,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Category extends BaseEntity {
-  @Column(name = "category_name", nullable = false, length = 50)
+  @Column(nullable = false, length = 50)
   private String name;
 
-  @Column(name = "description", nullable = true)
+  @Column(nullable = true)
   private String description;
 
   @ManyToOne(fetch = FetchType.LAZY)
