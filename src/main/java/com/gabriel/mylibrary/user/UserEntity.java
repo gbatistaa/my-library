@@ -9,17 +9,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Table(name = "user")
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Entity
 public class UserEntity extends BaseEntity {
   @Max(30)
   @Column(nullable = false, unique = true)
