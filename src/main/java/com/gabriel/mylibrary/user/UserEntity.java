@@ -20,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class User extends BaseEntity {
+public class UserEntity extends BaseEntity {
   @Max(30)
   @Column(nullable = false, unique = true)
   private String username;

@@ -1,6 +1,6 @@
 package com.gabriel.mylibrary.categories;
 
-import com.gabriel.mylibrary.books.Book;
+import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -18,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Category extends BaseEntity {
+public class CategoryEntity extends BaseEntity {
   @Column(nullable = false, length = 50)
   private String name;
 
@@ -27,5 +27,5 @@ public class Category extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "book_id", nullable = false)
-  private Book book;
+  private BookEntity book;
 }

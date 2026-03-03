@@ -3,7 +3,7 @@ package com.gabriel.mylibrary.books;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gabriel.mylibrary.categories.Category;
+import com.gabriel.mylibrary.categories.CategoryEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 
@@ -29,7 +29,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Book extends BaseEntity {
+public class BookEntity extends BaseEntity {
 
   @Column(name = "name", nullable = false, length = 100)
   private String name;
@@ -57,5 +57,5 @@ public class Book extends BaseEntity {
   private BookStatus status;
 
   @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<Category> categories = new ArrayList<>();
+  private List<CategoryEntity> categories = new ArrayList<>();
 }

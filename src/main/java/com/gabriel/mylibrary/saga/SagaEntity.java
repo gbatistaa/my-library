@@ -2,7 +2,7 @@ package com.gabriel.mylibrary.saga;
 
 import java.util.*;
 
-import com.gabriel.mylibrary.books.Book;
+import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 @Table(name = "saga")
 @AllArgsConstructor
 @Entity
-public class Saga extends BaseEntity {
+public class SagaEntity extends BaseEntity {
 
   @Max(100)
   @Column(nullable = false)
@@ -22,5 +22,5 @@ public class Saga extends BaseEntity {
   private String description;
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<Book> books = new ArrayList<>();
+  private List<BookEntity> books = new ArrayList<>();
 }
