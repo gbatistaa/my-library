@@ -8,8 +8,14 @@ import com.gabriel.mylibrary.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Table(name = "saga")
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 public class SagaEntity extends BaseEntity {

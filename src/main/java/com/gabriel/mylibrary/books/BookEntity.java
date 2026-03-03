@@ -46,7 +46,7 @@ public class BookEntity extends BaseEntity {
   @Column(name = "pages", nullable = false)
   private Integer pages;
 
-  @Column(name = "isbn", nullable = false, length = 13)
+  @Column(name = "isbn", nullable = false, length = 13, unique = true)
   private String isbn;
 
   @Column(name = "genre", nullable = false, length = 100)

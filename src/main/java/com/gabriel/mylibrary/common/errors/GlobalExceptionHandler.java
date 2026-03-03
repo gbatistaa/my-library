@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -41,6 +42,27 @@ public class GlobalExceptionHandler {
         .status(HttpStatus.CONFLICT.value())
         .error("Conflict")
         .message(ex.getMessage())
+        .path(request.getRequestURI())
+        .timestamp(LocalDateTime.now())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ErrorResponse> handleDataIntegrity(
+      DataIntegrityViolationException ex,
+      HttpServletRequest request) {
+
+    String message = "Database integrity violation";
+    if (ex.getRootCause() != null && ex.getRootCause().getMessage().contains("duplicate key")) {
+      message = "Resource already exists (duplicate key violation)";
+    }
+
+    ErrorResponse response = ErrorResponse.builder()
+        .status(HttpStatus.CONFLICT.value())
+        .error("Conflict")
+        .message(message)
         .path(request.getRequestURI())
         .timestamp(LocalDateTime.now())
         .build();
