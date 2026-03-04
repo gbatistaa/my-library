@@ -23,7 +23,7 @@ public class RefreshTokenEntity extends BaseEntity {
   @Column(nullable = false, unique = true, length = 512)
   private String token;
 
-  @Column(name = "user_id", nullable = false, unique = true)
+  @Column(name = "user_id", nullable = false)
   private UUID userId;
 
   @Column(name = "expiration_date", nullable = false)

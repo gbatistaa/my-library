@@ -1,7 +1,10 @@
 package com.gabriel.mylibrary.user.dtos;
 
+import java.time.LocalDate;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -13,7 +16,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CreateUserDTO {
   @NotBlank(message = "The username cannot be empty")
-  @Size(min = 3, max = 100, message = "The username")
+  @Size(min = 3, max = 100, message = "The username must be between 3 and 100 characters")
   private String username;
 
   @Email(message = "The user email must be a valid email")
@@ -23,6 +26,6 @@ public class CreateUserDTO {
   @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,64}$", message = "The password must contain at least one uppercase letter, one lowercase letter, one number and one special character")
   private String password;
 
-  @jakarta.validation.constraints.NotNull(message = "Birth date is required")
-  private java.time.LocalDate birthDate;
+  @NotNull(message = "Birth date is required")
+  private LocalDate birthDate;
 }

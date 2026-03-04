@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auth/refresh-tokens")
+@RequestMapping("/auth/refresh")
 @RequiredArgsConstructor
 public class RefreshTokenController {
 

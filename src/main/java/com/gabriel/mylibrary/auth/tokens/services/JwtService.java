@@ -1,4 +1,4 @@
-package com.gabriel.mylibrary.auth.tokens;
+package com.gabriel.mylibrary.auth.tokens.services;
 
 import java.security.Key;
 import java.util.Base64;
@@ -25,6 +25,7 @@ public class JwtService {
   public void init() {
     byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
     this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+    System.out.println("JWT Secret: " + jwtProperties.getSecret());
   }
 
   public String generateAccessToken(UserDTO user) {

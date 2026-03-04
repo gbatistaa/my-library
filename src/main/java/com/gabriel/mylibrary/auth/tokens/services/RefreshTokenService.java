@@ -1,5 +1,7 @@
 package com.gabriel.mylibrary.auth.tokens.services;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +45,13 @@ public class RefreshTokenService {
     return refreshTokenRepository.findByUserId(userId)
         .map(refreshTokenMapper::toDTO)
         .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found for user id: " + userId));
+  }
+
+  @Transactional
+  public RefreshTokenDTO create(String token, UUID userId) throws ResourceConflictException {
+    Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+    CreateRefreshTokenDTO dto = new CreateRefreshTokenDTO(userId, token, expirationDate);
+    return create(dto);
   }
 
   @Transactional
