@@ -4,14 +4,9 @@ import java.time.LocalDate;
 
 import com.gabriel.mylibrary.common.BaseEntity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 
 @Table(name = "user")
 @Entity
@@ -19,15 +14,15 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserEntity extends BaseEntity {
-  @Max(30)
+  @Size(max = 30)
   @Column(nullable = false, unique = true)
   private String username;
 
-  @Max(100)
+  @Size(max = 100)
   @Column(nullable = false, unique = true)
   private String email;
 
-  @Min(8)
+  @Size(min = 8, max = 255)
   @Column(nullable = false)
   private String password;
 
