@@ -24,4 +24,12 @@ public class CreateRefreshTokenDTO {
   @NotNull(message = "Expiration date is required")
   @Future(message = "Expiration date must be in the future")
   private Instant expirationDate;
+
+  @NotNull(message = "Device ID is required")
+  @Size(min = 1, max = 255, message = "Device ID must be between 1 and 255 characters")
+  private String deviceId;
+
+  @NotNull(message = "Device name is required")
+  @Size(min = 1, max = 255, message = "Device name must be between 1 and 255 characters")
+  private String deviceName;
 }

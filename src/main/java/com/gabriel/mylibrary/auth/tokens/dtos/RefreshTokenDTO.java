@@ -14,5 +14,7 @@ public class RefreshTokenDTO {
   private UUID id;
   private String token;
   private UUID userId;
+  private String deviceId;
+  private String deviceName;
   private Instant expirationDate;
 }

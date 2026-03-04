@@ -1,20 +1,22 @@
 package com.gabriel.mylibrary.auth;
 
+import java.util.UUID;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
 import com.gabriel.mylibrary.auth.dtos.LoginDTO;
+import com.gabriel.mylibrary.auth.dtos.RegisterDTO;
 import com.gabriel.mylibrary.auth.mappers.AuthMapper;
 import com.gabriel.mylibrary.auth.tokens.services.JwtService;
 import com.gabriel.mylibrary.auth.tokens.services.RefreshTokenService;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
-import com.gabriel.mylibrary.user.dtos.CreateUserDTO;
-import com.gabriel.mylibrary.user.dtos.UserDTO;
-import com.gabriel.mylibrary.user.mappers.UserMapper;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
 import com.gabriel.mylibrary.user.UserService;
+import com.gabriel.mylibrary.user.dtos.UserDTO;
+import com.gabriel.mylibrary.user.mappers.UserMapper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,35 +34,43 @@ public class AuthService {
   private final AuthMapper authMapper;
 
   @Transactional
-  public AuthResponseDTO register(CreateUserDTO dto) {
-    UserDTO createdUser = userService.createUser(dto);
+  public AuthResponseDTO register(RegisterDTO dto) {
+    // Converts RegisterDTO → CreateUserDTO (UserService handles uniqueness
+    // validation + password hashing)
+    UserDTO createdUser = userService.createUser(dto.toCreateUserDTO());
 
     String accessToken = jwtService.generateAccessToken(createdUser);
     String refreshToken = jwtService.generateRefreshToken(createdUser);
-    refreshTokenService.create(refreshToken, createdUser.getId());
+    refreshTokenService.create(refreshToken, createdUser.getId(), dto.getDeviceId(), dto.getDeviceName());
 
     return authMapper.toResponse(accessToken, refreshToken);
   }
 
   @Transactional
-  public AuthResponseDTO login(LoginDTO dto) {
+  public AuthResponseDTO login(LoginDTO dto) throws ResourceNotFoundException {
     UserEntity userEntity = userRepository.findByUsername(dto.getUsername())
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     if (!passwordEncoder.matches(dto.getPassword(), userEntity.getPassword())) {
-      throw new IllegalArgumentException("Invalid password");
+      throw new IllegalArgumentException("Invalid credentials");
     }
 
     UserDTO user = userMapper.toDTO(userEntity);
 
     String accessToken = jwtService.generateAccessToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);
-    refreshTokenService.create(refreshToken, user.getId());
+
+    // If a session for this device already exists, replace it
+    if (refreshTokenService.existsByUserId(user.getId())) {
+      refreshTokenService.deleteByUserIdAndDeviceId(user.getId(), dto.getDeviceId());
+    }
+    refreshTokenService.create(refreshToken, user.getId(), dto.getDeviceId(), dto.getDeviceName());
 
     return authMapper.toResponse(accessToken, refreshToken);
   }
 
-  // TODO: Logout Method
-
-  // TODO: Method for Refresh Token
+  @Transactional
+  public void logout(UUID userId, String deviceId) throws ResourceNotFoundException {
+    refreshTokenService.deleteByUserIdAndDeviceId(userId, deviceId);
+  }
 }

@@ -41,24 +41,27 @@ public class RefreshTokenService {
   }
 
   @Transactional(readOnly = true)
-  public RefreshTokenDTO findByUserId(UUID userId) throws ResourceNotFoundException {
-    return refreshTokenRepository.findByUserId(userId)
+  public RefreshTokenDTO findByUserIdAndDeviceId(UUID userId, String deviceId) throws ResourceNotFoundException {
+    return refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
         .map(refreshTokenMapper::toDTO)
         .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found for user id: " + userId));
   }
 
-  @Transactional
-  public RefreshTokenDTO create(String token, UUID userId) throws ResourceConflictException {
-    Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
-    CreateRefreshTokenDTO dto = new CreateRefreshTokenDTO(userId, token, expirationDate);
-    return create(dto);
+  @Transactional(readOnly = true)
+  public boolean existsByUserId(UUID userId) {
+    return refreshTokenRepository.existsByUserId(userId);
   }
 
   @Transactional
-  public RefreshTokenDTO create(CreateRefreshTokenDTO dto) throws ResourceConflictException {
-    if (refreshTokenRepository.existsByUserId(dto.getUserId())) {
-      throw new ResourceConflictException("A refresh token already exists for user id: " + dto.getUserId());
+  public RefreshTokenDTO create(String token, UUID userId, String deviceId, String deviceName)
+      throws ResourceConflictException {
+
+    if (refreshTokenRepository.existsByUserId(userId)) {
+      throw new ResourceConflictException("A refresh token already exists for user id: " + userId);
     }
+
+    Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+    CreateRefreshTokenDTO dto = new CreateRefreshTokenDTO(userId, token, expirationDate, deviceId, deviceName);
 
     RefreshTokenEntity entity = refreshTokenMapper.toEntity(dto);
     RefreshTokenEntity saved = refreshTokenRepository.save(entity);
@@ -74,8 +77,8 @@ public class RefreshTokenService {
   }
 
   @Transactional
-  public void deleteByUserId(UUID userId) throws ResourceNotFoundException {
-    RefreshTokenEntity entity = refreshTokenRepository.findByUserId(userId)
+  public void deleteByUserIdAndDeviceId(UUID userId, String deviceId) throws ResourceNotFoundException {
+    RefreshTokenEntity entity = refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
         .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found for user id: " + userId));
     refreshTokenRepository.delete(entity);
   }

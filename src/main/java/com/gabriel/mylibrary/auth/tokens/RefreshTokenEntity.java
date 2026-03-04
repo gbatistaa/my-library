@@ -3,8 +3,6 @@ package com.gabriel.mylibrary.auth.tokens;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.hibernate.annotations.ColumnDefault;
-
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
 
@@ -41,6 +39,6 @@ public class RefreshTokenEntity extends BaseEntity {
   private String deviceName;
 
   @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
   private UserEntity user;
 }
