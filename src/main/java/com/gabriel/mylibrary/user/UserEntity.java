@@ -1,18 +1,22 @@
 package com.gabriel.mylibrary.user;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.gabriel.mylibrary.auth.tokens.RefreshTokenEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Table(name = "user")
+@Table(name = "users")
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity extends BaseEntity {
   @Size(max = 30)
   @Column(nullable = false, unique = true)
@@ -28,4 +32,7 @@ public class UserEntity extends BaseEntity {
 
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<RefreshTokenEntity> refreshTokens = new ArrayList<>();
 }

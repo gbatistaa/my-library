@@ -6,6 +6,7 @@ import java.util.List;
 import com.gabriel.mylibrary.categories.CategoryEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.common.enums.BookStatus;
+import com.gabriel.mylibrary.saga.SagaEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -44,6 +45,10 @@ public class BookEntity extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private BookStatus status;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "saga_id")
+  private SagaEntity saga;
 
   @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<CategoryEntity> categories = new ArrayList<>();

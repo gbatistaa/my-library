@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.auth;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
@@ -26,6 +27,7 @@ public class AuthService {
   private final UserMapper userMapper;
   private final UserRepository userRepository;
   private final JwtService jwtService;
+  private final PasswordEncoder passwordEncoder;
   private final RefreshTokenService refreshTokenService;
   private final AuthMapper authMapper;
 
@@ -44,6 +46,10 @@ public class AuthService {
   public AuthResponseDTO login(LoginDTO dto) {
     UserEntity userEntity = userRepository.findByUsername(dto.getUsername())
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    if (!passwordEncoder.matches(dto.getPassword(), userEntity.getPassword())) {
+      throw new IllegalArgumentException("Invalid password");
+    }
 
     UserDTO user = userMapper.toDTO(userEntity);
 

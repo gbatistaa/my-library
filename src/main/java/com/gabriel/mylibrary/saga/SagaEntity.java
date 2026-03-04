@@ -6,27 +6,28 @@ import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table(name = "saga")
+@Entity
+@Table(name = "sagas")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class SagaEntity extends BaseEntity {
 
-  @Max(100)
-  @Column(nullable = false)
+  @Size(max = 100)
+  @Column(nullable = false, unique = true)
   private String name;
 
+  @Size(max = 255)
   @Column(nullable = false)
   private String description;
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "saga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookEntity> books = new ArrayList<>();
 }

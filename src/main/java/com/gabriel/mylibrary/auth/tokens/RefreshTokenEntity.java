@@ -3,10 +3,15 @@ package com.gabriel.mylibrary.auth.tokens;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.gabriel.mylibrary.common.BaseEntity;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,4 +33,14 @@ public class RefreshTokenEntity extends BaseEntity {
 
   @Column(name = "expiration_date", nullable = false)
   private Instant expirationDate;
+
+  @Column(name = "device_id", nullable = false)
+  private String deviceId;
+
+  @Column(name = "device_name", nullable = false)
+  private String deviceName;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserEntity user;
 }
