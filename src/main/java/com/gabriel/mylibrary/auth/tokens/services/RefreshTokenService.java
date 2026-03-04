@@ -1,4 +1,4 @@
-package com.gabriel.mylibrary.auth.tokens;
+package com.gabriel.mylibrary.auth.tokens.services;
 
 import java.util.List;
 import java.util.UUID;
@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.mylibrary.auth.tokens.RefreshTokenEntity;
+import com.gabriel.mylibrary.auth.tokens.RefreshTokenRepository;
 import com.gabriel.mylibrary.auth.tokens.dtos.CreateRefreshTokenDTO;
 import com.gabriel.mylibrary.auth.tokens.dtos.RefreshTokenDTO;
 import com.gabriel.mylibrary.auth.tokens.mappers.RefreshTokenMapper;

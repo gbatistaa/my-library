@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gabriel.mylibrary.auth.tokens.dtos.CreateRefreshTokenDTO;
 import com.gabriel.mylibrary.auth.tokens.dtos.RefreshTokenDTO;
+import com.gabriel.mylibrary.auth.tokens.services.RefreshTokenService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
