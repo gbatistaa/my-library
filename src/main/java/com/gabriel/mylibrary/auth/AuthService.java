@@ -9,15 +9,19 @@ import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
 import com.gabriel.mylibrary.auth.dtos.LoginDTO;
 import com.gabriel.mylibrary.auth.dtos.RegisterDTO;
 import com.gabriel.mylibrary.auth.mappers.AuthMapper;
+import com.gabriel.mylibrary.auth.tokens.RefreshTokenEntity;
+import com.gabriel.mylibrary.auth.tokens.RefreshTokenRepository;
 import com.gabriel.mylibrary.auth.tokens.services.JwtService;
 import com.gabriel.mylibrary.auth.tokens.services.RefreshTokenService;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
 import com.gabriel.mylibrary.user.UserService;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
 import com.gabriel.mylibrary.user.mappers.UserMapper;
 
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -32,11 +36,18 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final RefreshTokenService refreshTokenService;
   private final AuthMapper authMapper;
+  private final RefreshTokenRepository refreshTokenRepository;
+
+  @Transactional
+  public UserDTO getMe(String accessToken) {
+    Claims claims = jwtService.extractClaims(accessToken);
+    UUID userId = jwtService.extractUserId(claims);
+
+    return userService.getUserById(userId);
+  }
 
   @Transactional
   public AuthResponseDTO register(RegisterDTO dto) {
-    // Converts RegisterDTO → CreateUserDTO (UserService handles uniqueness
-    // validation + password hashing)
     UserDTO createdUser = userService.createUser(dto.toCreateUserDTO());
 
     String accessToken = jwtService.generateAccessToken(createdUser);
@@ -61,12 +72,28 @@ public class AuthService {
     String refreshToken = jwtService.generateRefreshToken(user);
 
     // If a session for this device already exists, replace it
-    if (refreshTokenService.existsByUserId(user.getId())) {
+    if (refreshTokenService.existsByUserIdAndDeviceId(user.getId(), dto.getDeviceId())) {
       refreshTokenService.deleteByUserIdAndDeviceId(user.getId(), dto.getDeviceId());
     }
     refreshTokenService.create(refreshToken, user.getId(), dto.getDeviceId(), dto.getDeviceName());
 
     return authMapper.toResponse(accessToken, refreshToken);
+  }
+
+  @Transactional
+  public AuthResponseDTO refresh(String refreshToken) throws ResourceNotFoundException, UnauthorizedException {
+    RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
+        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
+
+    if (!jwtService.isTokenValid(refreshToken)) {
+      refreshTokenService.deleteById(refreshTokenEntity.getId());
+      throw new UnauthorizedException("Refresh token expired");
+    }
+
+    UserDTO user = userMapper.toDTO(refreshTokenEntity.getUser());
+    String newAccessToken = jwtService.generateAccessToken(user);
+
+    return authMapper.toResponse(newAccessToken, refreshToken);
   }
 
   @Transactional

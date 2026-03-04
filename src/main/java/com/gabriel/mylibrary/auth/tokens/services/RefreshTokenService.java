@@ -48,16 +48,16 @@ public class RefreshTokenService {
   }
 
   @Transactional(readOnly = true)
-  public boolean existsByUserId(UUID userId) {
-    return refreshTokenRepository.existsByUserId(userId);
+  public boolean existsByUserIdAndDeviceId(UUID userId, String deviceId) {
+    return refreshTokenRepository.existsByUserIdAndDeviceId(userId, deviceId);
   }
 
   @Transactional
   public RefreshTokenDTO create(String token, UUID userId, String deviceId, String deviceName)
       throws ResourceConflictException {
 
-    if (refreshTokenRepository.existsByUserId(userId)) {
-      throw new ResourceConflictException("A refresh token already exists for user id: " + userId);
+    if (refreshTokenRepository.existsByUserIdAndDeviceId(userId, deviceId)) {
+      throw new ResourceConflictException("A refresh token already exists for this device.");
     }
 
     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
