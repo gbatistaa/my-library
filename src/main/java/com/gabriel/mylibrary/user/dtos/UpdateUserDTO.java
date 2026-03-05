@@ -13,6 +13,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class UpdateUserDTO {
 
+  @Size(min = 3, max = 100, message = "The name must be between 3 and 100 characters")
+  private String name;
+
   @Size(min = 3, max = 100, message = "The username must be between 3 and 100 characters")
   private String username;
 

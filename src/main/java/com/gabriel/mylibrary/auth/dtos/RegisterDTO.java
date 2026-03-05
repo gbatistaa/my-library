@@ -20,6 +20,10 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class RegisterDTO extends DeviceInfoDTO {
 
+  @NotBlank(message = "The name cannot be empty")
+  @Size(min = 3, max = 100, message = "The name must be between 3 and 100 characters")
+  private String name;
+
   @NotBlank(message = "The username cannot be empty")
   @Size(min = 3, max = 100, message = "The username must be between 3 and 100 characters")
   private String username;
@@ -36,6 +40,6 @@ public class RegisterDTO extends DeviceInfoDTO {
   private LocalDate birthDate;
 
   public CreateUserDTO toCreateUserDTO() {
-    return new CreateUserDTO(username, email, password, birthDate);
+    return new CreateUserDTO(name, username, email, password, birthDate);
   }
 }

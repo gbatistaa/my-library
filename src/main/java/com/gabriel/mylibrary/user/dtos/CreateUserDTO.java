@@ -15,6 +15,10 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateUserDTO {
+  @NotBlank(message = "The name cannot be empty")
+  @Size(min = 3, max = 100, message = "The name must be between 3 and 100 characters")
+  private String name;
+
   @NotBlank(message = "The username cannot be empty")
   @Size(min = 3, max = 100, message = "The username must be between 3 and 100 characters")
   private String username;
