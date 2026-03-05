@@ -27,8 +27,8 @@ public class BookService {
   private final BookRepository bookRepository;
 
   @Transactional(readOnly = true)
-  public List<BookDTO> findAll() {
-    return bookRepository.findAll()
+  public List<BookDTO> findAll(UUID userId) {
+    return bookRepository.findAllByUserId(userId)
         .stream()
         .map(bookMapper::toDto)
         .toList();

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,6 +12,8 @@ import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
+import com.gabriel.mylibrary.user.dtos.UserDTO;
+
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +32,8 @@ public class BookController {
   private final BookService bookService;
 
   @GetMapping
-  public ResponseEntity<List<BookDTO>> findAll() {
-    List<BookDTO> books = bookService.findAll();
+  public ResponseEntity<List<BookDTO>> findAll(@AuthenticationPrincipal UserDTO user) {
+    List<BookDTO> books = bookService.findAll(user.getId());
     return ResponseEntity.ok(books);
   }
 
