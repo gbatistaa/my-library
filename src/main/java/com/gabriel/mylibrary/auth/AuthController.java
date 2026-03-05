@@ -77,14 +77,15 @@ public class AuthController {
   }
 
   private void setAccessTokenCookie(HttpServletResponse response, AuthResponseDTO authResponse) {
-    authResponse.getAccessToken().ifPresent((token) -> {
+    String token = authResponse.getAccessToken();
+    if (token != null && !token.isEmpty()) {
       Cookie cookie = new Cookie("access_token", token);
       cookie.setHttpOnly(true);
       cookie.setSecure(false); // Change to true in production
       cookie.setPath("/");
       cookie.setMaxAge(24 * 60 * 60);
       response.addCookie(cookie);
-    });
+    }
   }
 
   private void clearAccessTokenCookie(HttpServletResponse response) {
