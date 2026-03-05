@@ -33,7 +33,7 @@ public class RefreshTokenEntity extends BaseEntity {
   @Column(name = "expiration_date", nullable = false)
   private Instant expirationDate;
 
-  @Column(name = "device_id", nullable = false)
+  @Column(name = "device_id", nullable = false, unique = true)
   private String deviceId;
 
   @Column(name = "device_name", nullable = false)

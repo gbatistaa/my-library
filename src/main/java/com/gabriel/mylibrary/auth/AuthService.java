@@ -41,6 +41,18 @@ public class AuthService {
   public AuthResponseDTO register(RegisterDTO dto) {
     UserDTO createdUser = userService.createUser(dto.toCreateUserDTO());
 
+    if (createdUser == null) {
+      throw new IllegalArgumentException("User not created");
+    }
+
+    if (refreshTokenService.existsByUserIdAndDeviceId(createdUser.getId(), dto.getDeviceId())) {
+      refreshTokenService.deleteByUserIdAndDeviceId(createdUser.getId(), dto.getDeviceId());
+    }
+
+    System.out.println("User created: " + createdUser);
+    System.out.println("Device ID: " + dto.getDeviceId());
+    System.out.println("Device Name: " + dto.getDeviceName());
+
     String accessToken = jwtService.generateAccessToken(createdUser);
     String refreshToken = jwtService.generateRefreshToken(createdUser);
     refreshTokenService.create(refreshToken, createdUser.getId(), dto.getDeviceId(), dto.getDeviceName());
