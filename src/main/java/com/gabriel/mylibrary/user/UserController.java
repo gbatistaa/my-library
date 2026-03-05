@@ -11,6 +11,7 @@ import com.gabriel.mylibrary.user.dtos.CreateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UpdateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -41,9 +42,21 @@ public class UserController {
     return ResponseEntity.ok(userService.updateUser(id, user));
   }
 
+  @PatchMapping("/me")
+  public ResponseEntity<UserDTO> updateMe(@AuthenticationPrincipal UserEntity user,
+      @Valid @RequestBody UpdateUserDTO updateDto) {
+    return ResponseEntity.ok(userService.updateUser(user.getId(), updateDto));
+  }
+
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
     userService.deleteUser(id);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/me")
+  public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserEntity user) {
+    userService.deleteUser(user.getId());
     return ResponseEntity.noContent().build();
   }
 
