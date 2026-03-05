@@ -8,6 +8,7 @@ import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -38,7 +39,7 @@ public class RefreshTokenEntity extends BaseEntity {
   @Column(name = "device_name", nullable = false)
   private String deviceName;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
   private UserEntity user;
 }

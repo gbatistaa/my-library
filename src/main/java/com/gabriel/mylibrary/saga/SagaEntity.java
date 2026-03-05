@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -30,4 +31,8 @@ public class SagaEntity extends BaseEntity {
 
   @OneToMany(mappedBy = "saga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookEntity> books = new ArrayList<>();
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  private UserEntity user;
 }

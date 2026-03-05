@@ -16,6 +16,7 @@ public class UpdateUserDTO {
   @Size(min = 3, max = 100, message = "The username must be between 3 and 100 characters")
   private String username;
 
+  @Size(max = 150, message = "The user email must be less than 150 characters")
   @Email(message = "The user email must be a valid email")
   private String email;
 

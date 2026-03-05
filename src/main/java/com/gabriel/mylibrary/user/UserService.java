@@ -76,6 +76,11 @@ public class UserService {
       }
     }
 
+    if (updateUserDTO.getPassword() != null) {
+      String hashedPassword = passwordEncoder.encode(updateUserDTO.getPassword());
+      user.setPassword(hashedPassword);
+    }
+
     userMapper.updateEntityFromDto(updateUserDTO, user);
     UserEntity updatedUser = userRepository.save(user);
     return userMapper.toDTO(updatedUser);
