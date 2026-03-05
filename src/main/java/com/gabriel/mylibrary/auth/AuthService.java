@@ -21,7 +21,6 @@ import com.gabriel.mylibrary.user.UserService;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
 import com.gabriel.mylibrary.user.mappers.UserMapper;
 
-import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -39,14 +38,6 @@ public class AuthService {
   private final RefreshTokenRepository refreshTokenRepository;
 
   @Transactional
-  public UserDTO getMe(String accessToken) {
-    Claims claims = jwtService.extractClaims(accessToken);
-    UUID userId = jwtService.extractUserId(claims);
-
-    return userService.getUserById(userId);
-  }
-
-  @Transactional
   public AuthResponseDTO register(RegisterDTO dto) {
     UserDTO createdUser = userService.createUser(dto.toCreateUserDTO());
 
@@ -54,7 +45,7 @@ public class AuthService {
     String refreshToken = jwtService.generateRefreshToken(createdUser);
     refreshTokenService.create(refreshToken, createdUser.getId(), dto.getDeviceId(), dto.getDeviceName());
 
-    return authMapper.toResponse(accessToken, refreshToken);
+    return authMapper.toResponse(accessToken);
   }
 
   @Transactional
@@ -77,23 +68,25 @@ public class AuthService {
     }
     refreshTokenService.create(refreshToken, user.getId(), dto.getDeviceId(), dto.getDeviceName());
 
-    return authMapper.toResponse(accessToken, refreshToken);
+    return authMapper.toResponse(accessToken);
   }
 
   @Transactional
-  public AuthResponseDTO refresh(String refreshToken) throws ResourceNotFoundException, UnauthorizedException {
-    RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
-        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
+  public AuthResponseDTO refresh(UUID userId, String deviceId) throws ResourceNotFoundException, UnauthorizedException {
+    RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
+        .orElseThrow(() -> new ResourceNotFoundException("No session found for this device"));
+
+    String refreshToken = refreshTokenEntity.getToken();
 
     if (!jwtService.isTokenValid(refreshToken)) {
       refreshTokenService.deleteById(refreshTokenEntity.getId());
-      throw new UnauthorizedException("Refresh token expired");
+      throw new UnauthorizedException("Session expired, please login again");
     }
 
     UserDTO user = userMapper.toDTO(refreshTokenEntity.getUser());
     String newAccessToken = jwtService.generateAccessToken(user);
 
-    return authMapper.toResponse(newAccessToken, refreshToken);
+    return authMapper.toResponse(newAccessToken);
   }
 
   @Transactional

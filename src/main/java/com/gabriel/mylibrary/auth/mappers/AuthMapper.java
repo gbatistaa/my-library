@@ -8,5 +8,5 @@ import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AuthMapper {
 
-  AuthResponseDTO toResponse(String accessToken, String refreshToken);
+  AuthResponseDTO toResponse(String accessToken);
 }

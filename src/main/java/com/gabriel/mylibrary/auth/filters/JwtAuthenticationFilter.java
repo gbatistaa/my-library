@@ -13,7 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.gabriel.mylibrary.auth.tokens.services.JwtService;
 import com.gabriel.mylibrary.user.UserEntity;
-import com.gabriel.mylibrary.user.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -39,7 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private static final String COOKIE_NAME = "access_token";
 
   private final JwtService jwtService;
-  private final UserRepository userRepository;
 
   @Override
   protected void doFilterInternal(
@@ -57,12 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       }
     }
 
-    if (token == null) {
-      filterChain.doFilter(request, response);
-      return;
-    }
-
-    if (!jwtService.isTokenValid(token)) {
+    if (token == null || !jwtService.isTokenValid(token)) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -74,26 +67,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     Claims claims = jwtService.extractClaims(token);
     String username = jwtService.extractUsername(claims);
-    if (username == null) {
-      filterChain.doFilter(request, response);
-      return;
+    java.util.UUID userId = jwtService.extractUserId(claims);
+
+    if (username != null && userId != null) {
+      // Create a stateless UserEntity stub from claims
+      UserEntity userStub = new UserEntity();
+      userStub.setId(userId);
+      userStub.setUsername(username);
+
+      // TODO: add roles from claims when implemented
+      Collection<GrantedAuthority> authorities = Collections.emptyList();
+
+      UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+          userStub, null, authorities);
+
+      authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+      SecurityContextHolder.getContext().setAuthentication(authentication);
     }
-
-    UserEntity userEntity = userRepository.findByUsername(username).orElse(null);
-    if (userEntity == null) {
-      filterChain.doFilter(request, response);
-      return;
-    }
-
-    // TODO: add roles when implemented
-    Collection<GrantedAuthority> authorities = Collections.emptyList();
-
-    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userEntity, null,
-        authorities);
-
-    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     filterChain.doFilter(request, response);
   }

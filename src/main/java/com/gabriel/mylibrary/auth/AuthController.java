@@ -3,7 +3,6 @@ package com.gabriel.mylibrary.auth;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +19,8 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
+import com.gabriel.mylibrary.user.mappers.UserMapper;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +31,12 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
   private final AuthService authService;
+  private final UserMapper userMapper;
 
   @GetMapping("/me")
-  public ResponseEntity<UserDTO> getMe(@CookieValue("access_token") String accessToken) {
-    UserDTO user = authService.getMe(accessToken);
-    return ResponseEntity.ok(user);
+  public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal UserEntity user) {
+    UserDTO userDTO = userMapper.toDTO(user);
+    return ResponseEntity.ok(userDTO);
   }
 
   @PostMapping("/register")
@@ -70,7 +70,7 @@ public class AuthController {
       @Valid @RequestBody RefreshRequestDTO dto,
       HttpServletResponse response) throws ResourceNotFoundException, UnauthorizedException {
 
-    AuthResponseDTO authResponse = authService.refresh(dto.getRefreshToken());
+    AuthResponseDTO authResponse = authService.refresh(dto.getUserId(), dto.getDeviceId());
     setAccessTokenCookie(response, authResponse);
 
     return ResponseEntity.ok(authResponse);
@@ -79,20 +79,25 @@ public class AuthController {
   private void setAccessTokenCookie(HttpServletResponse response, AuthResponseDTO authResponse) {
     String token = authResponse.getAccessToken();
     if (token != null && !token.isEmpty()) {
-      Cookie cookie = new Cookie("access_token", token);
-      cookie.setHttpOnly(true);
-      cookie.setSecure(false); // Change to true in production
-      cookie.setPath("/");
-      cookie.setMaxAge(24 * 60 * 60);
-      response.addCookie(cookie);
+      org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie
+          .from("access_token", token)
+          .httpOnly(true)
+          .secure(false) // Change to true in production (HTTPS)
+          .path("/")
+          .maxAge(24 * 60 * 60)
+          .sameSite("Lax") // Technique 1: Protection against CSRF
+          .build();
+      response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
     }
   }
 
   private void clearAccessTokenCookie(HttpServletResponse response) {
-    Cookie accessTokenCookie = new Cookie("access_token", null);
-    accessTokenCookie.setHttpOnly(true);
-    accessTokenCookie.setPath("/");
-    accessTokenCookie.setMaxAge(0);
-    response.addCookie(accessTokenCookie);
+    org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie.from("access_token", "")
+        .httpOnly(true)
+        .path("/")
+        .maxAge(0)
+        .sameSite("Lax")
+        .build();
+    response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
   }
 }
