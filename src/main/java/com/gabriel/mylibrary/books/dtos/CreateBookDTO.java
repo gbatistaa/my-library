@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateBookDTO {
 
-  @NotBlank(message = "Book name is required")
-  @Size(max = 100, message = "Book name must not exceed 100 characters")
-  private String name;
+  @NotBlank(message = "Book title is required")
+  @Size(max = 100, message = "Book title must not exceed 100 characters")
+  private String title;
 
   @NotBlank(message = "Author name is required")
   @Size(max = 255, message = "Author name must not exceed 255 characters")

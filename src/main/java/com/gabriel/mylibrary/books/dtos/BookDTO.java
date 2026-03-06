@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class BookDTO {
   private String id;
-  private String name;
+  private String title;
   private String author;
   private Integer rating;
   private Integer pages;
   private String isbn;
   private String genre;
   private BookStatus status;
+  private String coverUrl;
 }

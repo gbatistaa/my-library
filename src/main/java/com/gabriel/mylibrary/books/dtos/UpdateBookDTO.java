@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UpdateBookDTO {
 
-  @Size(max = 100, message = "Book name must not exceed 100 characters")
-  private String name;
+  @Size(max = 100, message = "Book title must not exceed 100 characters")
+  private String title;
 
   @Size(max = 255, message = "Author name must not exceed 255 characters")
   private String author;

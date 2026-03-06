@@ -1,8 +1,10 @@
 package com.gabriel.mylibrary.books;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,7 +13,11 @@ import org.springframework.stereotype.Repository;
 public interface BookRepository extends JpaRepository<BookEntity, UUID> {
   boolean existsByIsbn(String isbn);
 
-  @EntityGraph(attributePaths = "categories")
-  List<BookEntity> findAllByUserId(UUID userId);
+  Optional<BookEntity> findByIdAndUserId(UUID id, UUID userId);
 
+  @EntityGraph(attributePaths = { "categories" })
+  Page<BookEntity> findAllByUserId(UUID userId, Pageable pageable);
+
+  @EntityGraph(attributePaths = { "categories" })
+  Page<BookEntity> findAllByUserIdAndTitleContainingIgnoreCase(UUID userId, String title, Pageable pageable);
 }

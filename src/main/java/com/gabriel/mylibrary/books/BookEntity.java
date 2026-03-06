@@ -16,9 +16,10 @@ import lombok.*;
 @Entity
 @Table(name = "books", indexes = {
     @Index(name = "idx_books_user", columnList = "user_id"),
-    @Index(name = "idx_books_saga", columnList = "saga_id")
+    @Index(name = "idx_books_saga", columnList = "saga_id"),
+    @Index(name = "idx_books_user_title", columnList = "user_id, title")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "uk_books_name_author", columnNames = { "name", "author" })
+    @UniqueConstraint(name = "uk_books_title_author", columnNames = { "title", "author" })
 })
 @Getter
 @Setter
@@ -29,7 +30,7 @@ public class BookEntity extends BaseEntity {
 
   @NotBlank
   @Column(nullable = false, length = 100)
-  private String name;
+  private String title;
 
   @NotBlank
   @Column(nullable = false, length = 255)
