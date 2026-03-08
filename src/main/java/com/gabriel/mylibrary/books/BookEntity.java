@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ import lombok.*;
     @Index(name = "idx_books_saga", columnList = "saga_id"),
     @Index(name = "idx_books_user_title", columnList = "user_id, title")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "uk_books_title_author", columnNames = { "title", "author" })
+    @UniqueConstraint(name = "uk_books_user_title_author", columnNames = { "user_id", "title", "author" })
 })
 @Getter
 @Setter
@@ -60,6 +61,15 @@ public class BookEntity extends BaseEntity {
 
   @Column(name = "cover_url")
   private String coverUrl;
+
+  @Column(name = "start_date", nullable = true)
+  private LocalDate startDate;
+
+  @Column(name = "finish_date", nullable = true)
+  private LocalDate finishDate;
+
+  @Column(nullable = true, length = 1000)
+  private String notes;
 
   @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   @Builder.Default

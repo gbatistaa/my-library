@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "sagas")
+@Table(name = "sagas", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_sagas_user_name", columnNames = { "user_id", "name" })
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,7 +24,7 @@ import lombok.Setter;
 public class SagaEntity extends BaseEntity {
 
   @Size(max = 100)
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private String name;
 
   @Size(max = 255)
@@ -32,7 +34,7 @@ public class SagaEntity extends BaseEntity {
   @OneToMany(mappedBy = "saga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookEntity> books = new ArrayList<>();
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
   private UserEntity user;
 }

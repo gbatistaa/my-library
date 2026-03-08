@@ -25,16 +25,16 @@ public class CategoryService {
   private final CategoryMapper categoryMapper;
 
   @Transactional(readOnly = true)
-  public List<CategoryDTO> findAll() {
-    return categoryRepository.findAll()
+  public List<CategoryDTO> findAll(UUID userId) {
+    return categoryRepository.findAllByUserId(userId)
         .stream()
         .map(categoryMapper::toDto)
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public CategoryDTO findOne(UUID id) throws ResourceNotFoundException {
-    return categoryRepository.findById(id)
+  public CategoryDTO findOne(UUID id, UUID userId) throws ResourceNotFoundException {
+    return categoryRepository.findByIdAndUserId(id, userId)
         .map(categoryMapper::toDto)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
   }
