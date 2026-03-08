@@ -35,6 +35,6 @@ public class SagaEntity extends BaseEntity {
   private List<BookEntity> books = new ArrayList<>();
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id", nullable = false, updatable = false)
   private UserEntity user;
 }
