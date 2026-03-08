@@ -13,7 +13,9 @@ import com.gabriel.mylibrary.categories.dtos.UpdateCategoryDTO;
 import com.gabriel.mylibrary.categories.mappers.CategoryMapper;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.user.UserEntity;
 
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +25,7 @@ public class CategoryService {
 
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
+  private final EntityManager entityManager;
 
   @Transactional(readOnly = true)
   public List<CategoryDTO> findAll(UUID userId) {
@@ -40,11 +43,14 @@ public class CategoryService {
   }
 
   @Transactional
-  public CategoryDTO create(@Valid @RequestBody CreateCategoryDTO category) {
+  public CategoryDTO create(@Valid @RequestBody CreateCategoryDTO category, UUID userId) {
     CategoryEntity newCategory = categoryMapper.toEntity(category);
     if (categoryRepository.existsByName(category.getName())) {
       throw new ResourceConflictException("Category with this name already exists: " + category.getName());
     }
+
+    UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
+    newCategory.setUser(userRef);
 
     CategoryEntity savedCategory = categoryRepository.save(newCategory);
     return categoryMapper.toDto(savedCategory);

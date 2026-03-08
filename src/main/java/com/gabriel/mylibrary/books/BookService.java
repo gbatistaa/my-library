@@ -57,7 +57,6 @@ public class BookService {
       throw new ResourceConflictException("Book with this ISBN already exists: " + newBook.getIsbn());
     }
 
-    // Proxy reference: associates the user without unnecessary SELECT
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
 
