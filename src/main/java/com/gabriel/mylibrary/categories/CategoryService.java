@@ -45,7 +45,7 @@ public class CategoryService {
   @Transactional
   public CategoryDTO create(@Valid @RequestBody CreateCategoryDTO category, UUID userId) {
     CategoryEntity newCategory = categoryMapper.toEntity(category);
-    if (categoryRepository.existsByName(category.getName())) {
+    if (categoryRepository.existsByNameAndUserId(category.getName(), userId)) {
       throw new ResourceConflictException("Category with this name already exists: " + category.getName());
     }
 
@@ -57,8 +57,8 @@ public class CategoryService {
   }
 
   @Transactional
-  public CategoryDTO update(UUID id, @Valid @RequestBody UpdateCategoryDTO category) {
-    CategoryEntity categoryEntity = categoryRepository.findById(id)
+  public CategoryDTO update(UUID id, UUID userId, @Valid @RequestBody UpdateCategoryDTO category) {
+    CategoryEntity categoryEntity = categoryRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     categoryMapper.updateEntityFromDto(category, categoryEntity);
     CategoryEntity updatedCategory = categoryRepository.save(categoryEntity);
@@ -66,11 +66,10 @@ public class CategoryService {
   }
 
   @Transactional
-  public void delete(UUID id) {
-    if (!categoryRepository.existsById(id)) {
-      throw new ResourceNotFoundException("Category not found with id: " + id);
-    }
-    categoryRepository.deleteById(id);
+  public void delete(UUID id, UUID userId) {
+    CategoryEntity category = categoryRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+    categoryRepository.delete(category);
   }
 
 }

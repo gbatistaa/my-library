@@ -53,8 +53,8 @@ public class BookService {
   public BookDTO create(@Valid CreateBookDTO dto, UUID userId) {
     BookEntity newBook = bookMapper.toEntity(dto);
 
-    if (bookRepository.existsByIsbn(newBook.getIsbn())) {
-      throw new ResourceConflictException("Book with this ISBN already exists: " + newBook.getIsbn());
+    if (bookRepository.existsByIsbnAndUserId(newBook.getIsbn(), userId)) {
+      throw new ResourceConflictException("Book with this ISBN already exists in your library: " + newBook.getIsbn());
     }
 
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
@@ -69,8 +69,8 @@ public class BookService {
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
     if (dto.getIsbn() != null && !dto.getIsbn().equals(book.getIsbn())) {
-      if (bookRepository.existsByIsbn(dto.getIsbn())) {
-        throw new ResourceConflictException("Book with this ISBN already exists: " + dto.getIsbn());
+      if (bookRepository.existsByIsbnAndUserId(dto.getIsbn(), userId)) {
+        throw new ResourceConflictException("Book with this ISBN already exists in your library: " + dto.getIsbn());
       }
     }
 

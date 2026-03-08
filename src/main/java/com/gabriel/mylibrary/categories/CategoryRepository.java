@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CategoryRepository extends JpaRepository<CategoryEntity, UUID> {
-  boolean existsByName(String name);
+  boolean existsByNameAndUserId(String name, UUID userId);
 
   List<CategoryEntity> findAllByUserId(UUID userId);
 

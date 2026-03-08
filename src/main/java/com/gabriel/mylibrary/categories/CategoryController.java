@@ -48,14 +48,15 @@ public class CategoryController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody UpdateCategoryDTO category) {
-    CategoryDTO updatedCategory = categoryService.update(id, category);
+  public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody UpdateCategoryDTO category,
+      @AuthenticationPrincipal UserEntity user) {
+    CategoryDTO updatedCategory = categoryService.update(id, user.getId(), category);
     return ResponseEntity.ok(updatedCategory);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
-    categoryService.delete(id);
+  public ResponseEntity<Void> deleteCategory(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
+    categoryService.delete(id, user.getId());
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }

@@ -48,7 +48,7 @@ public class BookEntity extends BaseEntity {
 
   @NotBlank
   @Size(min = 10, max = 13)
-  @Column(nullable = false, length = 13, unique = true)
+  @Column(nullable = false, length = 13)
   private String isbn;
 
   @NotBlank

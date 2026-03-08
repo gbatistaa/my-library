@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BookRepository extends JpaRepository<BookEntity, UUID> {
-  boolean existsByIsbn(String isbn);
+  boolean existsByIsbnAndUserId(String isbn, UUID userId);
 
   Optional<BookEntity> findByIdAndUserId(UUID id, UUID userId);
 
