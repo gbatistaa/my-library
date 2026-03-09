@@ -3,6 +3,11 @@ package com.gabriel.mylibrary.saga;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.mylibrary.books.BookEntity;
+import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.dtos.BookDTO;
+import com.gabriel.mylibrary.books.mappers.BookMapper;
+import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.saga.dtos.CreateSagaDTO;
@@ -25,6 +30,8 @@ public class SagaService {
   private final SagaRepository sagaRepository;
   private final EntityManager entityManager;
   private final SagaMapper sagaMapper;
+  private final BookRepository bookRepository;
+  private final BookMapper bookMapper;
 
   @Transactional(readOnly = true)
   public List<SagaDTO> findAllByUserId(UUID userId) {
@@ -39,6 +46,16 @@ public class SagaService {
     return sagaRepository.findByIdAndUserId(id, userId)
         .map(sagaMapper::toDto)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
+  }
+
+  @Transactional(readOnly = true)
+  public List<BookDTO> getBooks(UUID sagaId, UUID userId) throws ResourceNotFoundException {
+    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+
+    return saga.getBooks().stream()
+        .map(bookMapper::toDto)
+        .toList();
   }
 
   @Transactional
@@ -61,6 +78,45 @@ public class SagaService {
     sagaMapper.updateEntityFromDto(dto, saga);
 
     return sagaMapper.toDto(sagaRepository.save(saga));
+  }
+
+  @Transactional
+  public SagaDTO addBookToSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
+    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+
+    BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+
+    saga.addBook(book);
+
+    return sagaMapper.toDto(saga);
+  }
+
+  @Transactional
+  public void removeBookFromSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
+    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+
+    BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+
+    saga.removeBook(book);
+  }
+
+  @Transactional(readOnly = true)
+  public double getProgress(UUID sagaId, UUID userId) throws ResourceNotFoundException {
+    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+
+    int totalBooks = saga.getBooks().size();
+    int completedBooks = (int) saga.getBooks().stream()
+        .filter(book -> book.getStatus() == BookStatus.COMPLETED)
+        .count();
+
+    double progress = totalBooks == 0 ? 0 : (double) completedBooks / totalBooks * 100;
+
+    return progress;
   }
 
   @Transactional

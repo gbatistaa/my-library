@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
+import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.*;
@@ -37,4 +38,28 @@ public class SagaEntity extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false, updatable = false)
   private UserEntity user;
+
+  public void addBook(BookEntity book) {
+    boolean alreadyExists = books.stream()
+        .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
+
+    if (alreadyExists) {
+      throw new ResourceConflictException("Book already exists in saga: " + book.getTitle());
+    }
+
+    book.setSaga(this);
+    books.add(book);
+  }
+
+  public void removeBook(BookEntity book) {
+    boolean alreadyExists = books.stream()
+        .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
+
+    if (!alreadyExists) {
+      throw new ResourceConflictException("Book does not exist in saga: " + book.getTitle());
+    }
+
+    book.setSaga(null);
+    books.remove(book);
+  }
 }
