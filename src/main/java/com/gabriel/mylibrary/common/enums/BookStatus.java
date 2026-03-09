@@ -9,7 +9,7 @@ public enum BookStatus {
   DROPPED;
 
   @JsonCreator
-  public static BookStatus from(String value) {
+  public static BookStatus from(String value) throws IllegalArgumentException {
 
     for (BookStatus status : values()) {
       if (status.name().equalsIgnoreCase(value)) {

@@ -10,26 +10,22 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleNotFound(
       ResourceNotFoundException ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.NOT_FOUND.value())
-        .error("Not Found")
-        .message(ex.getMessage())
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
   }
@@ -39,13 +35,9 @@ public class GlobalExceptionHandler {
       ResourceConflictException ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.CONFLICT.value())
-        .error("Conflict")
-        .message(ex.getMessage())
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
@@ -60,13 +52,9 @@ public class GlobalExceptionHandler {
       message = "Resource already exists (duplicate key violation)";
     }
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.CONFLICT.value())
-        .error("Conflict")
-        .message(message)
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.CONFLICT.value(), "Conflict", message,
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
   }
@@ -76,13 +64,9 @@ public class GlobalExceptionHandler {
       UnauthorizedException ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.UNAUTHORIZED.value())
-        .error("Unauthorized")
-        .message(ex.getMessage())
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.UNAUTHORIZED.value(), "Unauthorized", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
   }
@@ -92,13 +76,9 @@ public class GlobalExceptionHandler {
       ForbiddenException ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.FORBIDDEN.value())
-        .error("Forbidden")
-        .message(ex.getMessage())
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
   }
@@ -108,13 +88,10 @@ public class GlobalExceptionHandler {
       AccessDeniedException ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.FORBIDDEN.value())
-        .error("Forbidden")
-        .message("You do not have permission to access this resource")
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.FORBIDDEN.value(), "Forbidden",
+        "You do not have permission to access this resource",
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
   }
@@ -132,14 +109,9 @@ public class GlobalExceptionHandler {
             fieldError -> fieldError.getDefaultMessage(),
             (existing, duplicate) -> existing));
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.BAD_REQUEST.value())
-        .error("Validation Error")
-        .message("Validation error in fields")
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .fieldErrors(fieldErrors)
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(), "Validation Error", "Validation error in fields",
+        request.getRequestURI(), LocalDateTime.now(), fieldErrors);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
@@ -149,13 +121,9 @@ public class GlobalExceptionHandler {
       Exception ex,
       HttpServletRequest request) {
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-        .error("Internal Server Error")
-        .message(ex.getMessage())
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }
@@ -167,13 +135,9 @@ public class GlobalExceptionHandler {
 
     String message = ex.getMostSpecificCause().getMessage();
 
-    ErrorResponse response = ErrorResponse.builder()
-        .status(HttpStatus.BAD_REQUEST.value())
-        .error("Invalid Request Body")
-        .message(message)
-        .path(request.getRequestURI())
-        .timestamp(LocalDateTime.now())
-        .build();
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_REQUEST.value(), "Invalid Request Body", message,
+        request.getRequestURI(), LocalDateTime.now(), null);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
