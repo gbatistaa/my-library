@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -157,5 +158,23 @@ public class GlobalExceptionHandler {
         .build();
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleJsonParse(
+      HttpMessageNotReadableException ex,
+      HttpServletRequest request) {
+
+    String message = ex.getMostSpecificCause().getMessage();
+
+    ErrorResponse response = ErrorResponse.builder()
+        .status(HttpStatus.BAD_REQUEST.value())
+        .error("Invalid Request Body")
+        .message(message)
+        .path(request.getRequestURI())
+        .timestamp(LocalDateTime.now())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 }
