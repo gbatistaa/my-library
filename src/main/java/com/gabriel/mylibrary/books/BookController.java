@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
+import com.gabriel.mylibrary.categories.dtos.CategoryDTO;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.validation.Valid;
@@ -75,6 +77,32 @@ public class BookController {
       @PathVariable UUID id,
       @AuthenticationPrincipal UserEntity user) {
     bookService.delete(id, user.getId());
+    return ResponseEntity.noContent().build();
+  }
+
+  // --- Associação Livro ↔ Categorias ---
+
+  @GetMapping("/{id}/categories")
+  public ResponseEntity<List<CategoryDTO>> getCategories(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookService.getCategories(id, user.getId()));
+  }
+
+  @PostMapping("/{id}/categories/{categoryId}")
+  public ResponseEntity<BookDTO> addCategory(
+      @PathVariable UUID id,
+      @PathVariable UUID categoryId,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookService.addCategory(id, categoryId, user.getId()));
+  }
+
+  @DeleteMapping("/{id}/categories/{categoryId}")
+  public ResponseEntity<Void> removeCategory(
+      @PathVariable UUID id,
+      @PathVariable UUID categoryId,
+      @AuthenticationPrincipal UserEntity user) {
+    bookService.removeCategory(id, categoryId, user.getId());
     return ResponseEntity.noContent().build();
   }
 }

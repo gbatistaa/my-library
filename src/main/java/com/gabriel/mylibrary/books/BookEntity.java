@@ -71,7 +71,8 @@ public class BookEntity extends BaseEntity {
   @Column(nullable = true, length = 1000)
   private String notes;
 
-  @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(name = "books_categories", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
   @Builder.Default
   private List<CategoryEntity> categories = new ArrayList<>();
 
