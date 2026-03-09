@@ -1,8 +1,5 @@
 package com.gabriel.mylibrary.readingSession;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
