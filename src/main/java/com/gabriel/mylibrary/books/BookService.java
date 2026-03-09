@@ -11,6 +11,7 @@ import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
 import com.gabriel.mylibrary.books.mappers.BookMapper;
+import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.user.UserEntity;
@@ -34,7 +35,7 @@ public class BookService {
   }
 
   @Transactional(readOnly = true)
-  public BookDTO findOne(UUID id, UUID userId) {
+  public BookDTO findOne(UUID id, UUID userId) throws ResourceNotFoundException {
     return bookRepository.findByIdAndUserId(id, userId)
         .map(bookMapper::toDto)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
@@ -50,7 +51,7 @@ public class BookService {
   }
 
   @Transactional
-  public BookDTO create(@Valid CreateBookDTO dto, UUID userId) {
+  public BookDTO create(@Valid CreateBookDTO dto, UUID userId) throws ResourceConflictException {
     BookEntity newBook = bookMapper.toEntity(dto);
 
     if (bookRepository.existsByIsbnAndUserId(newBook.getIsbn(), userId)) {
@@ -64,7 +65,8 @@ public class BookService {
   }
 
   @Transactional
-  public BookDTO update(UUID id, UUID userId, @Valid UpdateBookDTO dto) {
+  public BookDTO update(UUID id, UUID userId, @Valid UpdateBookDTO dto)
+      throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
 
@@ -74,12 +76,20 @@ public class BookService {
       }
     }
 
+    if (dto.getStatus() == BookStatus.COMPLETED && dto.getRating() == null) {
+      throw new ResourceConflictException("Rating is required when status is COMPLETED");
+    }
+
+    if (dto.getStatus() != BookStatus.COMPLETED && dto.getRating() != null) {
+      throw new ResourceConflictException("Rating is not allowed when status is not COMPLETED");
+    }
+
     bookMapper.updateEntityFromDto(dto, book);
     return bookMapper.toDto(bookRepository.save(book));
   }
 
   @Transactional
-  public void delete(UUID id, UUID userId) {
+  public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     bookRepository.delete(book);

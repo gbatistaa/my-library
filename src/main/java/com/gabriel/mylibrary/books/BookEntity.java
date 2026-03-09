@@ -39,7 +39,7 @@ public class BookEntity extends BaseEntity {
 
   @Min(1)
   @Max(5)
-  @Column(nullable = false)
+  @Column(nullable = true)
   private Integer rating;
 
   @Min(1)
