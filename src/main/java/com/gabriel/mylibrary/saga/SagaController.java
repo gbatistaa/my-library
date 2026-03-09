@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.saga.dtos.CreateSagaDTO;
 import com.gabriel.mylibrary.saga.dtos.SagaDTO;
 import com.gabriel.mylibrary.saga.dtos.UpdateSagaDTO;
@@ -40,6 +42,16 @@ public class SagaController {
     return ResponseEntity.ok(sagaService.findOne(id, user.getId()));
   }
 
+  @GetMapping("/{id}/books")
+  public ResponseEntity<List<BookDTO>> getBooks(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(sagaService.getBooks(id, user.getId()));
+  }
+
+  @GetMapping("/{id}/progress")
+  public ResponseEntity<Double> getProgress(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(sagaService.getProgress(id, user.getId()));
+  }
+
   @PostMapping
   public ResponseEntity<SagaDTO> create(
       @Valid @RequestBody CreateSagaDTO dto,
@@ -58,6 +70,23 @@ public class SagaController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
     sagaService.delete(id, user.getId());
+    return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{id}/books/{bookId}")
+  public ResponseEntity<SagaDTO> addBookToSaga(
+      @PathVariable UUID id,
+      @PathVariable UUID bookId,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(sagaService.addBookToSaga(id, bookId, user.getId()));
+  }
+
+  @DeleteMapping("/{id}/books/{bookId}")
+  public ResponseEntity<Void> removeBookFromSaga(
+      @PathVariable UUID id,
+      @PathVariable UUID bookId,
+      @AuthenticationPrincipal UserEntity user) {
+    sagaService.removeBookFromSaga(id, bookId, user.getId());
     return ResponseEntity.noContent().build();
   }
 }
