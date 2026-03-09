@@ -36,3 +36,4 @@ app.log
 *.http
 flyway.conf
 PLAN.md
+MODEL.md
