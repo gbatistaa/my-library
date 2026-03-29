@@ -17,7 +17,6 @@ import com.gabriel.mylibrary.saga.mappers.SagaMapper;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -59,7 +58,7 @@ public class SagaService {
   }
 
   @Transactional
-  public SagaDTO create(UUID userId, @Valid CreateSagaDTO dto) {
+  public SagaDTO create(UUID userId, CreateSagaDTO dto) {
     if (sagaRepository.existsByNameAndUserId(dto.getName(), userId)) {
       throw new ResourceConflictException("Saga with this name already exists: " + dto.getName());
     }
@@ -71,7 +70,7 @@ public class SagaService {
   }
 
   @Transactional
-  public SagaDTO update(UUID id, @Valid UpdateSagaDTO dto, UUID userId) throws ResourceNotFoundException {
+  public SagaDTO update(UUID id, UpdateSagaDTO dto, UUID userId) throws ResourceNotFoundException {
     SagaEntity saga = sagaRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
 

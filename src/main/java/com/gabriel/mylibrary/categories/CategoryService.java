@@ -16,7 +16,6 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -43,7 +42,7 @@ public class CategoryService {
   }
 
   @Transactional
-  public CategoryDTO create(@Valid @RequestBody CreateCategoryDTO category, UUID userId) {
+  public CategoryDTO create(@RequestBody CreateCategoryDTO category, UUID userId) {
     CategoryEntity newCategory = categoryMapper.toEntity(category);
     if (categoryRepository.existsByNameAndUserId(category.getName(), userId)) {
       throw new ResourceConflictException("Category with this name already exists: " + category.getName());
@@ -57,7 +56,7 @@ public class CategoryService {
   }
 
   @Transactional
-  public CategoryDTO update(UUID id, UUID userId, @Valid @RequestBody UpdateCategoryDTO category) {
+  public CategoryDTO update(UUID id, UUID userId, @RequestBody UpdateCategoryDTO category) {
     CategoryEntity categoryEntity = categoryRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     categoryMapper.updateEntityFromDto(category, categoryEntity);

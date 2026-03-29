@@ -22,7 +22,6 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -58,12 +57,14 @@ public class BookService {
   }
 
   @Transactional
-  public BookDTO create(@Valid CreateBookDTO dto, UUID userId) throws ResourceConflictException {
+  public BookDTO create(CreateBookDTO dto, UUID userId) throws ResourceConflictException {
     BookEntity newBook = bookMapper.toEntity(dto);
 
     if (bookRepository.existsByIsbnAndUserId(newBook.getIsbn(), userId)) {
       throw new ResourceConflictException("Book with this ISBN already exists in your library: " + newBook.getIsbn());
     }
+
+    // if (bookMapper)
 
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
@@ -72,7 +73,7 @@ public class BookService {
   }
 
   @Transactional
-  public BookDTO update(UUID id, UUID userId, @Valid UpdateBookDTO dto)
+  public BookDTO update(UUID id, UUID userId, UpdateBookDTO dto)
       throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
