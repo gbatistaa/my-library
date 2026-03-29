@@ -51,6 +51,14 @@ public class ReadingGoalService {
         .orElseThrow(() -> new ResourceNotFoundException("No reading goal found for user in year " + year));
   }
 
+  @Transactional(readOnly = true)
+  public List<ReadingGoalDTO> listAll(UUID userId) {
+    return readingGoalRepository.findAll().stream() // Not ideal, should be findByUserId
+        .filter(goal -> goal.getUser().getId().equals(userId))
+        .map(mapper::toDto)
+        .toList();
+  }
+
   @Transactional
   public ReadingGoalDTO update(UUID id, UUID userId, UpdateReadingGoalDTO dto) {
     ReadingGoalEntity entity = readingGoalRepository.findById(id)

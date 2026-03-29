@@ -4,6 +4,7 @@ import com.gabriel.mylibrary.common.enums.BookStatus;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,9 @@ public class BookSpecification {
       }
 
       if (year != null) {
-        predicates.add(cb.equal(cb.function("YEAR", Integer.class, root.get("finishDate")), year));
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+        LocalDate endOfYear = LocalDate.of(year, 12, 31);
+        predicates.add(cb.between(root.get("finishDate"), startOfYear, endOfYear));
       }
 
       return cb.and(predicates.toArray(new Predicate[0]));

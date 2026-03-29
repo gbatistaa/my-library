@@ -157,6 +157,7 @@ public class StatsService {
         .build();
   }
 
+  @SuppressWarnings("null")
   @Transactional(readOnly = true)
   public YearInReviewDTO getYearInReview(UUID userId, int year) {
     LocalDate startOfYear = LocalDate.of(year, 1, 1);

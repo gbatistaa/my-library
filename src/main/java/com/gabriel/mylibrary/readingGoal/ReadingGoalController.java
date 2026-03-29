@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,6 +29,12 @@ public class ReadingGoalController {
     return ResponseEntity.status(HttpStatus.CREATED).body(readingGoalService.create(user.getId(), dto));
   }
 
+  @GetMapping
+  public ResponseEntity<List<ReadingGoalDTO>> listAll(
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(readingGoalService.listAll(user.getId()));
+  }
+
   @GetMapping("/{year}")
   public ResponseEntity<ReadingGoalDTO> getGoal(
       @AuthenticationPrincipal UserEntity user,
@@ -42,7 +49,7 @@ public class ReadingGoalController {
     return ResponseEntity.ok(readingGoalService.getProgress(user.getId(), year));
   }
 
-  @PutMapping("/{id}")
+  @RequestMapping(value = "/{id}", method = { RequestMethod.PUT, RequestMethod.PATCH })
   public ResponseEntity<ReadingGoalDTO> update(
       @AuthenticationPrincipal UserEntity user,
       @PathVariable UUID id,

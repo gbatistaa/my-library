@@ -6,6 +6,7 @@ import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class LeaderboardDao {
   }
 
   @SuppressWarnings("unchecked")
-  public List<LeaderboardEntryDTO> getBooksLeaderboard(LocalDateTime startDate, String metricType) {
+  public List<LeaderboardEntryDTO> getBooksLeaderboard(LocalDate startDate, String metricType) {
     String jpql = "SELECT u.id, u.username, COUNT(b) " +
         "FROM BookEntity b " +
         "JOIN b.user u " +

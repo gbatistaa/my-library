@@ -1,11 +1,14 @@
 package com.gabriel.mylibrary.leaderboard;
 
+import com.gabriel.mylibrary.leaderboard.dtos.LeaderboardEntryDTO;
 import com.gabriel.mylibrary.leaderboard.dtos.LeaderboardResponseDTO;
 import com.gabriel.mylibrary.leaderboard.enums.LeaderboardMetric;
 import com.gabriel.mylibrary.leaderboard.enums.LeaderboardPeriod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,9 +23,9 @@ public class LeaderboardService {
   public LeaderboardResponseDTO getLeaderboard(LeaderboardMetric metric, LeaderboardPeriod period) {
     LocalDateTime startDate = getStartDateFromPeriod(period);
 
-    var entries = switch (metric) {
+    List<LeaderboardEntryDTO> entries = switch (metric) {
       case PAGES -> leaderboardDao.getPagesLeaderboard(startDate, metric.name());
-      case BOOKS -> leaderboardDao.getBooksLeaderboard(startDate, metric.name());
+      case BOOKS -> leaderboardDao.getBooksLeaderboard(startDate.toLocalDate(), metric.name());
       case DURATION -> leaderboardDao.getDurationLeaderboard(startDate, metric.name());
       case SESSIONS -> leaderboardDao.getSessionsLeaderboard(startDate, metric.name());
       case STREAK -> leaderboardDao.getStreaksLeaderboard(metric.name());
