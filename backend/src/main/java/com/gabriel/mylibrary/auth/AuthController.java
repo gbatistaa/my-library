@@ -1,26 +1,3 @@
-package com.gabriel.mylibrary.auth;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
-import com.gabriel.mylibrary.auth.dtos.LoginDTO;
-import com.gabriel.mylibrary.auth.dtos.RefreshRequestDTO;
-import com.gabriel.mylibrary.auth.dtos.RegisterDTO;
-import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
-import com.gabriel.mylibrary.common.errors.UnauthorizedException;
-import com.gabriel.mylibrary.user.UserEntity;
-import com.gabriel.mylibrary.user.dtos.UserDTO;
-import com.gabriel.mylibrary.user.mappers.UserMapper;
-
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

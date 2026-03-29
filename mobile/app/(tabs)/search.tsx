@@ -1,13 +1,13 @@
 import { View, Text } from 'react-native';
 
-export default function HomeScreen() {
+export default function SearchScreen() {
   return (
     <View className="flex-1 items-center justify-center bg-paper dark:bg-deep-space">
       <Text className="text-2xl font-bold text-ink dark:text-ink-dark">
-        Dashboard
+        Busca
       </Text>
       <Text className="mt-2 text-ink-secondary dark:text-ink-dark-secondary">
-        Em breve: seu painel gamificado
+        Em breve: busca de livros
       </Text>
     </View>
   );

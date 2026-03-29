@@ -2,6 +2,7 @@ package com.gabriel.mylibrary.auth.dtos;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gabriel.mylibrary.user.dtos.CreateUserDTO;
 
 import jakarta.validation.constraints.Email;
@@ -37,6 +38,7 @@ public class RegisterDTO extends DeviceInfoDTO {
   private String password;
 
   @NotNull(message = "Birth date is required")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate birthDate;
 
   public CreateUserDTO toCreateUserDTO() {

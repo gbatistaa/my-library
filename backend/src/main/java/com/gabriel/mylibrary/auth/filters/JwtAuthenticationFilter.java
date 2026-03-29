@@ -45,8 +45,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
+    // 1. Try Authorization: Bearer <token> header first (mobile clients)
     String token = null;
-    if (request.getCookies() != null) {
+    String authHeader = request.getHeader("Authorization");
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    }
+
+    // 2. Fallback to HttpOnly cookie (web clients)
+    if (token == null && request.getCookies() != null) {
       for (Cookie cookie : request.getCookies()) {
         if (COOKIE_NAME.equals(cookie.getName())) {
           token = cookie.getValue();
