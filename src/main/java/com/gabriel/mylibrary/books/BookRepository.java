@@ -1,5 +1,7 @@
 package com.gabriel.mylibrary.books;
 
+import com.gabriel.mylibrary.common.enums.BookStatus;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +22,7 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID> {
 
   @EntityGraph(attributePaths = { "categories" })
   Page<BookEntity> findAllByUserIdAndTitleContainingIgnoreCase(UUID userId, String title, Pageable pageable);
+
+  int countByUserIdAndStatusAndFinishDateBetween(UUID userId, BookStatus status, LocalDate startDate,
+      LocalDate endDate);
 }
