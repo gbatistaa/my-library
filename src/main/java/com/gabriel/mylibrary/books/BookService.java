@@ -64,7 +64,18 @@ public class BookService {
       throw new ResourceConflictException("Book with this ISBN already exists in your library: " + newBook.getIsbn());
     }
 
-    // if (bookMapper)
+    if (newBook.getStatus() == BookStatus.COMPLETED && newBook.getRating() == null) {
+      throw new ResourceConflictException("Rating is required when status is COMPLETED");
+    }
+
+    if (newBook.getStatus() != BookStatus.COMPLETED && newBook.getRating() != null) {
+      throw new ResourceConflictException("Rating is not allowed when status is not COMPLETED");
+    }
+
+    if (newBook.getStartDate() != null && newBook.getFinishDate() != null
+        && newBook.getFinishDate().isBefore(newBook.getStartDate())) {
+      throw new ResourceConflictException("Finish date cannot be before start date");
+    }
 
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
@@ -84,15 +95,21 @@ public class BookService {
       }
     }
 
-    if (dto.getStatus() == BookStatus.COMPLETED && dto.getRating() == null) {
+    bookMapper.updateEntityFromDto(dto, book);
+
+    if (book.getStatus() == BookStatus.COMPLETED && book.getRating() == null) {
       throw new ResourceConflictException("Rating is required when status is COMPLETED");
     }
 
-    if (dto.getStatus() != BookStatus.COMPLETED && dto.getRating() != null) {
+    if (book.getStatus() != BookStatus.COMPLETED && book.getRating() != null) {
       throw new ResourceConflictException("Rating is not allowed when status is not COMPLETED");
     }
 
-    bookMapper.updateEntityFromDto(dto, book);
+    if (book.getStartDate() != null && book.getFinishDate() != null
+        && book.getFinishDate().isBefore(book.getStartDate())) {
+      throw new ResourceConflictException("Finish date cannot be before start date");
+    }
+
     return bookMapper.toDto(bookRepository.save(book));
   }
 

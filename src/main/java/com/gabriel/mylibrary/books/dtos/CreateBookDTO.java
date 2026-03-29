@@ -2,6 +2,7 @@ package com.gabriel.mylibrary.books.dtos;
 
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,6 @@ public class CreateBookDTO {
   @Size(max = 255, message = "Author name must not exceed 255 characters")
   private String author;
 
-  @NotNull(message = "Rating is required")
   @Min(value = 1, message = "Rating must be at least 1")
   @Max(value = 5, message = "Rating must not exceed 5")
   private Integer rating;
@@ -39,4 +39,11 @@ public class CreateBookDTO {
 
   @NotNull(message = "Book status is required")
   private BookStatus status;
+
+  private LocalDate startDate;
+
+  private LocalDate finishDate;
+
+  @Size(max = 1000, message = "Notes must not exceed 1000 characters")
+  private String notes;
 }

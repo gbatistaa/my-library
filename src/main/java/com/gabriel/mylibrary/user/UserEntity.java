@@ -8,6 +8,7 @@ import com.gabriel.mylibrary.auth.tokens.RefreshTokenEntity;
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.categories.CategoryEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
+import com.gabriel.mylibrary.readingSession.ReadingSessionEntity;
 import com.gabriel.mylibrary.saga.SagaEntity;
 
 import jakarta.persistence.*;
@@ -53,4 +54,7 @@ public class UserEntity extends BaseEntity {
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<SagaEntity> sagas = new ArrayList<>();
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  private List<ReadingSessionEntity> readingSessions = new ArrayList<>();
 }

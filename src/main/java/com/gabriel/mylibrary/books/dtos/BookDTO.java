@@ -1,6 +1,7 @@
 package com.gabriel.mylibrary.books.dtos;
 
 import com.gabriel.mylibrary.common.enums.BookStatus;
+import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +20,7 @@ public class BookDTO {
   private String genre;
   private BookStatus status;
   private String coverUrl;
+  private LocalDate startDate;
+  private LocalDate finishDate;
+  private String notes;
 }

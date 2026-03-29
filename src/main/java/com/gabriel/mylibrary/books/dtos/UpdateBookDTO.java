@@ -2,6 +2,7 @@ package com.gabriel.mylibrary.books.dtos;
 
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,4 +33,11 @@ public class UpdateBookDTO {
   private String genre;
 
   private BookStatus status;
+
+  private LocalDate startDate;
+
+  private LocalDate finishDate;
+
+  @Size(max = 1000, message = "Notes must not exceed 1000 characters")
+  private String notes;
 }
