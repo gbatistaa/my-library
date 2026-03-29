@@ -13,6 +13,8 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.readingSession.dtos.CreateReadingSessionDTO;
 import com.gabriel.mylibrary.readingSession.dtos.ReadingSessionDTO;
 import com.gabriel.mylibrary.readingSession.mappers.ReadingSessionMapper;
+import com.gabriel.mylibrary.achievement.AchievementEvaluator;
+import com.gabriel.mylibrary.streak.StreakService;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
@@ -26,6 +28,8 @@ public class ReadingSessionService {
   private final ReadingSessionMapper readingSessionMapper;
   private final BookRepository bookRepository;
   private final EntityManager entityManager;
+  private final StreakService streakService;
+  private final AchievementEvaluator achievementEvaluator;
 
   @Transactional(readOnly = true)
   public List<ReadingSessionDTO> findAll(UUID userId) {
@@ -58,7 +62,13 @@ public class ReadingSessionService {
     session.setUser(userRef);
     session.setBook(book);
 
-    return readingSessionMapper.toDto(readingSessionRepository.save(session));
+    ReadingSessionDTO saved = readingSessionMapper.toDto(readingSessionRepository.save(session));
+
+    // Update streak engine & evaluate achievements
+    streakService.recordActivity(userId);
+    achievementEvaluator.evaluate(userId);
+
+    return saved;
   }
 
   @Transactional

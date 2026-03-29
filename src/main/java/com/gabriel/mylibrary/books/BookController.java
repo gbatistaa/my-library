@@ -24,6 +24,7 @@ import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
 import com.gabriel.mylibrary.categories.dtos.CategoryDTO;
+import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.validation.Valid;
@@ -39,8 +40,17 @@ public class BookController {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<BookDTO>> findAll(
       @AuthenticationPrincipal UserEntity user,
+      @RequestParam(required = false) BookStatus status,
+      @RequestParam(required = false) Integer minRating,
+      @RequestParam(required = false) String genre,
+      @RequestParam(required = false) String author,
+      @RequestParam(required = false) Integer year,
       @PageableDefault(size = 10, sort = "title") Pageable pageable) {
-    return ResponseEntity.ok(bookService.findAll(user.getId(), pageable));
+    if (status == null && minRating == null && genre == null && author == null && year == null) {
+      return ResponseEntity.ok(bookService.findAll(user.getId(), pageable));
+    }
+    return ResponseEntity
+        .ok(bookService.findWithFilters(user.getId(), status, minRating, genre, author, year, pageable));
   }
 
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)

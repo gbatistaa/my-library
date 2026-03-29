@@ -12,21 +12,27 @@ import lombok.NoArgsConstructor;
 public class ReadingGoalProgressDTO {
   private ReadingGoalDTO goal;
 
+  // Raw progress
   private int booksRead;
   private int pagesRead;
 
-  // Pace metrics
-  private String bookPaceStatus; // AHEAD, ON_TRACK, BEHIND
-  private String pagePaceStatus; // AHEAD, ON_TRACK, BEHIND
+  // Pace & projections
+  private double dailyPaceRequired;
+  private double currentPace;
+  private String projectedFinishDate;
+  private boolean onTrack;
 
-  // Projections
-  private int projectedBooks;
-  private int projectedPages;
+  // Streak integration
+  private int currentStreak;
+  private int bestStreak;
+  private String streakInsight;
+
+  // Diversity
+  private int uniqueAuthors;
+  private int uniqueGenres;
+  private String topGenre;
 
   // Micro-victories
-  private int dailyPagesTarget;
-  private double dailyBooksTarget;
-
-  // Gamification Insight
+  private int dailyPagesGoal;
   private String dailyInsight;
 }

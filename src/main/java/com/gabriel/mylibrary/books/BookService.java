@@ -19,6 +19,7 @@ import com.gabriel.mylibrary.categories.mappers.CategoryMapper;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.achievement.AchievementEvaluator;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
@@ -33,10 +34,19 @@ public class BookService {
   private final EntityManager entityManager;
   private final CategoryRepository categoryRepository;
   private final CategoryMapper categoryMapper;
+  private final AchievementEvaluator achievementEvaluator;
 
   @Transactional(readOnly = true)
   public Page<BookDTO> findAll(UUID userId, Pageable pageable) {
     return bookRepository.findAllByUserId(userId, pageable)
+        .map(bookMapper::toDto);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<BookDTO> findWithFilters(UUID userId, BookStatus status, Integer minRating,
+      String genre, String author, Integer year, Pageable pageable) {
+    return bookRepository
+        .findAll(BookSpecification.withFilters(userId, status, minRating, genre, author, year), pageable)
         .map(bookMapper::toDto);
   }
 
@@ -80,7 +90,9 @@ public class BookService {
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
 
-    return bookMapper.toDto(bookRepository.save(newBook));
+    BookDTO result = bookMapper.toDto(bookRepository.save(newBook));
+    achievementEvaluator.evaluate(userId);
+    return result;
   }
 
   @Transactional
@@ -110,7 +122,9 @@ public class BookService {
       throw new ResourceConflictException("Finish date cannot be before start date");
     }
 
-    return bookMapper.toDto(bookRepository.save(book));
+    BookDTO result = bookMapper.toDto(bookRepository.save(book));
+    achievementEvaluator.evaluate(userId);
+    return result;
   }
 
   @Transactional

@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.readingGoal.dtos;
 
+import com.gabriel.mylibrary.common.enums.GoalVisibility;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,14 @@ public class CreateReadingGoalDTO {
   @Min(value = 1, message = "Target books must be at least 1")
   private Integer targetBooks;
 
-  @NotNull(message = "Target pages is required")
   @Min(value = 1, message = "Target pages must be at least 1")
   private Integer targetPages;
+
+  @Min(value = 1, message = "Target authors must be at least 1")
+  private Integer targetAuthors;
+
+  @Min(value = 1, message = "Target genres must be at least 1")
+  private Integer targetGenres;
+
+  private GoalVisibility visibility;
 }

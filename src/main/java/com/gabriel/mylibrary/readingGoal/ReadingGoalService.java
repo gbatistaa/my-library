@@ -7,6 +7,8 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.readingGoal.dtos.*;
 import com.gabriel.mylibrary.readingGoal.mappers.ReadingGoalMapper;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
+import com.gabriel.mylibrary.streak.StreakDTO;
+import com.gabriel.mylibrary.streak.StreakService;
 import com.gabriel.mylibrary.user.UserEntity;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -27,6 +31,7 @@ public class ReadingGoalService {
   private final ReadingSessionRepository readingSessionRepository;
   private final ReadingGoalMapper mapper;
   private final EntityManager entityManager;
+  private final StreakService streakService;
 
   @Transactional
   public ReadingGoalDTO create(UUID userId, CreateReadingGoalDTO dto) {
@@ -72,7 +77,6 @@ public class ReadingGoalService {
         endOfYearTime);
 
     int daysInYear = Year.of(year).length();
-
     LocalDate today = LocalDate.now();
     int currentDayOfYear;
     int daysRemaining;
@@ -85,63 +89,74 @@ public class ReadingGoalService {
       daysRemaining = daysInYear;
     } else {
       currentDayOfYear = today.getDayOfYear();
-      daysRemaining = daysInYear - currentDayOfYear;
-      if (daysRemaining <= 0)
-        daysRemaining = 1; // prevent division by zero near end of year
+      daysRemaining = Math.max(1, daysInYear - currentDayOfYear);
     }
 
-    // Book Pace
+    // Pace calculations
+    double weeksElapsed = Math.max(1, currentDayOfYear / 7.0);
+    double currentPace = booksRead / weeksElapsed;
+    double dailyPaceRequired = (double) Math.max(0, goal.getTargetBooks() - booksRead) / daysRemaining;
     double expectedBooks = (double) goal.getTargetBooks() / daysInYear * currentDayOfYear;
-    String bookPace = determinePace(booksRead, expectedBooks);
+    boolean onTrack = booksRead >= (expectedBooks * 0.9);
 
-    // Page Pace
-    double expectedPages = (double) goal.getTargetPages() / daysInYear * currentDayOfYear;
-    String pagePace = determinePace(pagesRead, expectedPages);
+    // Projected finish date
+    String projectedFinishDate;
+    if (booksRead >= goal.getTargetBooks()) {
+      projectedFinishDate = "🏆 Meta já atingida!";
+    } else if (currentPace <= 0) {
+      projectedFinishDate = "Comece a ler para gerar uma projeção";
+    } else {
+      int weeksRemaining = (int) Math.ceil((goal.getTargetBooks() - booksRead) / currentPace);
+      LocalDate projected = today.plusWeeks(weeksRemaining);
+      projectedFinishDate = projected.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy"));
+    }
 
-    // Projections
-    int projectedBooks = currentDayOfYear == 0 ? 0 : (int) ((double) booksRead / currentDayOfYear * daysInYear);
-    int projectedPages = currentDayOfYear == 0 ? 0 : (int) ((double) pagesRead / currentDayOfYear * daysInYear);
+    // Streak
+    StreakDTO streakData = streakService.getStreak(userId);
+
+    // Diversity
+    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserId(userId);
+    long uniqueGenres = bookRepository.countDistinctGenresByUserId(userId);
+    List<Object[]> genreStats = bookRepository.countBooksByGenre(userId);
+    String topGenre = genreStats.isEmpty() ? "Nenhum" : (String) genreStats.get(0)[0];
 
     // Micro-victories
-    int remainingPages = Math.max(0, goal.getTargetPages() - pagesRead);
-    int dailyPagesTarget = daysRemaining == 0 ? 0 : (int) Math.ceil((double) remainingPages / daysRemaining);
+    int remainingPages = goal.getTargetPages() != null ? Math.max(0, goal.getTargetPages() - pagesRead) : 0;
+    int dailyPagesGoal = goal.getTargetPages() != null ? (int) Math.ceil((double) remainingPages / daysRemaining) : 0;
 
-    int remainingBooks = Math.max(0, goal.getTargetBooks() - booksRead);
-    double dailyBooksTarget = daysRemaining == 0 ? 0 : (double) remainingBooks / daysRemaining;
-
-    // Daily Insight Logic
-    String insight;
-    if (pagesRead >= goal.getTargetPages() && booksRead >= goal.getTargetBooks()) {
-      insight = "🏆 Parabéns! Você já atingiu sua meta anual. Tudo o que você ler agora é um bônus para o seu cérebro!";
-    } else if ("AHEAD".equals(pagePace) && "AHEAD".equals(bookPace)) {
-      insight = "🔥 Você está voando! Mantenha esse ritmo incrível e você destruirá sua meta muito antes de dezembro.";
-    } else if ("BEHIND".equals(pagePace)) {
-      insight = "⚠️ Atenção! Você está um pouco atrás no ritmo de leitura. Que tal ler " + dailyPagesTarget
-          + " páginas hoje para recuperar o fôlego?";
-    } else {
-      insight = "📖 Você está no caminho certo. Apenas " + dailyPagesTarget
-          + " páginas hoje mantêm você no trilho. Boa leitura!";
-    }
+    // Daily Insight
+    String insight = generateInsight(booksRead, goal.getTargetBooks(), onTrack, dailyPagesGoal,
+        streakData.getCurrentStreak());
 
     return ReadingGoalProgressDTO.builder()
         .goal(mapper.toDto(goal))
         .booksRead(booksRead)
         .pagesRead(pagesRead)
-        .bookPaceStatus(bookPace)
-        .pagePaceStatus(pagePace)
-        .projectedBooks(projectedBooks)
-        .projectedPages(projectedPages)
-        .dailyPagesTarget(dailyPagesTarget)
-        .dailyBooksTarget(dailyBooksTarget)
+        .dailyPaceRequired(dailyPaceRequired)
+        .currentPace(currentPace)
+        .projectedFinishDate(projectedFinishDate)
+        .onTrack(onTrack)
+        .currentStreak(streakData.getCurrentStreak())
+        .bestStreak(streakData.getBestStreak())
+        .streakInsight(streakData.getInsight())
+        .uniqueAuthors((int) uniqueAuthors)
+        .uniqueGenres((int) uniqueGenres)
+        .topGenre(topGenre)
+        .dailyPagesGoal(dailyPagesGoal)
         .dailyInsight(insight)
         .build();
   }
 
-  private String determinePace(int actual, double expected) {
-    if (actual > expected + (expected * 0.1))
-      return "AHEAD";
-    if (actual < expected - (expected * 0.1))
-      return "BEHIND";
-    return "ON_TRACK";
+  private String generateInsight(int booksRead, int target, boolean onTrack, int dailyPages, int streak) {
+    if (booksRead >= target) {
+      return "🏆 Parabéns! Você já atingiu sua meta anual. Tudo o que você ler agora é um bônus!";
+    }
+    if (streak >= 7 && onTrack) {
+      return "🔥 Você está voando! Streak de " + streak + " dias e no ritmo da meta. Imbatível!";
+    }
+    if (!onTrack) {
+      return "⚠️ Atenção! Você está atrás do ritmo. Leia " + dailyPages + " páginas hoje para recuperar!";
+    }
+    return "📖 Caminho certo! " + dailyPages + " páginas hoje mantêm você na meta. Boa leitura!";
   }
 }
