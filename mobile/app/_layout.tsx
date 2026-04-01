@@ -20,6 +20,7 @@ import {
   isLoadingSessionAtom,
   userAtom,
 } from "@/src/store/auth";
+import { loadThemeAtom } from "@/src/store/theme";
 import { hydrateSession } from "@/src/services/authService";
 
 SplashScreen.preventAutoHideAsync();
@@ -49,9 +50,11 @@ export default function RootLayout() {
   const { mode } = useAppTheme();
   const setUser = useSetAtom(userAtom);
   const setIsLoading = useSetAtom(isLoadingSessionAtom);
+  const loadTheme = useSetAtom(loadThemeAtom);
 
   useEffect(() => {
     (async () => {
+      await loadTheme();
       try {
         const user = await hydrateSession();
         setUser(user);
