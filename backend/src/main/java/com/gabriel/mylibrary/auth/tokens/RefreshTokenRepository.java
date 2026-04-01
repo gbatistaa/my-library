@@ -21,4 +21,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
   boolean existsByUserIdAndDeviceId(UUID userId, String deviceId);
 
   boolean existsByUserId(UUID userId);
+
+  java.util.List<RefreshTokenEntity> findAllByUserId(UUID userId);
 }

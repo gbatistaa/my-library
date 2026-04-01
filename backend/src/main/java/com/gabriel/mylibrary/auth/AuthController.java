@@ -1,29 +1,16 @@
 package com.gabriel.mylibrary.auth;
 
-import java.util.UUID;
-
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.gabriel.mylibrary.auth.dtos.AuthResponseDTO;
-import com.gabriel.mylibrary.auth.dtos.LoginDTO;
-import com.gabriel.mylibrary.auth.dtos.RefreshRequestDTO;
-import com.gabriel.mylibrary.auth.dtos.RegisterDTO;
+import com.gabriel.mylibrary.auth.dtos.*;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.user.UserEntity;
+import com.gabriel.mylibrary.user.UserRepository;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
-import com.gabriel.mylibrary.user.mappers.UserMapper;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -35,23 +22,28 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
   private final AuthService authService;
+  private final UserRepository userRepository;
+
   private final UserMapper userMapper;
 
   @GetMapping("/me")
-  public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal UserEntity user) throws ResourceNotFoundException, UnauthorizedException {
-    UserDTO userDTO = userMapper.toDTO(user);
-    return ResponseEntity.ok(userDTO);
+  public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal UserEntity user) {
+    UserEntity fullUser = userRepository.findById(user.getId())
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    return ResponseEntity.ok(userMapper.toDTO(fullUser));
   }
 
   @PostMapping("/register")
-  public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterDTO dto, HttpServletResponse response) throws ResourceNotFoundException, UnauthorizedException {
+  public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterDTO dto, HttpServletResponse response)
+      throws ResourceNotFoundException, UnauthorizedException {
     AuthResponseDTO authResponse = authService.register(dto);
     setAccessTokenCookie(response, authResponse);
     return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto, HttpServletResponse response) throws ResourceNotFoundException, UnauthorizedException {
+  public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginDTO dto, HttpServletResponse response)
+      throws ResourceNotFoundException, UnauthorizedException {
     AuthResponseDTO authResponse = authService.login(dto);
     setAccessTokenCookie(response, authResponse);
     return ResponseEntity.ok(authResponse);
@@ -80,7 +72,8 @@ public class AuthController {
     return ResponseEntity.ok(authResponse);
   }
 
-  private void setAccessTokenCookie(HttpServletResponse response, AuthResponseDTO authResponse) throws ResourceNotFoundException, UnauthorizedException {
+  private void setAccessTokenCookie(HttpServletResponse response, AuthResponseDTO authResponse)
+      throws ResourceNotFoundException, UnauthorizedException {
     String token = authResponse.getAccessToken();
     if (token != null && !token.isEmpty()) {
       ResponseCookie cookie = ResponseCookie
@@ -95,7 +88,8 @@ public class AuthController {
     }
   }
 
-  private void clearAccessTokenCookie(HttpServletResponse response) throws ResourceNotFoundException, UnauthorizedException {
+  private void clearAccessTokenCookie(HttpServletResponse response)
+      throws ResourceNotFoundException, UnauthorizedException {
     ResponseCookie cookie = ResponseCookie.from("access_token", "")
         .httpOnly(true)
         .path("/")

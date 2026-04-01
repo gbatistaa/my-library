@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,13 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gabriel.mylibrary.auth.tokens.dtos.RefreshTokenDTO;
 import com.gabriel.mylibrary.auth.tokens.services.RefreshTokenService;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 
 /**
- * Admin/internal controller for managing refresh tokens (active device
- * sessions).
- * Endpoints intended for admin use or a "Manage Sessions" screen.
+ * Controller for managing refresh tokens (active device sessions).
+ * /auth/sessions/me endpoints for the authenticated user,
+ * other endpoints for admin use.
  */
 @RestController
 @RequestMapping("/auth/sessions")
@@ -26,6 +28,12 @@ import lombok.RequiredArgsConstructor;
 public class RefreshTokenController {
 
   private final RefreshTokenService refreshTokenService;
+
+  /** List all active sessions for the authenticated user. */
+  @GetMapping("/me")
+  public ResponseEntity<List<RefreshTokenDTO>> findMyDevices(@AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(refreshTokenService.findAllByUserId(user.getId()));
+  }
 
   /** List all active sessions (admin). */
   @GetMapping

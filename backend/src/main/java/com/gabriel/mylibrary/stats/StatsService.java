@@ -182,7 +182,7 @@ public class StatsService {
         .map(s -> s.getCreatedAt().toLocalDate())
         .distinct()
         .count();
-    long totalMinutes = yearSessions.stream().mapToLong(ReadingSessionEntity::getDurationMinutes).sum();
+    long totalMinutes = yearSessions.stream().mapToLong(ReadingSessionEntity::getDurationSeconds).sum();
 
     // Fastest book
     String fastestBook = completedBooks.stream()

@@ -19,7 +19,7 @@ public class CreateReadingSessionDTO {
 
   @NotNull
   @Min(1)
-  private Long durationMinutes;
+  private Long durationSeconds;
 
   @NotNull
   private UUID bookId;

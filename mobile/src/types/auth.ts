@@ -3,8 +3,11 @@
 /** Returned by GET /auth/me */
 export interface UserDTO {
   id: string;
+  name: string;
   username: string;
   email: string;
+  birthDate: string; // "yyyy-MM-dd"
+  createdAt: string; // ISO LocalDateTime "yyyy-MM-ddTHH:mm:ss"
 }
 
 /** Returned by POST /auth/login and /auth/register */
@@ -24,4 +27,12 @@ export interface JwtPayload {
   userId: string;
   iat: number;
   exp: number;
+}
+
+/** Returned by GET /auth/sessions/me */
+export interface DeviceSessionDTO {
+  id: string;
+  deviceId: string;
+  deviceName: string;
+  expirationDate: string; // ISO instant
 }

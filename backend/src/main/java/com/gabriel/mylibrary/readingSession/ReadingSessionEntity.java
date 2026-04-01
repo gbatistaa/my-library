@@ -25,7 +25,7 @@ public class ReadingSessionEntity extends BaseEntity {
   private Integer pagesRead;
 
   @Column(nullable = false)
-  private Long durationMinutes;
+  private Long durationSeconds;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)

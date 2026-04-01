@@ -118,7 +118,7 @@ public class AchievementEvaluator {
 
   private boolean hasMarathonSession(UUID userId, int minMinutes) {
     return readingSessionRepository.findAllByUserId(userId).stream()
-        .anyMatch(s -> s.getDurationMinutes() >= minMinutes);
+        .anyMatch(s -> s.getDurationSeconds() >= minMinutes);
   }
 
   private long booksCompletedInLastWeek(UUID userId) {

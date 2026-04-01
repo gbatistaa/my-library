@@ -34,6 +34,14 @@ public class RefreshTokenService {
   }
 
   @Transactional(readOnly = true)
+  public List<RefreshTokenDTO> findAllByUserId(UUID userId) {
+    return refreshTokenRepository.findAllByUserId(userId)
+        .stream()
+        .map(refreshTokenMapper::toDTO)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
   public RefreshTokenDTO findById(UUID id) throws ResourceNotFoundException {
     return refreshTokenRepository.findById(id)
         .map(refreshTokenMapper::toDTO)

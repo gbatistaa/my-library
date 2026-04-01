@@ -14,6 +14,11 @@ import org.springframework.stereotype.Repository;
 public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEntity, UUID> {
   List<ReadingSessionEntity> findAllByUserId(UUID userId);
 
+  @Query("SELECT rs FROM ReadingSessionEntity rs WHERE rs.user.id = :userId ORDER BY rs.createdAt DESC")
+  org.springframework.data.domain.Page<ReadingSessionEntity> findAllByUserIdOrderByCreatedAtDesc(
+      @Param("userId") UUID userId,
+      org.springframework.data.domain.Pageable pageable);
+
   List<ReadingSessionEntity> findAllByBookIdAndUserId(UUID bookId, UUID userId);
 
   Optional<ReadingSessionEntity> findByIdAndUserId(UUID id, UUID userId);
@@ -26,13 +31,13 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
   @Query("SELECT COALESCE(SUM(rs.pagesRead), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   int sumAllPagesReadByUserId(@Param("userId") UUID userId);
 
-  @Query("SELECT COALESCE(SUM(rs.durationMinutes), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
+  @Query("SELECT COALESCE(SUM(rs.durationSeconds), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   long sumAllDurationByUserId(@Param("userId") UUID userId);
 
   @Query("SELECT COALESCE(AVG(rs.pagesRead), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   double avgPagesPerSessionByUserId(@Param("userId") UUID userId);
 
-  @Query("SELECT COALESCE(AVG(rs.durationMinutes), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
+  @Query("SELECT COALESCE(AVG(rs.durationSeconds), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   double avgDurationPerSessionByUserId(@Param("userId") UUID userId);
 
   long countByUserId(UUID userId);

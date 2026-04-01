@@ -39,6 +39,13 @@ public class ReadingSessionService {
   }
 
   @Transactional(readOnly = true)
+  public org.springframework.data.domain.Page<ReadingSessionDTO> getHistory(UUID userId,
+      org.springframework.data.domain.Pageable pageable) {
+    return readingSessionRepository.findAllByUserIdOrderByCreatedAtDesc(userId, pageable)
+        .map(readingSessionMapper::toDto);
+  }
+
+  @Transactional(readOnly = true)
   public List<ReadingSessionDTO> findAllByBook(UUID bookId, UUID userId) {
     return readingSessionRepository.findAllByBookIdAndUserId(bookId, userId).stream()
         .map(readingSessionMapper::toDto)

@@ -14,5 +14,7 @@ public interface ReadingSessionMapper {
   ReadingSessionEntity toEntity(CreateReadingSessionDTO createReadingSessionDTO);
 
   @Mapping(source = "book.id", target = "bookId")
+  @Mapping(source = "book.title", target = "bookTitle")
+  @Mapping(source = "book.coverUrl", target = "bookCoverUrl")
   ReadingSessionDTO toDto(ReadingSessionEntity readingSessionEntity);
 }

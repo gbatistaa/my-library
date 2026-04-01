@@ -34,6 +34,13 @@ public class ReadingSessionController {
     return ResponseEntity.ok(readingSessionService.findAll(user.getId()));
   }
 
+  @GetMapping("/history")
+  public ResponseEntity<org.springframework.data.domain.Page<ReadingSessionDTO>> getHistory(
+      @AuthenticationPrincipal UserEntity user,
+      org.springframework.data.domain.Pageable pageable) {
+    return ResponseEntity.ok(readingSessionService.getHistory(user.getId(), pageable));
+  }
+
   @GetMapping("/book/{bookId}")
   public ResponseEntity<List<ReadingSessionDTO>> findAllByBook(
       @PathVariable UUID bookId,

@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 public class ReadingSessionDTO {
   private UUID id;
   private Integer pagesRead;
-  private Long durationMinutes;
+  private Long durationSeconds;
   private UUID bookId;
+  private String bookTitle;
+  private String bookCoverUrl;
   private LocalDateTime createdAt;
 }

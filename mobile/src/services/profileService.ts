@@ -5,6 +5,7 @@ import type {
   ReadingDnaDTO,
   ReadingGoalProgressDTO,
 } from "@/src/types/profile";
+import type { DeviceSessionDTO, UserDTO } from "@/src/types/auth";
 
 // ─── Profile API calls ────────────────────────────────────────────────────────
 
@@ -37,7 +38,31 @@ export async function getGoalProgress(
     );
     return data;
   } catch {
-    // No goal for this year — not an error
     return null;
   }
+}
+
+/** Fetch the current authenticated user's full profile (name, email, birthDate, createdAt). */
+export async function fetchCurrentUser(): Promise<UserDTO> {
+  const { data } = await api.get<UserDTO>("/auth/me");
+  return data;
+}
+
+// ─── Devices & Profile ────────────────────────────────────────────────────────
+
+export async function getMyDevices(): Promise<DeviceSessionDTO[]> {
+  const { data } = await api.get<DeviceSessionDTO[]>("/auth/sessions/me");
+  return data;
+}
+
+export async function revokeDevice(sessionId: string): Promise<void> {
+  await api.delete(`/auth/sessions/${sessionId}`);
+}
+
+export async function updateProfile(updates: {
+  name?: string;
+  username?: string;
+}): Promise<UserDTO> {
+  const { data } = await api.patch<UserDTO>("/users/me", updates);
+  return data;
 }
