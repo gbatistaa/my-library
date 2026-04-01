@@ -28,6 +28,7 @@ import {
   fetchCurrentUser,
 } from "@/src/services/profileService";
 import { LogoutButton } from "@/src/components/profile/LogoutButton";
+import { ThemePreferences } from "@/src/components/profile/ThemePreferences";
 import type { DeviceSessionDTO, UserDTO } from "@/src/types/auth";
 
 // ─── Edit Profile Modal ──────────────────────────────────────────────────────
@@ -612,8 +613,11 @@ export default function ProfileScreen() {
             </View>
           </Animated.View>
 
+          {/* ── Theme Preferences ──────────────────────────────── */}
+          <ThemePreferences />
+
           {/* ── Connected Devices ──────────────────────────────── */}
-          <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <Animated.View entering={FadeInDown.duration(400).delay(100)} style={{ marginTop: 24 }}>
             <View
               style={{
                 flexDirection: "row",
