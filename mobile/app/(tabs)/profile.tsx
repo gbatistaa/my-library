@@ -4,13 +4,15 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  Modal,
   TextInput,
   Alert,
   ActivityIndicator,
   Platform,
+  StyleSheet,
+  Pressable,
+  Animated as RNAnimated,
 } from "react-native";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
@@ -44,9 +46,45 @@ function EditProfileModal({
   onSave: (updated: UserDTO) => void;
 }) {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState(user.name ?? "");
   const [username, setUsername] = useState(user.username ?? "");
   const [saving, setSaving] = useState(false);
+
+  const SHEET_HEIGHT = 500;
+  const slideAnim = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
+  const overlayAnim = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      RNAnimated.parallel([
+        RNAnimated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 22,
+          stiffness: 200,
+        }),
+        RNAnimated.timing(overlayAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      RNAnimated.parallel([
+        RNAnimated.timing(slideAnim, {
+          toValue: SHEET_HEIGHT,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(overlayAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible, overlayAnim, slideAnim, SHEET_HEIGHT]);
 
   const handleSave = async () => {
     if (!name.trim() || !username.trim()) {
@@ -84,137 +122,167 @@ function EditProfileModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View
+    <View
+      style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
+      pointerEvents={visible ? "auto" : "none"}
+    >
+      {/* Backdrop with FADE */}
+      <RNAnimated.View
         style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.6)",
-          justifyContent: "flex-end",
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          opacity: overlayAnim,
         }}
       >
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+      </RNAnimated.View>
+
+      {/* Sheet with SLIDE (using Transform) */}
+      <RNAnimated.View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: colors.background,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          paddingTop: 20,
+          paddingHorizontal: 24,
+          paddingBottom: insets.bottom + 20,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -10 },
+          shadowOpacity: 0.3,
+          shadowRadius: 20,
+          elevation: 24,
+          transform: [{ translateY: slideAnim }],
+        }}
+      >
+        {/* Handle / Pill */}
         <View
           style={{
-            backgroundColor: colors.background,
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            padding: 24,
-            paddingBottom: Platform.OS === "ios" ? 40 : 24,
+            width: 40,
+            height: 5,
+            borderRadius: 2.5,
+            backgroundColor: colors.border,
+            alignSelf: "center",
+            marginBottom: 20,
+          }}
+        />
+
+        {/* Header */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 24,
           }}
         >
-          {/* Header */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 24,
-            }}
-          >
-            <Text
-              style={{ fontSize: 20, fontWeight: "800", color: colors.text }}
-            >
-              Edit Profile
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <Feather name="x" size={22} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Name */}
           <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "700",
-              color: colors.textSecondary,
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              marginBottom: 8,
-            }}
+            style={{ fontSize: 20, fontWeight: "800", color: colors.text }}
           >
-            Full Name
+            Edit Profile
           </Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            style={inputStyle}
-            placeholderTextColor={colors.textSecondary}
-            placeholder="Your full name"
-          />
-
-          {/* Username */}
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "700",
-              color: colors.textSecondary,
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              marginBottom: 8,
-              marginTop: 16,
-            }}
-          >
-            Username
-          </Text>
-          <TextInput
-            value={username}
-            onChangeText={setUsername}
-            style={inputStyle}
-            placeholderTextColor={colors.textSecondary}
-            placeholder="Your username"
-            autoCapitalize="none"
-          />
-
-          {/* Non-editable fields */}
-          <View
-            style={{
-              marginTop: 20,
-              gap: 10,
-              padding: 14,
-              borderRadius: 14,
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Feather name="lock" size={14} color={colors.textSecondary} />
-              <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-                Email and password can only be changed via settings
-              </Text>
-            </View>
-          </View>
-
-          {/* Save */}
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={saving}
-            style={{
-              marginTop: 24,
-              height: 52,
-              borderRadius: 14,
-              backgroundColor: colors.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.35,
-              shadowRadius: 12,
-              elevation: 6,
-            }}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={{ fontSize: 16, fontWeight: "700", color: "#fff" }}>
-                Save Changes
-              </Text>
-            )}
+          <TouchableOpacity onPress={onClose}>
+            <Feather name="x" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+
+        {/* Name */}
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "700",
+            color: colors.textSecondary,
+            textTransform: "uppercase",
+            letterSpacing: 0.8,
+            marginBottom: 8,
+          }}
+        >
+          Full Name
+        </Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          style={inputStyle}
+          placeholderTextColor={colors.textSecondary}
+          placeholder="Your full name"
+        />
+
+        {/* Username */}
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "700",
+            color: colors.textSecondary,
+            textTransform: "uppercase",
+            letterSpacing: 0.8,
+            marginBottom: 8,
+            marginTop: 16,
+          }}
+        >
+          Username
+        </Text>
+        <TextInput
+          value={username}
+          onChangeText={setUsername}
+          style={inputStyle}
+          placeholderTextColor={colors.textSecondary}
+          placeholder="Your username"
+          autoCapitalize="none"
+        />
+
+        {/* Non-editable fields */}
+        <View
+          style={{
+            marginTop: 20,
+            gap: 10,
+            padding: 14,
+            borderRadius: 14,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+          >
+            <Feather name="lock" size={14} color={colors.textSecondary} />
+            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+              Email and password can only be changed via settings
+            </Text>
+          </View>
+        </View>
+
+        {/* Save */}
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={saving}
+          style={{
+            marginTop: 24,
+            height: 52,
+            borderRadius: 14,
+            backgroundColor: colors.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+            elevation: 6,
+          }}
+        >
+          {saving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={{ fontSize: 16, fontWeight: "700", color: "#fff" }}>
+              Save Changes
+            </Text>
+          )}
+        </TouchableOpacity>
+      </RNAnimated.View>
+    </View>
   );
 }
 
@@ -707,14 +775,12 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Edit Modal */}
-      {editVisible ? (
-        <EditProfileModal
-          visible={editVisible}
-          user={user}
-          onClose={() => setEditVisible(false)}
-          onSave={handleProfileSaved}
-        />
-      ) : null}
+      <EditProfileModal
+        visible={editVisible}
+        user={user}
+        onClose={() => setEditVisible(false)}
+        onSave={handleProfileSaved}
+      />
     </View>
   );
 }
