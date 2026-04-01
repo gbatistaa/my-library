@@ -12,147 +12,196 @@ import type { AchievementDTO } from "@/src/types/profile";
 const CATEGORY_ORDER = ["VOLUME", "VELOCITY", "DIVERSITY", "GOALS"] as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
-  VOLUME: "Volume",
-  VELOCITY: "Velocity",
-  DIVERSITY: "Diversity",
-  GOALS: "Goals",
+  VOLUME: "VOLUME",
+  VELOCITY: "VELOCITY",
+  DIVERSITY: "DIVERSITY",
+  GOALS: "GOALS",
 };
 
-const CATEGORY_DESCRIPTIONS: Record<string, string> = {
-  VOLUME: "Read more books and pages",
-  VELOCITY: "Improve your reading speed",
-  DIVERSITY: "Explore new authors and genres",
-  GOALS: "Hit your reading targets",
-};
-
-const CATEGORY_ICONS: Record<string, string> = {
+const CATEGORY_EMOJIS: Record<string, string> = {
   VOLUME: "\u{1F4DA}",
   VELOCITY: "\u26A1",
   DIVERSITY: "\u{1F30D}",
   GOALS: "\u{1F3AF}",
 };
 
+// Unique emojis per achievement name, with category-based fallbacks
+const ACHIEVEMENT_EMOJIS: Record<string, string> = {
+  Bookworm: "\u{1F4D6}",
+  "Library Titan": "\u{1F3DB}\uFE0F",
+  "Speed Reader": "\u{1F3CE}\uFE0F",
+  "On Fire": "\u{1F525}",
+  Historian: "\u{1F3FA}",
+  "Future Seeker": "\u{1F6F8}",
+  "New Year Pro": "\u{1F3C5}",
+  "Peak Focus": "\u{1F9D7}",
+};
+
+function getAchievementEmoji(achievement: AchievementDTO): string {
+  return (
+    ACHIEVEMENT_EMOJIS[achievement.name] ??
+    CATEGORY_EMOJIS[achievement.category] ??
+    "\u{1F3C6}"
+  );
+}
+
+// Map categories to color keys for earned icon backgrounds
+function getIconBgColor(
+  category: string,
+  earned: boolean,
+  colors: any,
+  mode: string
+): string {
+  if (!earned) {
+    return colors.surfaceContainerHigh;
+  }
+  if (mode === "dark") {
+    return colors.primary + "33"; // 20% opacity
+  }
+  switch (category) {
+    case "VOLUME":
+      return colors.primaryFixed;
+    case "VELOCITY":
+      return colors.secondaryFixed;
+    case "DIVERSITY":
+      return colors.tertiaryFixed;
+    case "GOALS":
+      return colors.primaryFixed;
+    default:
+      return colors.primaryFixed;
+  }
+}
+
 function AchievementCard({
   achievement,
   colors,
+  mode,
   index,
 }: {
   achievement: AchievementDTO;
   colors: any;
+  mode: string;
   index: number;
 }) {
   const earned = achievement.earned;
   const progress = achievement.progress ?? 0;
   const pct = Math.round(progress * 100);
 
+  const cardBg = earned
+    ? colors.surface
+    : mode === "dark"
+      ? colors.surface + "66" // 40% opacity
+      : colors.surface + "99"; // 60% opacity
+
+  const cardBorder = earned
+    ? mode === "dark"
+      ? colors.outline + "1A" // 10% opacity
+      : "transparent"
+    : mode === "dark"
+      ? colors.outline + "33" // 20% opacity
+      : colors.outlineVariant + "1A"; // 10% opacity
+
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(index * 40)}
       style={{
-        flexDirection: "row",
+        width: "48%",
+        backgroundColor: cardBg,
+        padding: 20,
+        borderRadius: 12,
         alignItems: "center",
-        paddingVertical: 14,
-        gap: 14,
+        opacity: earned ? 1 : 0.8,
+        borderWidth: earned ? (mode === "dark" ? 1 : 0) : 1,
+        borderColor: cardBorder,
       }}
     >
-      {/* Icon */}
+      {/* Icon circle */}
       <View
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 13,
-          backgroundColor: earned
-            ? colors.primary + "15"
-            : colors.border + "60",
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: getIconBgColor(
+            achievement.category,
+            earned,
+            colors,
+            mode
+          ),
           alignItems: "center",
           justifyContent: "center",
-          borderWidth: 1.5,
-          borderColor: earned ? colors.primary + "35" : colors.border,
+          opacity: earned ? 1 : 0.6,
         }}
       >
-        <Text style={{ fontSize: 18, opacity: earned ? 1 : 0.5 }}>
-          {CATEGORY_ICONS[achievement.category] ?? "\u{1F3C6}"}
-        </Text>
-      </View>
-
-      {/* Info */}
-      <View style={{ flex: 1 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: earned ? "600" : "500",
-              color: earned ? colors.text : colors.textSecondary,
-              flex: 1,
-            }}
-            numberOfLines={1}
-          >
-            {achievement.name}
-          </Text>
-          {earned && (
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: "600",
-                color: colors.primary,
-                marginLeft: 8,
-              }}
-            >
-              Earned
-            </Text>
-          )}
-        </View>
-
         <Text
           style={{
-            fontSize: 13,
-            color: colors.textSecondary,
-            marginTop: 2,
-            lineHeight: 17,
+            fontSize: 28,
           }}
-          numberOfLines={2}
         >
-          {achievement.description}
+          {getAchievementEmoji(achievement)}
         </Text>
-
-        {/* Progress bar for unearned */}
-        {!earned && (
-          <View style={{ marginTop: 8 }}>
-            <View
-              style={{
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: colors.border,
-                overflow: "hidden",
-              }}
-            >
-              <View
-                style={{
-                  width: `${pct}%`,
-                  height: "100%",
-                  borderRadius: 2,
-                  backgroundColor: colors.primary,
-                }}
-              />
-            </View>
-            <Text
-              style={{
-                fontSize: 11,
-                color: colors.textSecondary,
-                marginTop: 4,
-              }}
-            >
-              {achievement.progressLabel || `${pct}%`}
-            </Text>
-          </View>
-        )}
       </View>
+
+      {/* Title */}
+      <Text
+        style={{
+          fontWeight: "700",
+          color: colors.text,
+          textAlign: "center",
+          marginTop: 16,
+        }}
+        numberOfLines={2}
+      >
+        {achievement.name}
+      </Text>
+
+      {/* Description */}
+      <Text
+        style={{
+          fontSize: 12,
+          color: colors.textSecondary,
+          textAlign: "center",
+          lineHeight: 18,
+          marginTop: 4,
+          marginBottom: 12,
+        }}
+        numberOfLines={3}
+      >
+        {achievement.description}
+      </Text>
+
+      {/* Progress bar */}
+      <View
+        style={{
+          width: "100%",
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: colors.primary + "1A", // 10% opacity
+          overflow: "hidden",
+        }}
+      >
+        <View
+          style={{
+            width: earned ? "100%" : `${pct}%`,
+            height: "100%",
+            borderRadius: 3,
+            backgroundColor: colors.primary,
+          }}
+        />
+      </View>
+
+      {/* Progress label for unearned */}
+      {!earned && (
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: colors.primary,
+            marginTop: 8,
+          }}
+        >
+          {achievement.progressLabel || `${pct}%`}
+        </Text>
+      )}
     </Animated.View>
   );
 }
@@ -161,66 +210,60 @@ function CategoryGroup({
   category,
   achievements,
   colors,
+  mode,
 }: {
   category: string;
   achievements: AchievementDTO[];
   colors: any;
+  mode: string;
 }) {
-  const earned = Array.isArray(achievements)
-    ? achievements.filter((a) => a.earned).length
-    : 0;
-  const total = Array.isArray(achievements) ? achievements.length : 0;
-
   return (
-    <View style={{ marginBottom: 28 }}>
-      {/* Category header */}
+    <View style={{ marginBottom: 48 }}>
+      {/* Category header: emoji + uppercase label */}
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 4,
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 24,
         }}
       >
+        <Text style={{ fontSize: 20 }}>
+          {CATEGORY_EMOJIS[category] ?? "\u{1F3C6}"}
+        </Text>
         <Text
           style={{
-            fontSize: 18,
+            fontSize: 12,
             fontWeight: "700",
             color: colors.text,
-            letterSpacing: -0.3,
+            opacity: 0.6,
+            textTransform: "uppercase",
+            letterSpacing: 3,
           }}
         >
           {CATEGORY_LABELS[category] ?? category}
         </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "500",
-            color: colors.textSecondary,
-          }}
-        >
-          {earned}/{total}
-        </Text>
       </View>
-      <Text
+
+      {/* Achievement grid (2 columns) */}
+      <View
         style={{
-          fontSize: 13,
-          color: colors.textSecondary,
-          marginBottom: 6,
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: 16,
         }}
       >
-        {CATEGORY_DESCRIPTIONS[category] ?? ""}
-      </Text>
-
-      {/* Achievement list */}
-      {achievements.map((a, i) => (
-        <AchievementCard
-          key={a.code}
-          achievement={a}
-          colors={colors}
-          index={i}
-        />
-      ))}
+        {achievements.map((a, i) => (
+          <AchievementCard
+            key={a.code}
+            achievement={a}
+            colors={colors}
+            mode={mode}
+            index={i}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -302,12 +345,19 @@ export default function AchievementsScreen() {
         {/* Header */}
         <Animated.View
           entering={FadeIn.duration(400)}
-          style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24 }}
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 14,
+            paddingBottom: 24,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
           <Text
             style={{
               fontSize: 28,
-              fontWeight: "700",
+              fontWeight: "800",
               color: colors.text,
               letterSpacing: -0.5,
             }}
@@ -317,51 +367,21 @@ export default function AchievementsScreen() {
           {total > 0 && (
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "baseline",
-                marginTop: 6,
+                backgroundColor: colors.primary + "1A", // 10% opacity
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 999,
               }}
             >
               <Text
                 style={{
-                  fontSize: 15,
-                  fontWeight: "600",
+                  fontSize: 14,
+                  fontWeight: "700",
                   color: colors.primary,
                 }}
               >
-                {earnedTotal} earned
+                {earnedTotal} / {total} earned
               </Text>
-              <Text
-                style={{
-                  fontSize: 15,
-                  color: colors.textSecondary,
-                  marginLeft: 4,
-                }}
-              >
-                out of {total}
-              </Text>
-            </View>
-          )}
-
-          {/* Overall progress bar */}
-          {total > 0 && (
-            <View
-              style={{
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: colors.border,
-                overflow: "hidden",
-                marginTop: 14,
-              }}
-            >
-              <View
-                style={{
-                  width: `${Math.round((earnedTotal / total) * 100)}%`,
-                  height: "100%",
-                  borderRadius: 3,
-                  backgroundColor: colors.primary,
-                }}
-              />
             </View>
           )}
         </Animated.View>
@@ -391,6 +411,7 @@ export default function AchievementsScreen() {
                 category={g.category}
                 achievements={g.items}
                 colors={colors}
+                mode={mode}
               />
             ))
           )}

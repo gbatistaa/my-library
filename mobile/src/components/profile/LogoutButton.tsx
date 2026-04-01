@@ -5,8 +5,10 @@ import { useSetAtom } from "jotai";
 import { Feather } from "@expo/vector-icons";
 import { userAtom, isLoadingSessionAtom } from "@/src/store/auth";
 import { logout } from "@/src/services/authService";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 export function LogoutButton() {
+  const { colors, mode } = useAppTheme();
   const setUser = useSetAtom(userAtom);
   const setLoading = useSetAtom(isLoadingSessionAtom);
   const router = useRouter();
@@ -34,20 +36,32 @@ export function LogoutButton() {
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          height: 52,
-          borderRadius: 14,
-          backgroundColor: "#F43F5E15",
-          borderWidth: 1,
-          borderColor: "#F43F5E30",
+          paddingVertical: 16,
+          borderRadius: 12,
+          backgroundColor:
+            mode === "light"
+              ? colors.primaryFixed + "80"
+              : colors.surface,
+          ...(mode === "dark"
+            ? { borderWidth: 1, borderColor: colors.outline }
+            : {}),
         }}
       >
         {isLoading ? (
-          <ActivityIndicator size="small" color="#F43F5E" />
+          <ActivityIndicator size="small" color={colors.error} />
         ) : (
           <>
-            <Feather name="log-out" size={16} color="#F43F5E" />
-            <Text style={{ fontSize: 15, fontWeight: "700", color: "#F43F5E" }}>
-              Sign Out
+            <Feather name="log-out" size={16} color={colors.error} />
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "700",
+                color: colors.error,
+                textTransform: "uppercase",
+                letterSpacing: 2,
+              }}
+            >
+              SIGN OUT
             </Text>
           </>
         )}

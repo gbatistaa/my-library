@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Image, Pressable, ScrollView } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
@@ -12,10 +12,10 @@ function BookCoverPlaceholder({ colors }: { colors: any }) {
   return (
     <View
       style={{
-        width: 80,
-        height: 120,
+        width: 96,
+        height: 144,
         borderRadius: 8,
-        backgroundColor: colors.primary + "12",
+        backgroundColor: colors.surfaceContainer,
         alignItems: "center",
         justifyContent: "center",
       }}
@@ -29,78 +29,100 @@ function BookCard({ book, colors }: { book: BookDTO; colors: any }) {
   return (
     <View
       style={{
+        width: 300,
+        backgroundColor: colors.surface,
+        borderRadius: 12,
+        padding: 16,
         flexDirection: "row",
         gap: 16,
-        alignItems: "flex-start",
       }}
     >
-      {book.coverUrl ? (
-        <Image
-          source={{ uri: book.coverUrl }}
-          style={{
-            width: 80,
-            height: 120,
-            borderRadius: 8,
-            backgroundColor: colors.border,
-          }}
-          resizeMode="cover"
-        />
-      ) : (
-        <BookCoverPlaceholder colors={colors} />
-      )}
+      {/* Cover with page badge overlay */}
+      <View style={{ position: "relative" }}>
+        {book.coverUrl ? (
+          <Image
+            source={{ uri: book.coverUrl }}
+            style={{
+              width: 96,
+              height: 144,
+              borderRadius: 8,
+              backgroundColor: colors.surfaceContainer,
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <BookCoverPlaceholder colors={colors} />
+        )}
+        {/* Page count badge */}
+        {book.pages ? (
+          <View
+            style={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              backgroundColor: colors.primary + "E6",
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 9999,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: "700",
+                color: colors.onPrimary,
+              }}
+            >
+              {book.pages} pgs
+            </Text>
+          </View>
+        ) : null}
+      </View>
 
-      <View style={{ flex: 1, paddingVertical: 2 }}>
-        <Text
-          style={{
-            fontSize: 17,
-            fontWeight: "700",
-            color: colors.text,
-            letterSpacing: -0.3,
-            lineHeight: 22,
-          }}
-          numberOfLines={2}
-        >
-          {book.title}
-        </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            color: colors.textSecondary,
-            marginTop: 3,
-          }}
-          numberOfLines={1}
-        >
-          {book.author}
-        </Text>
-
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: "500",
-            color: colors.textSecondary,
-            marginTop: 10,
-          }}
-        >
-          {book.pages} pages{book.genre ? ` \u00B7 ${book.genre}` : ""}
-        </Text>
+      {/* Info */}
+      <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: 4 }}>
+        <View>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "700",
+              color: colors.text,
+              letterSpacing: -0.3,
+              lineHeight: 22,
+            }}
+            numberOfLines={2}
+          >
+            {book.title}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              color: colors.textSecondary,
+              marginTop: 4,
+            }}
+            numberOfLines={1}
+          >
+            {book.author}
+          </Text>
+        </View>
 
         <Pressable
           style={({ pressed }) => ({
-            marginTop: 14,
             backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
             paddingVertical: 10,
-            paddingHorizontal: 18,
+            paddingHorizontal: 16,
             borderRadius: 10,
             alignSelf: "flex-start",
             flexDirection: "row",
             alignItems: "center",
+            justifyContent: "center",
             gap: 6,
           })}
         >
-          <Feather name="play" size={13} color="#FFFFFF" />
-          <Text style={{ fontSize: 13, fontWeight: "600", color: "#FFFFFF" }}>
-            Continue Reading
+          <Text style={{ fontSize: 14, fontWeight: "600", color: colors.onPrimary }}>
+            Continue
           </Text>
+          <Feather name="arrow-right" size={14} color={colors.onPrimary} />
         </Pressable>
       </View>
     </View>
@@ -115,6 +137,7 @@ function EmptyState({ colors }: { colors: any }) {
         alignItems: "center",
         gap: 16,
         paddingVertical: 8,
+        paddingHorizontal: 20,
       }}
     >
       <View
@@ -160,25 +183,51 @@ export function CurrentlyReading({ books }: Props) {
 
   return (
     <Animated.View entering={FadeIn.duration(400)}>
-      <Text
+      {/* Header row */}
+      <View
         style={{
-          fontSize: 13,
-          fontWeight: "600",
-          color: colors.textSecondary,
-          textTransform: "uppercase",
-          letterSpacing: 0.8,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
           marginBottom: 16,
+          paddingHorizontal: 20,
         }}
       >
-        Currently Reading
-      </Text>
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "700",
+            color: colors.text,
+            letterSpacing: -0.5,
+          }}
+        >
+          CURRENTLY READING
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: colors.primary,
+          }}
+        >
+          View Library
+        </Text>
+      </View>
 
       {hasBooks ? (
-        <View style={{ gap: 24 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            gap: 16,
+            paddingBottom: 4,
+          }}
+        >
           {books.map((book) => (
             <BookCard key={book.id} book={book} colors={colors} />
           ))}
-        </View>
+        </ScrollView>
       ) : (
         <EmptyState colors={colors} />
       )}

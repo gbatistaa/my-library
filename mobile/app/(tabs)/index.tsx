@@ -8,6 +8,7 @@ import Animated, { FadeIn } from "react-native-reanimated";
 
 import { userAtom } from "@/src/store/auth";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { colors as themeColors } from "@/src/theme/colors";
 import {
   getStreak,
   getAchievements,
@@ -19,7 +20,6 @@ import { getCurrentlyReading } from "@/src/services/bookService";
 import { CurrentlyReading } from "@/src/components/home/CurrentlyReading";
 import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
-import { StreakSection } from "@/src/components/home/StreakSection";
 import { AchievementsRow } from "@/src/components/home/AchievementsRow";
 
 function Skeleton({ height = 120 }: { height?: number }) {
@@ -34,6 +34,23 @@ function Skeleton({ height = 120 }: { height?: number }) {
       }}
     />
   );
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function getInitials(name?: string, username?: string): string {
+  if (name?.trim()) {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+  }
+  if (username?.trim()) return username[0].toUpperCase();
+  return "R";
 }
 
 export default function HomeScreen() {
@@ -86,10 +103,9 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
-  const firstName = user?.name?.trim()
-    ? user.name.split(" ")[0]
-    : (user?.username ?? "Reader");
   const currentStreak = streak?.currentStreak ?? 0;
+  const greeting = getGreeting();
+  const initials = getInitials(user?.name, user?.username);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -108,7 +124,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* ── Header: greeting + streak badge ──── */}
+        {/* ── Header: avatar + greeting + streak badge ──── */}
         <Animated.View
           entering={FadeIn.duration(400)}
           style={{
@@ -117,30 +133,54 @@ export default function HomeScreen() {
             paddingBottom: 24,
             flexDirection: "row",
             justifyContent: "space-between",
-            alignItems: "flex-start",
+            alignItems: "center",
           }}
         >
-          <View>
-            <Text
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            {/* Avatar circle */}
+            <View
               style={{
-                fontSize: 14,
-                fontWeight: "500",
-                color: colors.textSecondary,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.surfaceContainerHigh,
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Welcome back,
-            </Text>
-            <Text
-              style={{
-                fontSize: 28,
-                fontWeight: "700",
-                color: colors.text,
-                letterSpacing: -0.5,
-                marginTop: 2,
-              }}
-            >
-              {firstName}
-            </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "700",
+                  color: colors.primary,
+                }}
+              >
+                {initials}
+              </Text>
+            </View>
+
+            <View>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "500",
+                  color: colors.textSecondary,
+                }}
+              >
+                {greeting}, Curator
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "700",
+                  color: colors.primary,
+                  letterSpacing: -0.5,
+                  marginTop: 1,
+                }}
+              >
+                @{user?.username ?? "reader"}
+              </Text>
+            </View>
           </View>
 
           {/* Streak pill */}
@@ -150,59 +190,59 @@ export default function HomeScreen() {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 5,
-                backgroundColor: colors.primary + "12",
+                backgroundColor: colors.secondary + "2E",
                 paddingHorizontal: 12,
-                paddingVertical: 7,
-                borderRadius: 20,
-                marginTop: 4,
+                paddingVertical: 6,
+                borderRadius: 9999,
               }}
             >
               <Text style={{ fontSize: 16 }}>{"\uD83D\uDD25"}</Text>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: "700",
-                  color: colors.primary,
+                  color: colors.secondary,
                 }}
               >
-                {currentStreak}
+                {currentStreak} days
               </Text>
             </View>
           )}
         </Animated.View>
 
-        <View style={{ paddingHorizontal: 20, gap: 32 }}>
-          {/* ── Currently Reading (hero) ─────────── */}
+        <View style={{ gap: 40 }}>
+          {/* ── Currently Reading (horizontal scroll) ──── */}
           {loadingBooks ? (
-            <Skeleton height={140} />
+            <View style={{ paddingHorizontal: 20 }}>
+              <Skeleton height={180} />
+            </View>
           ) : (
             <CurrentlyReading books={currentlyReading} />
           )}
 
-          {/* ── Stats ─────────────────────────── */}
-          {loadingDna && loadingStreak ? (
-            <Skeleton height={200} />
-          ) : (
-            <QuickStats dna={dna} streak={streak} />
-          )}
+          {/* ── Quick Stats (bento grid) ────────────── */}
+          <View style={{ paddingHorizontal: 20 }}>
+            {loadingDna && loadingStreak ? (
+              <Skeleton height={260} />
+            ) : (
+              <QuickStats dna={dna} streak={streak} />
+            )}
+          </View>
 
-          {/* ── Reading Goal ───────────────────── */}
-          {loadingGoal ? (
-            <Skeleton height={80} />
-          ) : (
-            <GoalSection progress={goalProgress} />
-          )}
+          {/* ── Reading Goal ─────────────────────────── */}
+          <View style={{ paddingHorizontal: 20 }}>
+            {loadingGoal ? (
+              <Skeleton height={160} />
+            ) : (
+              <GoalSection progress={goalProgress} />
+            )}
+          </View>
 
-          {/* ── Streak Detail ──────────────────── */}
-          {loadingStreak ? (
-            <Skeleton height={80} />
-          ) : (
-            <StreakSection streak={streak} />
-          )}
-
-          {/* ── Achievements ───────────────────── */}
+          {/* ── Achievements ─────────────────────────── */}
           {loadingAchievements ? (
-            <Skeleton height={80} />
+            <View style={{ paddingHorizontal: 20 }}>
+              <Skeleton height={120} />
+            </View>
           ) : (
             <AchievementsRow achievements={achievements} />
           )}

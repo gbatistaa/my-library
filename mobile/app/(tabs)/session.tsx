@@ -50,11 +50,14 @@ function formatRelativeDate(isoDate: string): string {
 const TIMER_PRESETS = [15, 30, 45, 60] as const;
 
 const SessionScreen = () => {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === "dark";
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
-  const [mode, setMode] = useState<"stopwatch" | "timer">("stopwatch");
+  const [modeState, setModeState] = useState<"stopwatch" | "timer">(
+    "stopwatch",
+  );
   const [bookModalVisible, setBookModalVisible] = useState(false);
   const [selectedBook, setSelectedBook] = useState<BookDTO | null>(null);
   const [isActive, setIsActive] = useState(false);
@@ -201,11 +204,11 @@ const SessionScreen = () => {
       timerRef.current = setInterval(() => {
         setElapsed((prev) => {
           const next = prev + 1;
-          if (mode === "timer" && next >= targetTime) {
+          if (modeState === "timer" && next >= targetTime) {
             handleCompleteTimer(next);
             return next;
           }
-          if (mode === "stopwatch" && next >= 10 * 3600) {
+          if (modeState === "stopwatch" && next >= 10 * 3600) {
             setIsActive(false);
             Alert.alert("Limit", "Maximum session length is 10 hours.");
           }
@@ -218,11 +221,11 @@ const SessionScreen = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, mode, targetTime, handleCompleteTimer]);
+  }, [isActive, modeState, targetTime, handleCompleteTimer]);
 
   const handleToggleTimer = () => {
     if (!isActive) {
-      if (mode === "timer" && targetTime <= 0) {
+      if (modeState === "timer" && targetTime <= 0) {
         Alert.alert("Set a Duration", "Choose how long you want to read.");
         return;
       }
@@ -234,11 +237,13 @@ const SessionScreen = () => {
 
   // Calculate display values
   const displaySeconds =
-    mode === "timer" && isActive ? Math.max(0, targetTime - elapsed) : elapsed;
+    modeState === "timer" && isActive
+      ? Math.max(0, targetTime - elapsed)
+      : elapsed;
 
   // Ring progress: stopwatch pulses slowly, timer fills toward completion
   const ringProgress =
-    mode === "timer"
+    modeState === "timer"
       ? targetTime > 0
         ? Math.min(elapsed / targetTime, 1)
         : 0
@@ -247,11 +252,15 @@ const SessionScreen = () => {
         : 0;
 
   const timerSubtitle =
-    mode === "timer" && !isActive && elapsed === 0
+    modeState === "timer" && !isActive && elapsed === 0
       ? `${Math.floor(targetTime / 60)} min session`
-      : mode === "stopwatch" && !isActive && elapsed === 0
+      : modeState === "stopwatch" && !isActive && elapsed === 0
         ? "Tap play to start"
         : undefined;
+
+  // Whether cancel/save should be functional
+  const canDiscard = elapsed > 0 && !isActive;
+  const canSave = elapsed >= 30 && !isActive;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -263,118 +272,158 @@ const SessionScreen = () => {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ───────────────────────────── */}
+        {/* -- Header -------------------------------- */}
         <Animated.View
           entering={FadeIn.duration(400)}
           style={{ paddingTop: 14, paddingBottom: 8 }}
         >
           <Text
             style={{
-              fontSize: 28,
+              fontSize: 22,
               fontWeight: "700",
-              color: colors.text,
-              letterSpacing: -0.5,
+              color: colors.primary,
+              letterSpacing: -0.3,
             }}
           >
             Reading Session
           </Text>
         </Animated.View>
 
-        {/* ── Mode Toggle ──────────────────────── */}
+        {/* -- Mode Toggle --------------------------- */}
         <View
           style={{
-            flexDirection: "row",
-            backgroundColor: colors.surface,
-            borderRadius: 12,
+            alignSelf: "center",
+            maxWidth: 280,
+            width: "100%",
             marginTop: 20,
-            padding: 4,
-            borderWidth: 1,
-            borderColor: colors.border,
           }}
         >
-          {(["stopwatch", "timer"] as const).map((m) => (
-            <TouchableOpacity
-              key={m}
-              style={{
-                flex: 1,
-                paddingVertical: 10,
-                alignItems: "center",
-                backgroundColor: mode === m ? colors.primary : "transparent",
-                borderRadius: 8,
-              }}
-              onPress={() => {
-                if (isActive) {
-                  Alert.alert(
-                    "Pause First",
-                    "Pause the timer to switch modes.",
-                  );
-                  return;
-                }
-                setMode(m);
-                setElapsed(0);
-              }}
-            >
-              <Text
-                style={{
-                  color: mode === m ? "#FFFFFF" : colors.textSecondary,
-                  fontWeight: "600",
-                  fontSize: 14,
-                }}
-              >
-                {m === "stopwatch" ? "Stopwatch" : "Timer"}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          <View
+            style={{
+              flexDirection: "row",
+              backgroundColor: colors.surfaceContainerLow,
+              borderRadius: 12,
+              padding: 6,
+              ...(isDark && {
+                borderWidth: 1,
+                borderColor: colors.outlineVariant + "4D", // 30% opacity
+              }),
+            }}
+          >
+            {(["stopwatch", "timer"] as const).map((m) => {
+              const isSelected = modeState === m;
+              return (
+                <TouchableOpacity
+                  key={m}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 8,
+                    alignItems: "center",
+                    backgroundColor: isSelected
+                      ? colors.primary
+                      : "transparent",
+                    borderRadius: 10,
+                    ...(isSelected && {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 2,
+                      elevation: 2,
+                    }),
+                  }}
+                  onPress={() => {
+                    if (isActive) {
+                      Alert.alert(
+                        "Pause First",
+                        "Pause the timer to switch modes.",
+                      );
+                      return;
+                    }
+                    setModeState(m);
+                    setElapsed(0);
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: isSelected
+                        ? colors.onPrimary
+                        : colors.textSecondary,
+                      fontWeight: isSelected ? "600" : "500",
+                      fontSize: 14,
+                    }}
+                  >
+                    {m === "stopwatch" ? "Stopwatch" : "Timer"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
-        {/* ── Book Selector ────────────────────── */}
-        <TouchableOpacity
+        {/* -- Book Selector ------------------------- */}
+        <Pressable
           onPress={() => setBookModalVisible(true)}
-          activeOpacity={0.8}
-          style={{
+          style={({ pressed }) => ({
             marginTop: 24,
             height: 56,
-            borderRadius: 14,
-            backgroundColor: selectedBook
-              ? colors.primary + "10"
-              : colors.primary,
-            borderWidth: 2,
-            borderColor: colors.primary,
+            borderRadius: 8,
+            backgroundColor: isDark
+              ? colors.surfaceContainerLow
+              : colors.primaryContainer,
+            ...(isDark && {
+              borderWidth: 1,
+              borderColor: colors.outlineVariant + "4D",
+            }),
             flexDirection: "row",
             alignItems: "center",
-            paddingHorizontal: 20,
+            paddingHorizontal: 16,
             justifyContent: "space-between",
-            shadowColor: colors.primary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: selectedBook ? 0 : 0.2,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
+            transform: [{ scale: pressed ? 0.98 : 1 }],
+          })}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <Feather
-              name={selectedBook ? "book-open" : "plus-circle"}
-              size={20}
-              color={selectedBook ? colors.primary : "#FFFFFF"}
-            />
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+          >
+            {/* Book cover thumbnail placeholder */}
+            <View
+              style={{
+                width: 32,
+                height: 40,
+                borderRadius: 4,
+                backgroundColor: isDark
+                  ? colors.surface + "80"
+                  : colors.onPrimary + "40",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Feather
+                name="book"
+                size={16}
+                color={
+                  isDark ? colors.textSecondary : colors.onPrimaryFixedVariant
+                }
+              />
+            </View>
             <Text
               style={{
                 fontSize: 15,
-                fontWeight: "700",
-                color: selectedBook ? colors.primary : "#FFFFFF",
+                fontWeight: "600",
+                color: isDark ? colors.text : colors.onPrimaryFixedVariant,
               }}
+              numberOfLines={1}
             >
-              {selectedBook ? selectedBook.title : "Select your book reading"}
+              {selectedBook ? selectedBook.title : "Select your book"}
             </Text>
           </View>
           <Feather
             name="chevron-right"
             size={18}
-            color={selectedBook ? colors.primary : "#FFFFFF"}
+            color={isDark ? colors.textSecondary : colors.onPrimaryFixedVariant}
           />
-        </TouchableOpacity>
+        </Pressable>
 
-        {/* ── Timer Ring ───────────────────────── */}
+        {/* -- Timer Ring ---------------------------- */}
         <View style={{ alignItems: "center", marginTop: 40, marginBottom: 16 }}>
           <TimerRing
             progress={ringProgress}
@@ -384,14 +433,14 @@ const SessionScreen = () => {
           />
         </View>
 
-        {/* ── Timer Presets (timer mode only) ──── */}
-        {mode === "timer" && !isActive && elapsed === 0 && (
+        {/* -- Timer Presets (timer mode only) ------- */}
+        {modeState === "timer" && !isActive && elapsed === 0 && (
           <Animated.View
             entering={FadeIn.duration(300)}
             style={{
               flexDirection: "row",
               justifyContent: "center",
-              gap: 10,
+              gap: 12,
               marginBottom: 24,
             }}
           >
@@ -404,14 +453,18 @@ const SessionScreen = () => {
                   activeOpacity={0.7}
                   style={{
                     paddingVertical: 10,
-                    paddingHorizontal: 15,
-                    borderRadius: 12,
+                    paddingHorizontal: 20,
+                    borderRadius: 999,
                     backgroundColor: isSelected
-                      ? colors.primary
-                      : colors.surface,
-                    borderWidth: 2,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    minWidth: 64,
+                      ? isDark
+                        ? colors.primary
+                        : colors.primaryFixed
+                      : colors.surfaceContainerLow,
+                    ...(!isSelected &&
+                      isDark && {
+                        borderWidth: 1,
+                        borderColor: colors.outlineVariant + "4D",
+                      }),
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -419,8 +472,12 @@ const SessionScreen = () => {
                   <Text
                     style={{
                       fontSize: 14,
-                      fontWeight: "800",
-                      color: isSelected ? "#FFFFFF" : colors.text,
+                      fontWeight: isSelected ? "700" : "500",
+                      color: isSelected
+                        ? isDark
+                          ? colors.onPrimary
+                          : colors.onPrimaryFixedVariant
+                        : colors.textSecondary,
                       textAlign: "center",
                     }}
                   >
@@ -446,20 +503,24 @@ const SessionScreen = () => {
               activeOpacity={0.7}
               style={{
                 paddingVertical: 10,
-                paddingHorizontal: 15,
-                borderRadius: 12,
-                backgroundColor: colors.surface,
-                borderWidth: 2,
-                borderColor: colors.border,
-                minWidth: 70,
+                paddingHorizontal: 20,
+                borderRadius: 999,
+                backgroundColor: colors.surfaceContainerLow,
+                flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: 6,
+                ...(isDark && {
+                  borderWidth: 1,
+                  borderColor: colors.outlineVariant + "4D",
+                }),
               }}
             >
+              <Feather name="edit-2" size={12} color={colors.textSecondary} />
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: "800",
+                  fontWeight: "500",
                   color: colors.textSecondary,
                   textAlign: "center",
                 }}
@@ -470,49 +531,50 @@ const SessionScreen = () => {
           </Animated.View>
         )}
 
-        {/* ── Controls ─────────────────────────── */}
+        {/* -- Controls ------------------------------ */}
         <View
           style={{
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
-            gap: 20,
+            gap: 48,
             marginBottom: 48,
           }}
         >
-          {/* Discard */}
-          {elapsed > 0 && !isActive && (
-            <Animated.View entering={FadeIn.duration(200)}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Discard Session?",
-                    "This will reset your progress.",
-                    [
-                      { text: "Keep", style: "cancel" },
-                      {
-                        text: "Discard",
-                        style: "destructive",
-                        onPress: () => setElapsed(0),
-                      },
-                    ],
-                  );
-                }}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Feather name="x" size={22} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </Animated.View>
-          )}
+          {/* Cancel (X) */}
+          <TouchableOpacity
+            onPress={() => {
+              if (!canDiscard) return;
+              Alert.alert(
+                "Discard Session?",
+                "This will reset your progress.",
+                [
+                  { text: "Keep", style: "cancel" },
+                  {
+                    text: "Discard",
+                    style: "destructive",
+                    onPress: () => setElapsed(0),
+                  },
+                ],
+              );
+            }}
+            activeOpacity={canDiscard ? 0.7 : 1}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: colors.surfaceContainerLow,
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: canDiscard ? 1 : 0.35,
+              ...(isDark && {
+                borderWidth: 1,
+                borderColor: colors.outlineVariant + "80", // 50% opacity
+              }),
+            }}
+          >
+            <Feather name="x" size={22} color={colors.error} />
+          </TouchableOpacity>
 
           {/* Play / Pause */}
           <TouchableOpacity
@@ -522,65 +584,68 @@ const SessionScreen = () => {
               width: 72,
               height: 72,
               borderRadius: 36,
-              backgroundColor: isActive ? colors.text : colors.primary,
+              backgroundColor: colors.primary,
               justifyContent: "center",
               alignItems: "center",
-              shadowColor: isActive ? "#000" : colors.primary,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.25,
-              shadowRadius: 12,
-              elevation: 6,
+              transform: [{ scale: 1.1 }],
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.35,
+              shadowRadius: 16,
+              elevation: 8,
             }}
           >
             <Feather
               name={isActive ? "pause" : "play"}
               size={28}
-              color={isActive ? colors.background : "#FFFFFF"}
+              color="#FFFFFF"
             />
           </TouchableOpacity>
 
-          {/* Save */}
-          {elapsed >= 30 && !isActive && (
-            <Animated.View entering={FadeIn.duration(200)}>
-              <TouchableOpacity
-                onPress={() => handleSaveSession()}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: colors.success,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  shadowColor: colors.success,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 4,
-                }}
-              >
-                <Feather name="check" size={22} color="#FFFFFF" />
-              </TouchableOpacity>
-            </Animated.View>
-          )}
+          {/* Save (check) */}
+          <TouchableOpacity
+            onPress={() => {
+              if (!canSave) return;
+              handleSaveSession();
+            }}
+            activeOpacity={canSave ? 0.7 : 1}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: colors.surfaceContainerLow,
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: canSave ? 1 : 0.35,
+              ...(isDark && {
+                borderWidth: 1,
+                borderColor: colors.outlineVariant + "80", // 50% opacity
+              }),
+            }}
+          >
+            <Feather
+              name="check"
+              size={22}
+              color={isDark ? colors.primary : colors.secondary}
+            />
+          </TouchableOpacity>
         </View>
 
-        {/* ── Recent Sessions ──────────────────── */}
+        {/* -- Recent Sessions ----------------------- */}
         <View>
           <View
             style={{
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "baseline",
-              marginBottom: 14,
+              marginBottom: 16,
             }}
           >
             <Text
               style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: colors.textSecondary,
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.text,
               }}
             >
               Recent Sessions
@@ -589,11 +654,11 @@ const SessionScreen = () => {
               <Text
                 style={{
                   color: colors.primary,
-                  fontWeight: "600",
+                  fontWeight: "500",
                   fontSize: 13,
                 }}
               >
-                See all
+                View All
               </Text>
             </TouchableOpacity>
           </View>
@@ -611,7 +676,7 @@ const SessionScreen = () => {
               </Text>
             </View>
           ) : (
-            <View style={{ gap: 1 }}>
+            <View style={{ gap: 16 }}>
               {recentSessions.map((session, index) => (
                 <Animated.View
                   key={session.id}
@@ -619,19 +684,24 @@ const SessionScreen = () => {
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    paddingVertical: 14,
-                    borderBottomWidth:
-                      index < recentSessions.length - 1 ? 1 : 0,
-                    borderBottomColor: colors.border + "60",
+                    padding: 16,
+                    borderRadius: 8,
+                    backgroundColor: isDark
+                      ? colors.surfaceContainerLow
+                      : colors.surface,
+                    ...(isDark && {
+                      borderWidth: 1,
+                      borderColor: colors.outlineVariant + "4D", // 30% opacity
+                    }),
                   }}
                 >
-                  {/* Icon */}
+                  {/* Book cover thumbnail */}
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
-                      backgroundColor: colors.primary + "10",
+                      width: 48,
+                      height: 64,
+                      borderRadius: 6,
+                      backgroundColor: colors.surfaceContainerHigh,
                       alignItems: "center",
                       justifyContent: "center",
                       marginRight: 12,
@@ -639,8 +709,8 @@ const SessionScreen = () => {
                   >
                     <Feather
                       name="book-open"
-                      size={16}
-                      color={colors.primary}
+                      size={18}
+                      color={colors.textSecondary}
                     />
                   </View>
 
@@ -648,7 +718,7 @@ const SessionScreen = () => {
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        fontWeight: "600",
+                        fontWeight: "700",
                         color: colors.text,
                         fontSize: 15,
                       }}
@@ -656,36 +726,45 @@ const SessionScreen = () => {
                     >
                       {session.bookTitle ?? "Unknown Book"}
                     </Text>
-                    <View
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        gap: 12,
-                        marginTop: 3,
+                        color: colors.textSecondary,
+                        fontSize: 12,
+                        marginTop: 4,
                       }}
                     >
-                      <Text
-                        style={{ color: colors.textSecondary, fontSize: 13 }}
-                      >
-                        {Math.ceil(session.durationSeconds / 60)} min
-                      </Text>
-                      <Text
-                        style={{ color: colors.textSecondary, fontSize: 13 }}
-                      >
-                        {session.pagesRead} pages
-                      </Text>
-                    </View>
+                      {formatRelativeDate(session.createdAt)} {"\u2022"}{" "}
+                      {Math.ceil(session.durationSeconds / 60)}m session
+                    </Text>
                   </View>
 
-                  {/* Date */}
-                  <Text
+                  {/* Points badge */}
+                  <View
                     style={{
-                      fontSize: 12,
-                      color: colors.textSecondary,
-                      marginLeft: 8,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      borderRadius: 999,
+                      backgroundColor: isDark
+                        ? colors.surfaceContainerHigh
+                        : colors.secondaryFixed,
+                      ...(isDark && {
+                        borderWidth: 1,
+                        borderColor: colors.primary + "33", // 20% opacity
+                      }),
                     }}
                   >
-                    {formatRelativeDate(session.createdAt)}
-                  </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "700",
+                        color: isDark
+                          ? colors.primaryContainer
+                          : colors.secondary,
+                      }}
+                    >
+                      +{session.pagesRead} pts
+                    </Text>
+                  </View>
                 </Animated.View>
               ))}
             </View>
@@ -693,7 +772,7 @@ const SessionScreen = () => {
         </View>
       </ScrollView>
 
-      {/* ── Book Selection Modal (Pattern as requested) ───── */}
+      {/* -- Book Selection Modal (kept exactly as-is) -- */}
       <View
         style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
         pointerEvents={bookModalVisible ? "auto" : "none"}

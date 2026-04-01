@@ -298,7 +298,7 @@ function DeviceCard({
   currentDeviceId: string;
   onRevoke: (id: string) => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const isCurrentDevice = device.deviceId === currentDeviceId;
   const icon =
     device.deviceName.toLowerCase().includes("iphone") ||
@@ -315,22 +315,27 @@ function DeviceCard({
         flexDirection: "row",
         alignItems: "center",
         padding: 16,
-        borderRadius: 16,
+        borderRadius: 12,
         backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: isCurrentDevice ? colors.primary + "40" : colors.border,
+        ...(mode === "dark"
+          ? { borderWidth: 1, borderColor: colors.outline }
+          : {}),
+        ...(isCurrentDevice
+          ? { borderLeftWidth: 4, borderLeftColor: colors.primary }
+          : {}),
         gap: 14,
       }}
     >
       {/* Icon */}
       <View
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 14,
-          backgroundColor: isCurrentDevice
-            ? colors.primary + "18"
-            : colors.border + "60",
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor:
+            mode === "light"
+              ? colors.primaryFixed
+              : colors.surfaceContainerHigh,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -338,40 +343,22 @@ function DeviceCard({
         <Feather
           name={icon}
           size={20}
-          color={isCurrentDevice ? colors.primary : colors.textSecondary}
+          color={colors.primary}
         />
       </View>
 
       {/* Info */}
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text
-            style={{ fontSize: 15, fontWeight: "700", color: colors.text }}
-            numberOfLines={1}
-          >
-            {device.deviceName}
-          </Text>
-          {isCurrentDevice ? (
-            <View
-              style={{
-                paddingHorizontal: 8,
-                paddingVertical: 2,
-                borderRadius: 6,
-                backgroundColor: "#10B98118",
-              }}
-            >
-              <Text
-                style={{ fontSize: 10, fontWeight: "700", color: "#10B981" }}
-              >
-                This device
-              </Text>
-            </View>
-          ) : null}
-        </View>
         <Text
-          style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}
+          style={{ fontSize: 15, fontWeight: "700", color: colors.text }}
+          numberOfLines={1}
         >
-          ID: {device.deviceId.slice(0, 8)}…
+          {device.deviceName}
+        </Text>
+        <Text
+          style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}
+        >
+          Last active: {device.deviceId.slice(0, 8)}...
         </Text>
       </View>
 
@@ -379,16 +366,16 @@ function DeviceCard({
       {!isCurrentDevice ? (
         <TouchableOpacity
           onPress={() => onRevoke(device.id)}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            backgroundColor: "#F43F5E15",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
         >
-          <Feather name="x" size={16} color="#F43F5E" />
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: colors.error,
+            }}
+          >
+            Revoke
+          </Text>
         </TouchableOpacity>
       ) : null}
     </Animated.View>
@@ -406,24 +393,25 @@ function InfoRow({
   label: string;
   value: string;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   return (
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
         gap: 12,
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border + "60",
+        paddingVertical: 10,
       }}
     >
       <View
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          backgroundColor: colors.primary + "14",
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          backgroundColor:
+            mode === "light"
+              ? colors.surfaceContainerLow
+              : colors.surfaceContainerHigh,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -433,11 +421,11 @@ function InfoRow({
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: "600",
-            color: colors.textSecondary,
+            color: mode === "light" ? colors.outline : colors.textSecondary,
             textTransform: "uppercase",
-            letterSpacing: 0.6,
+            letterSpacing: 1,
           }}
         >
           {label}
@@ -445,7 +433,7 @@ function InfoRow({
         <Text
           style={{
             fontSize: 15,
-            fontWeight: "600",
+            fontWeight: "500",
             color: colors.text,
             marginTop: 1,
           }}

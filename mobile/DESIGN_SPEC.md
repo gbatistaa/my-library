@@ -1,4 +1,5 @@
 # MyLibrary — Mobile Design Specification
+
 > Documento de referência para prototipagem de telas. Contém descrição completa de todas as telas, componentes, paleta de cores, tipografia, padrões de animação e fluxo de navegação do aplicativo mobile.
 
 ---
@@ -10,6 +11,7 @@
 **Stack**: React Native + Expo 54, TypeScript, Expo Router (file-based routing), React Native Reanimated 4, Jotai (estado global), React Query (cache/fetching), Feather Icons.
 
 **Estrutura de rotas**:
+
 ```
 /app
 ├── (auth)/
@@ -314,6 +316,7 @@ O app não usa uma fonte customizada — utiliza a fonte do sistema (`System fon
   - Indicador de ativo: ponto colorido pulsando (quando rodando)
 
 #### Timer Presets (apenas no modo Timer, quando parado em 0)
+
 - Pills: `15m`, `30m`, `45m`, `60m`, `Custom`
 - Selecionado: `backgroundColor: primary`, texto branco, borda `primary`
 - Não selecionado: `surface`, borda `border`
@@ -336,6 +339,7 @@ O app não usa uma fonte customizada — utiliza a fonte do sistema (`System fon
   - Data relativa (Today, Yesterday, 3d ago, etc.) — alinhada à direita
 
 #### Book Selection Modal (Bottom Sheet)
+
 - Fundo com overlay semitransparente (fade)
 - Sheet sobe com animação spring
 - Handle pill no topo
@@ -379,6 +383,7 @@ Cada grupo:
 - Cards de badge abaixo
 
 #### Achievement Card
+
 - Container: `borderRadius: 16`, `surface`, `borderWidth: 1`, `borderColor: border`
 - **Earned**: opacidade total, borda com leve tom de `primary + "30"`, badge de "Earned" verde no canto
 - **In Progress**: opacidade 0.65, barra de progresso na parte inferior do card
@@ -410,6 +415,7 @@ Conteúdo do card:
 - Botão "Edit Profile": `primary + "14"` de fundo, borda `primary + "30"`, ícone `edit-2`, texto `primary`
 
 #### Account Information Card
+
 - Título: "Account Information" — `fontWeight: 800`
 - Rows de informação (InfoRow):
   - Ícone em container `36×36px`, `borderRadius: 10`, `primary + "14"`
@@ -463,6 +469,7 @@ Conteúdo do card:
 - Loading indicator de próxima página (spinner centralizado)
 
 #### Session Card
+
 - Ícone `book-open` em container `40×40px`, `borderRadius: 12`, `primary + "10"`
 - Título do livro: `fontWeight: 600`, `fontSize: 15`, 1 linha truncada
 - Duração em minutos (`Math.ceil(durationSeconds / 60)`) + páginas lidas
@@ -562,6 +569,7 @@ Todos usam o padrão de props recebendo dados do React Query da tela pai:
 ## 8. Modelos de Dados (para contexto nos protótipos)
 
 ### BookDTO
+
 ```
 id, title, author, rating (0-5), pages, isbn, genre,
 status (TO_READ | READING | COMPLETED | DROPPED),
@@ -569,29 +577,34 @@ coverUrl, startDate, finishDate, notes
 ```
 
 ### UserDTO
+
 ```
 id, name, username, email, birthDate (yyyy-MM-dd), createdAt
 ```
 
 ### StreakDTO
+
 ```
 currentStreak (days), bestStreak (days),
 totalReadingDays, lastReadingDate, insight (string)
 ```
 
 ### AchievementDTO
+
 ```
 code, name, description, category (VOLUME|VELOCITY|DIVERSITY|GOALS),
 earned (bool), earnedAt, progress (0.0–1.0), progressLabel
 ```
 
 ### ReadingSessionDTO
+
 ```
 id, pagesRead, durationSeconds, bookId, bookTitle,
 bookCoverUrl, createdAt
 ```
 
 ### ReadingGoalProgressDTO
+
 ```
 goal { targetBooks, year }, booksRead, pagesRead,
 dailyPaceRequired, currentPace, projectedFinishDate,
@@ -600,6 +613,7 @@ uniqueAuthors, uniqueGenres, topGenre, dailyInsight
 ```
 
 ### ReadingDnaDTO
+
 ```
 totalBooksLifetime, totalPagesLifetime, avgRating,
 completionRate, avgVelocityPagesPerHour, peakReadingHour,

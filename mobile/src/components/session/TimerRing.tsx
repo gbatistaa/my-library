@@ -2,16 +2,21 @@ import { View, Text } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import Animated, {
   useAnimatedProps,
+  useAnimatedStyle,
   useDerivedValue,
+  withRepeat,
+  withSequence,
   withTiming,
   Easing,
 } from "react-native-reanimated";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { useEffect } from "react";
+import { useSharedValue } from "react-native-reanimated";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface TimerRingProps {
-  /** 0–1 progress value */
+  /** 0-1 progress value */
   progress: number;
   /** Time string to display in center (e.g. "01:23:45") */
   timeDisplay: string;
@@ -27,13 +32,14 @@ export function TimerRing({
   progress,
   timeDisplay,
   subtitle,
-  size = 260,
+  size = 280,
   isActive,
 }: TimerRingProps) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
 
-  const strokeWidth = 8;
-  const radius = (size - strokeWidth) / 2;
+  const bgStrokeWidth = 6;
+  const progressStrokeWidth = 10;
+  const radius = (size - progressStrokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
@@ -51,17 +57,38 @@ export function TimerRing({
     };
   });
 
+  // Pulsing dot animation
+  const pulseOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    if (isActive) {
+      pulseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.3, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        ),
+        -1,
+        false,
+      );
+    } else {
+      pulseOpacity.value = withTiming(1, { duration: 200 });
+    }
+  }, [isActive, pulseOpacity]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulseOpacity.value,
+  }));
+
+  const gradientEnd =
+    mode === "light" ? colors.primaryContainer : colors.primary + "99";
+
   return (
     <View style={{ alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size}>
         <Defs>
           <LinearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
             <Stop offset="0%" stopColor={colors.primary} stopOpacity="1" />
-            <Stop
-              offset="100%"
-              stopColor={colors.primary + "80"}
-              stopOpacity="1"
-            />
+            <Stop offset="100%" stopColor={gradientEnd} stopOpacity="1" />
           </LinearGradient>
         </Defs>
 
@@ -70,10 +97,9 @@ export function TimerRing({
           cx={center}
           cy={center}
           r={radius}
-          stroke={colors.border}
-          strokeWidth={strokeWidth}
+          stroke={colors.surfaceContainerHigh}
+          strokeWidth={bgStrokeWidth}
           fill="none"
-          opacity={0.5}
         />
 
         {/* Animated progress ring */}
@@ -82,7 +108,7 @@ export function TimerRing({
           cy={center}
           r={radius}
           stroke="url(#ringGradient)"
-          strokeWidth={strokeWidth}
+          strokeWidth={progressStrokeWidth}
           fill="none"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -102,11 +128,11 @@ export function TimerRing({
       >
         <Text
           style={{
-            fontSize: 48,
-            fontWeight: "300",
+            fontSize: 54,
+            fontWeight: "700",
             color: colors.text,
             fontVariant: ["tabular-nums"],
-            letterSpacing: -1.5,
+            letterSpacing: -2,
           }}
         >
           {timeDisplay}
@@ -126,14 +152,35 @@ export function TimerRing({
         {isActive && (
           <View
             style={{
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: colors.primary,
+              flexDirection: "row",
+              alignItems: "center",
               marginTop: 10,
-              opacity: 0.8,
+              gap: 6,
             }}
-          />
+          >
+            <Animated.View
+              style={[
+                {
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: colors.primary,
+                },
+                pulseStyle,
+              ]}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "700",
+                color: colors.primary,
+                textTransform: "uppercase",
+                letterSpacing: 3,
+              }}
+            >
+              ACTIVE
+            </Text>
+          </View>
         )}
       </View>
     </View>
