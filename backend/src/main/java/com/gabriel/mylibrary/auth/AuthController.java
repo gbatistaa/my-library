@@ -1,6 +1,8 @@
 package com.gabriel.mylibrary.auth;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,7 @@ import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
+import com.gabriel.mylibrary.user.mappers.UserMapper;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
