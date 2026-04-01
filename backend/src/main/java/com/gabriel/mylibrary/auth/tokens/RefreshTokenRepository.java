@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.auth.tokens;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,5 +23,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshTokenEntity
 
   boolean existsByUserId(UUID userId);
 
-  java.util.List<RefreshTokenEntity> findAllByUserId(UUID userId);
+  List<RefreshTokenEntity> findAllByUserId(UUID userId);
 }
