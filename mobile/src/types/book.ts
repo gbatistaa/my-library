@@ -14,3 +14,15 @@ export interface BookDTO {
   finishDate: string | null;
   notes: string | null;
 }
+
+export interface SagaDTO {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  description: string;
+}

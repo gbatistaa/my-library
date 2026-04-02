@@ -1,14 +1,406 @@
-import { View, Text } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Image,
+} from "react-native";
+import { useState, useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { Feather } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { getAllBooks, searchBooks } from "@/src/services/bookService";
+import { getSagas } from "@/src/services/sagaService";
+import { getCategories } from "@/src/services/categoryService";
+import type { BookDTO, BookStatus, SagaDTO, CategoryDTO } from "@/src/types/book";
+
+/* ─── Status / progress helpers ─── */
+
+type StatusConfig = { bgClass: string; label: string };
+
+function getStatusConfig(status: BookStatus): StatusConfig {
+  switch (status) {
+    case "READING":
+      return { bgClass: "bg-[#f59e0b]", label: "Reading" };
+    case "COMPLETED":
+      return { bgClass: "bg-[#10b981]", label: "Done" };
+    case "DROPPED":
+      return { bgClass: "bg-[#ef4444]", label: "Dropped" };
+    default:
+      return { bgClass: "bg-[#94A3B8]", label: "To Read" };
+  }
+}
+
+/* ─── BookCard ─── */
+
+function BookCard({ book, index }: { book: BookDTO; index: number }) {
+  const { bgClass, label } = getStatusConfig(book.status);
+
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(300).delay(index * 30)}
+      className="w-[48%] aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
+    >
+      {/* Cover */}
+      {book.coverUrl ? (
+        <Image
+          source={{ uri: book.coverUrl }}
+          className="w-full h-full"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="w-full h-full bg-[#e9ddff] dark:bg-[#334155] items-center justify-center">
+          <Text className="text-5xl">📖</Text>
+        </View>
+      )}
+
+      {/* Bottom strip */}
+      <View className="absolute bottom-0 left-0 right-0 bg-black/55 px-2.5 py-2">
+        <Text className="text-xs font-bold text-white" numberOfLines={1}>
+          {book.title}
+        </Text>
+        <Text className="text-[10px] text-white/80" numberOfLines={1}>
+          {book.author}
+        </Text>
+      </View>
+
+      {/* Status badge (top-left) */}
+      <View className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}>
+        <Text className="text-[10px] font-bold text-white">{label}</Text>
+      </View>
+
+      {/* Genre badge (top-right) */}
+      {book.genre && (
+        <View className="absolute top-2 right-2 bg-[#e9ddff] dark:bg-[#334155] rounded-full px-2 py-0.5 max-w-[80px]">
+          <Text
+            className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
+            numberOfLines={1}
+          >
+            {book.genre}
+          </Text>
+        </View>
+      )}
+    </Animated.View>
+  );
+}
+
+/* ─── SagaCard ─── */
+
+function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
+  const initial = saga.name.charAt(0).toUpperCase();
+
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(300).delay(index * 40)}
+      className="w-40 h-[200px] rounded-2xl overflow-hidden bg-[#f0f3ff] dark:bg-[#1E293B] dark:border dark:border-[#334155] mr-3"
+    >
+      {/* Cover placeholder */}
+      <View className="h-[60%] bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 items-center justify-center">
+        <Text className="text-5xl font-bold text-[#6b38d4] dark:text-[#A78BFA]">
+          {initial}
+        </Text>
+      </View>
+
+      {/* Info */}
+      <View className="flex-1 p-3 justify-center">
+        <Text
+          className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC]"
+          numberOfLines={1}
+        >
+          {saga.name}
+        </Text>
+        <Text className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5">
+          Sem categoria
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+/* ─── FAB Menu ─── */
+
+const FAB_ITEMS = [
+  { icon: "book" as const, label: "Add Book" },
+  { icon: "layers" as const, label: "Add Saga" },
+  { icon: "tag" as const, label: "Add Category" },
+] as const;
+
+function FABMenu({
+  open,
+  onToggle,
+  onClose,
+  fabTop,
+  iconColor,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  fabTop: number;
+  iconColor: string;
+}) {
+  return (
+    <>
+      {open && (
+        <Pressable className="absolute inset-0 z-10" onPress={onClose} />
+      )}
+
+      <Pressable
+        onPress={onToggle}
+        className="absolute right-5 z-20 w-11 h-11 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center"
+        style={{ top: fabTop }}
+      >
+        <Text className="text-white text-[22px] leading-none">+</Text>
+      </Pressable>
+
+      {open && (
+        <Animated.View
+          entering={FadeInDown.duration(200)}
+          className="absolute right-5 z-20 bg-white dark:bg-[#1E293B] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
+          style={{ top: fabTop + 52, minWidth: 180 }}
+        >
+          {FAB_ITEMS.map((item, i) => (
+            <Pressable
+              key={item.label}
+              onPress={onClose}
+              className={`flex-row items-center gap-3 px-4 py-3.5 ${
+                i < FAB_ITEMS.length - 1
+                  ? "border-b border-[#E2E8F0] dark:border-[#334155]"
+                  : ""
+              }`}
+            >
+              <Feather name={item.icon} size={18} color={iconColor} />
+              <Text className="text-sm font-medium text-[#111c2d] dark:text-[#F8FAFC]">
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </Animated.View>
+      )}
+    </>
+  );
+}
+
+/* ─── Empty state ─── */
+
+function EmptyBooks({ hasSearch }: { hasSearch: boolean }) {
+  return (
+    <View className="py-16 items-center">
+      <Text className="text-[40px] mb-4">📚</Text>
+      <Text className="text-[17px] font-semibold text-[#111c2d] dark:text-[#F8FAFC] mb-1.5">
+        {hasSearch ? "No results" : "No books yet"}
+      </Text>
+      <Text className="text-sm text-[#494454] dark:text-[#94A3B8] text-center leading-5 max-w-[260px]">
+        {hasSearch
+          ? "Try a different search term."
+          : "Add your first book using the + button above."}
+      </Text>
+    </View>
+  );
+}
+
+/* ─── Screen ─── */
 
 export default function LibraryScreen() {
+  const { mode } = useAppTheme();
+  const insets = useSafeAreaInsets();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [fabOpen, setFabOpen] = useState(false);
+
+  const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const searchIconColor = mode === "dark" ? "#94A3B8" : "#494454";
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 500);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const { data: searchResults } = useQuery({
+    queryKey: ["books", "search", debouncedQuery],
+    queryFn: () => searchBooks(debouncedQuery),
+    enabled: debouncedQuery.length > 0,
+  });
+
+  const { data: allBooks } = useQuery({
+    queryKey: ["books", "all"],
+    queryFn: () => getAllBooks(),
+    enabled: debouncedQuery.length === 0,
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => getCategories(),
+  });
+
+  const { data: sagas } = useQuery({
+    queryKey: ["sagas"],
+    queryFn: () => getSagas(),
+  });
+
+  const rawBooks: BookDTO[] =
+    debouncedQuery.length > 0 ? (searchResults ?? []) : (allBooks ?? []);
+
+  const filteredBooks = selectedCategory
+    ? rawBooks.filter((b) => b.genre === selectedCategory)
+    : rawBooks;
+
+  const safeCategories: CategoryDTO[] = Array.isArray(categories) ? categories : [];
+  const safeSagas: SagaDTO[] = Array.isArray(sagas) ? sagas : [];
+
   return (
-    <View className="flex-1 justify-center items-center bg-paper dark:bg-deep-space">
-      <Text className="font-bold text-ink dark:text-ink-dark text-2xl">
-        Search
-      </Text>
-      <Text className="mt-2 text-ink-secondary dark:text-ink-dark-secondary">
-        Coming soon: book search
-      </Text>
+    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+
+      <FABMenu
+        open={fabOpen}
+        onToggle={() => setFabOpen((p) => !p)}
+        onClose={() => setFabOpen(false)}
+        fabTop={insets.top + 14}
+        iconColor={iconColor}
+      />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 70,
+          paddingHorizontal: 20,
+          paddingBottom: 48,
+        }}
+      >
+        {/* Header */}
+        <Animated.View entering={FadeIn.duration(400)} className="pb-5">
+          <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
+            Library
+          </Text>
+        </Animated.View>
+
+        {/* Search input */}
+        <Animated.View
+          entering={FadeIn.duration(400).delay(60)}
+          className="flex-row items-center gap-3 bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full px-4 py-3 mb-4 dark:border dark:border-[#334155]"
+        >
+          <Feather name="search" size={16} color={searchIconColor} />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search books…"
+            placeholderTextColor="#94A3B8"
+            className="flex-1 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+            returnKeyType="search"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+              <Feather name="x" size={16} color="#94A3B8" />
+            </Pressable>
+          )}
+        </Animated.View>
+
+        {/* Category chips */}
+        {safeCategories.length > 0 && (
+          <Animated.View
+            entering={FadeIn.duration(400).delay(100)}
+            className="mb-6"
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+            >
+              <Pressable
+                onPress={() => setSelectedCategory(null)}
+                className={`rounded-full px-4 py-2 ${
+                  selectedCategory === null
+                    ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
+                    : "bg-[#f0f3ff] dark:bg-[#1E293B]"
+                }`}
+              >
+                <Text
+                  className={`text-xs font-bold ${
+                    selectedCategory === null
+                      ? "text-white"
+                      : "text-[#494454] dark:text-[#94A3B8]"
+                  }`}
+                >
+                  All
+                </Text>
+              </Pressable>
+
+              {safeCategories.map((cat) => (
+                <Pressable
+                  key={cat.id}
+                  onPress={() =>
+                    setSelectedCategory(
+                      selectedCategory === cat.name ? null : cat.name
+                    )
+                  }
+                  className={`rounded-full px-4 py-2 ${
+                    selectedCategory === cat.name
+                      ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
+                      : "bg-[#f0f3ff] dark:bg-[#1E293B]"
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-bold ${
+                      selectedCategory === cat.name
+                        ? "text-white"
+                        : "text-[#494454] dark:text-[#94A3B8]"
+                    }`}
+                  >
+                    {cat.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        {/* Sagas section */}
+        {safeSagas.length > 0 && (
+          <Animated.View
+            entering={FadeIn.duration(400).delay(140)}
+            className="mb-8"
+          >
+            <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px] mb-4">
+              Sagas
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 4 }}
+            >
+              {safeSagas.map((saga, i) => (
+                <SagaCard key={saga.id} saga={saga} index={i} />
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        {/* Books section */}
+        <Animated.View entering={FadeIn.duration(400).delay(180)}>
+          <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px] mb-4">
+            Books
+          </Text>
+
+          {filteredBooks.length === 0 ? (
+            <EmptyBooks hasSearch={searchQuery.length > 0} />
+          ) : (
+            <View className="flex-row flex-wrap gap-4">
+              {filteredBooks.map((book, i) => (
+                <BookCard key={book.id} book={book} index={i} />
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      </ScrollView>
     </View>
   );
 }
