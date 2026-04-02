@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useRouter, Stack } from "expo-router";
@@ -21,6 +22,7 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { createSaga, addBookToSaga } from "@/src/services/sagaService";
 import { getAllBooks } from "@/src/services/bookService";
 import { showApiError } from "@/src/services/apiError";
+import { persistLibraryImage } from "@/src/utils/media";
 import type { BookDTO } from "@/src/types/book";
 
 function BookSelectCard({
@@ -95,6 +97,7 @@ export default function AddSagaScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  const [coverUri, setCoverUri] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(
@@ -107,6 +110,39 @@ export default function AddSagaScreen() {
     queryFn: () => getAllBooks(),
   });
   const books: BookDTO[] = Array.isArray(allBooks) ? allBooks : [];
+
+  const pickImage = async () => {
+    const { status: permStatus } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permStatus !== "granted") {
+      Alert.alert(
+        "Permission required",
+        "Please allow access to your photo library to upload a cover."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.85,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      const mime = asset.mimeType ?? "";
+      const uri = asset.uri ?? "";
+      if (mime === "image/svg+xml" || uri.toLowerCase().endsWith(".svg")) {
+        Alert.alert(
+          "Format not supported",
+          "SVG files are not supported. Please choose a JPEG, PNG, WEBP, or other photo format."
+        );
+        return;
+      }
+      setCoverUri(uri);
+    }
+  };
 
   const toggleBook = (id: string) => {
     const next = new Set(selectedBookIds);
@@ -123,9 +159,15 @@ export default function AddSagaScreen() {
 
     setSaving(true);
     try {
+      let finalCoverUrl: string | undefined;
+      if (coverUri) {
+        finalCoverUrl = await persistLibraryImage(coverUri);
+      }
+
       const saga = await createSaga({
         name: name.trim(),
         description: description.trim() || undefined,
+        coverUrl: finalCoverUrl,
       });
 
       if (!saga.id) throw new Error("Failed to retrieve saga ID");
@@ -144,6 +186,7 @@ export default function AddSagaScreen() {
     }
   };
 
+  const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
 
   return (
@@ -190,8 +233,39 @@ export default function AddSagaScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Cover image picker */}
+          <TouchableOpacity
+            onPress={pickImage}
+            activeOpacity={0.85}
+            className="w-full rounded-2xl overflow-hidden items-center justify-center mt-6 mb-6 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+            style={{ aspectRatio: 16 / 9 }}
+          >
+            {coverUri ? (
+              <>
+                <Image
+                  source={{ uri: coverUri }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+                <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                  <Feather name="camera" size={28} color="#fff" />
+                  <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
+                    Change Cover
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Feather name="camera" size={32} color={iconColor} />
+                <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-3">
+                  Upload Cover Image
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
           {/* Name */}
-          <View className="mt-6 mb-5">
+          <View className="mb-5">
             <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
               Saga Name
             </Text>

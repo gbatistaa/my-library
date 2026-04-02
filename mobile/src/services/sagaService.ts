@@ -9,6 +9,7 @@ export async function getSagas(): Promise<SagaDTO[]> {
 export async function createSaga(payload: {
   name: string;
   description?: string;
+  coverUrl?: string;
 }): Promise<SagaDTO> {
   const { data } = await api.post<SagaDTO>("/sagas", payload);
   return data;

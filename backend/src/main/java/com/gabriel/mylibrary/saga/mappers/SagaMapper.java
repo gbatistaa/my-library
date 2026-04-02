@@ -2,6 +2,7 @@ package com.gabriel.mylibrary.saga.mappers;
 
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
@@ -16,6 +17,7 @@ public interface SagaMapper {
 
   SagaEntity toEntity(CreateSagaDTO createSagaDTO);
 
+  @Mapping(target = "bookCount", expression = "java(sagaEntity.getBooks().size())")
   SagaDTO toDto(SagaEntity sagaEntity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

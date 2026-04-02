@@ -13,4 +13,6 @@ public class SagaDTO {
   private UUID id;
   private String name;
   private String description;
+  private String coverUrl;
+  private Integer bookCount;
 }

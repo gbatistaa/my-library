@@ -19,6 +19,8 @@ export interface SagaDTO {
   id: string;
   name: string;
   description?: string;
+  coverUrl?: string;
+  bookCount?: number;
 }
 
 export interface CategoryDTO {

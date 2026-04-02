@@ -7,10 +7,10 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Platform,
   StyleSheet,
   Pressable,
   Animated as RNAnimated,
+  Easing,
 } from "react-native";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,6 +22,7 @@ import { Feather } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 
 import { userAtom } from "@/src/store/auth";
+import { useRouter } from "expo-router";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import {
   getMyDevices,
@@ -29,6 +30,7 @@ import {
   updateProfile,
   fetchCurrentUser,
 } from "@/src/services/profileService";
+import { logout } from "@/src/services/authService";
 import { showApiError } from "@/src/services/apiError";
 import { LogoutButton } from "@/src/components/profile/LogoutButton";
 import { ThemePreferences } from "@/src/components/profile/ThemePreferences";
@@ -178,9 +180,7 @@ function EditProfileModal({
             marginBottom: 24,
           }}
         >
-          <Text
-            style={{ fontSize: 20, fontWeight: "800", color: colors.text }}
-          >
+          <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
             Edit Profile
           </Text>
           <TouchableOpacity onPress={onClose}>
@@ -244,9 +244,7 @@ function EditProfileModal({
             borderColor: colors.border,
           }}
         >
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-          >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Feather name="lock" size={14} color={colors.textSecondary} />
             <Text style={{ fontSize: 13, color: colors.textSecondary }}>
               Email and password can only be changed via settings
@@ -285,97 +283,240 @@ function EditProfileModal({
   );
 }
 
+// ─── Confirm Revoke Modal ────────────────────────────────────────────────────
+
+function ConfirmRevokeModal({
+  device,
+  onClose,
+  onConfirm,
+  revoking,
+}: {
+  device: { id: string; name: string; deviceId: string } | null;
+  onClose: () => void;
+  onConfirm: () => void;
+  revoking: boolean;
+}) {
+  const { mode } = useAppTheme();
+  const visible = device !== null;
+
+  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
+  const scaleAnim = useRef(new RNAnimated.Value(0.93)).current;
+
+  useEffect(() => {
+    if (visible) {
+      RNAnimated.parallel([
+        RNAnimated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 260,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 260,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      RNAnimated.parallel([
+        RNAnimated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        RNAnimated.timing(scaleAnim, {
+          toValue: 0.93,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible, fadeAnim, scaleAnim]);
+
+  const closeIconColor = mode === "dark" ? "#94A3B8" : "#6b7280";
+
+  return (
+    <View
+      style={{ ...StyleSheet.absoluteFillObject, zIndex: 1000 }}
+      pointerEvents={visible ? "auto" : "none"}
+    >
+      {/* Backdrop */}
+      <RNAnimated.View
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: "rgba(0,0,0,0.55)",
+          opacity: fadeAnim,
+        }}
+      >
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+      </RNAnimated.View>
+
+      {/* Centered card */}
+      <View
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 24,
+        }}
+        pointerEvents="box-none"
+      >
+        <RNAnimated.View
+          className="bg-white dark:bg-[#1E293B] rounded-2xl w-full overflow-hidden"
+          style={{
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 16 },
+            shadowOpacity: 0.22,
+            shadowRadius: 32,
+            elevation: 20,
+          }}
+        >
+          {/* Header */}
+          <View className="flex-row justify-between items-center px-5 pt-5 pb-1">
+            <Text className="font-extrabold text-[#111c2d] text-[18px] dark:text-[#F8FAFC] tracking-[-0.3px]">
+              Disconnect Device
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="justify-center items-center bg-[#f0f3ff] dark:bg-[#334155] rounded-full w-8 h-8"
+            >
+              <Feather name="x" size={15} color={closeIconColor} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="px-5 pt-4 pb-5">
+            {/* Warning card */}
+            <View className="flex-row items-start gap-3 bg-[#f59e0b]/10 dark:bg-[#f59e0b]/[0.08] mb-5 p-4 border border-[#f59e0b]/40 dark:border-[#f59e0b]/20 rounded-xl">
+              <Feather
+                name="alert-triangle"
+                size={18}
+                color="#f59e0b"
+                style={{ marginTop: 1 }}
+              />
+              <View className="flex-1">
+                <Text className="text-[#494454] text-[13px] dark:text-[#94A3B8] leading-[18px]">
+                  You will need to sign in again on:
+                </Text>
+                <Text
+                  className="mt-1 font-bold text-[#111c2d] text-[14px] dark:text-[#F8FAFC]"
+                  numberOfLines={1}
+                >
+                  {device?.name}
+                </Text>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={onClose}
+                disabled={revoking}
+                className="flex-1 justify-center items-center bg-[#f0f3ff] dark:bg-[#334155] active:opacity-60 rounded-xl h-11"
+              >
+                <Text className="font-bold text-[#494454] dark:text-[#94A3B8] text-sm">
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={onConfirm}
+                disabled={revoking}
+                className="flex-1 justify-center items-center bg-[#ef4444] active:opacity-80 rounded-xl h-11"
+                style={{
+                  shadowColor: "#ef4444",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                {revoking ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="font-bold text-white text-sm">
+                    Disconnect
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </RNAnimated.View>
+      </View>
+    </View>
+  );
+}
+
 // ─── Device Card ─────────────────────────────────────────────────────────────
 
 function DeviceCard({
   device,
   currentDeviceId,
-  onRevoke,
+  onRevokePress,
 }: {
   device: DeviceSessionDTO;
   currentDeviceId: string;
-  onRevoke: (id: string) => void;
+  onRevokePress: (id: string, name: string, deviceId: string) => void;
 }) {
-  const { colors, mode } = useAppTheme();
+  const { mode } = useAppTheme();
   const isCurrentDevice = device.deviceId === currentDeviceId;
   const icon =
     device.deviceName.toLowerCase().includes("iphone") ||
-    device.deviceName.toLowerCase().includes("ios")
+    device.deviceName.toLowerCase().includes("ios") ||
+    device.deviceName.toLowerCase().includes("android")
       ? "smartphone"
-      : device.deviceName.toLowerCase().includes("android")
-        ? "smartphone"
-        : "monitor";
+      : "monitor";
+
+  const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300)}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 16,
-        borderRadius: 12,
-        backgroundColor: colors.surface,
-        ...(mode === "dark"
-          ? { borderWidth: 1, borderColor: colors.outline }
-          : {}),
-        ...(isCurrentDevice
-          ? { borderLeftWidth: 4, borderLeftColor: colors.primary }
-          : {}),
-        gap: 14,
-      }}
+      className={`flex-row items-center gap-3 p-4 rounded-xl ${
+        isCurrentDevice
+          ? "bg-[#e9ddff]/40 dark:bg-[#A78BFA]/[0.06] border border-[#6b38d4]/20 dark:border-[#A78BFA]/20"
+          : "bg-white dark:bg-[#1E293B] dark:border dark:border-[#334155]"
+      }`}
     >
-      {/* Icon */}
-      <View
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          backgroundColor:
-            mode === "light"
-              ? colors.primaryFixed
-              : colors.surfaceContainerHigh,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Feather
-          name={icon}
-          size={20}
-          color={colors.primary}
-        />
+      {/* Device icon circle */}
+      <View className="justify-center items-center bg-[#e9ddff] dark:bg-[#334155] rounded-full w-12 h-12 shrink-0">
+        <Feather name={icon} size={20} color={iconColor} />
       </View>
 
       {/* Info */}
-      <View style={{ flex: 1 }}>
+      <View className="flex-1 min-w-0">
         <Text
-          style={{ fontSize: 15, fontWeight: "700", color: colors.text }}
+          className="font-bold text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
           numberOfLines={1}
         >
           {device.deviceName}
         </Text>
-        <Text
-          style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}
-        >
-          Last active: {device.deviceId.slice(0, 8)}...
+        <Text className="mt-0.5 text-[#494454] text-[11px] dark:text-[#94A3B8]">
+          Last active: {device.deviceId.slice(0, 8)}…
         </Text>
       </View>
 
-      {/* Revoke */}
-      {!isCurrentDevice ? (
+      {/* Right slot: Badge + trash button */}
+      <View className="flex-row items-center gap-2 shrink-0">
+        {isCurrentDevice && (
+          <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 border border-emerald-500/20 rounded-full">
+            <Text className="font-bold text-[10px] text-emerald-600 dark:text-emerald-400">
+              This device
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
-          onPress={() => onRevoke(device.id)}
+          onPress={() =>
+            onRevokePress(device.id, device.deviceName, device.deviceId)
+          }
+          className="justify-center items-center bg-[#ef4444]/10 dark:bg-[#ef4444]/[0.15] active:opacity-60 rounded-full w-9 h-9"
+          hitSlop={8}
+          activeOpacity={0.7}
         >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: "600",
-              color: colors.error,
-            }}
-          >
-            Revoke
-          </Text>
+          <Feather name="trash-2" size={16} color="#ef4444" />
         </TouchableOpacity>
-      ) : null}
+      </View>
     </Animated.View>
   );
 }
@@ -450,9 +591,16 @@ export default function ProfileScreen() {
   const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [atomUser, setUser] = useAtom(userAtom);
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<{
+    id: string;
+    name: string;
+    deviceId: string;
+  } | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   // Always fetch fresh user data — do not rely on potentially stale Jotai atom
   const { data: freshUser } = useQuery({
@@ -486,26 +634,35 @@ export default function ProfileScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
-  const handleRevoke = useCallback(
-    async (sessionId: string) => {
-      Alert.alert("Revoke Session", "This will log out the device. Continue?", [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Revoke",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await revokeDevice(sessionId);
-              queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-            } catch (err: unknown) {
-              showApiError("Failed to revoke session", err);
-            }
-          },
-        },
-      ]);
+  const openRevokeModal = useCallback(
+    (id: string, name: string, deviceId: string) => {
+      setRevokeTarget({ id, name, deviceId });
     },
-    [queryClient],
+    [],
   );
+
+  const handleRevokeConfirm = useCallback(async () => {
+    if (!revokeTarget) return;
+    setRevoking(true);
+    try {
+      if (revokeTarget.deviceId === currentDeviceId) {
+        // If revoking current device, perform a full logout
+        await logout();
+        setUser(null);
+        setRevokeTarget(null);
+        router.replace("/(auth)/login");
+        return;
+      }
+
+      await revokeDevice(revokeTarget.id);
+      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+      setRevokeTarget(null);
+    } catch (err: unknown) {
+      showApiError("Failed to disconnect device", err);
+    } finally {
+      setRevoking(false);
+    }
+  }, [revokeTarget, currentDeviceId, queryClient, setUser, router]);
 
   const handleProfileSaved = useCallback(
     (updated: UserDTO) => {
@@ -671,7 +828,10 @@ export default function ProfileScreen() {
           <ThemePreferences />
 
           {/* ── Connected Devices ──────────────────────────────── */}
-          <Animated.View entering={FadeInDown.duration(400).delay(100)} style={{ marginTop: 24 }}>
+          <Animated.View
+            entering={FadeInDown.duration(400).delay(100)}
+            style={{ marginTop: 24 }}
+          >
             <View
               style={{
                 flexDirection: "row",
@@ -731,7 +891,7 @@ export default function ProfileScreen() {
                       key={d.id}
                       device={d}
                       currentDeviceId={currentDeviceId}
-                      onRevoke={handleRevoke}
+                      onRevokePress={openRevokeModal}
                     />
                   ))}
                 {!Array.isArray(devices) || devices.length === 0 ? (
@@ -770,6 +930,14 @@ export default function ProfileScreen() {
         user={user}
         onClose={() => setEditVisible(false)}
         onSave={handleProfileSaved}
+      />
+
+      {/* Revoke Confirmation Modal */}
+      <ConfirmRevokeModal
+        device={revokeTarget}
+        onClose={() => setRevokeTarget(null)}
+        onConfirm={handleRevokeConfirm}
+        revoking={revoking}
       />
     </View>
   );

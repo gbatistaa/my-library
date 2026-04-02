@@ -14,7 +14,8 @@ public class CreateSagaDTO {
   @Size(min = 3, max = 50, message = "Saga name must be between 3 and 50 characters")
   private String name;
 
-  @NotBlank(message = "Saga description is required")
   @Size(min = 3, message = "Saga description must be at least 3 characters")
   private String description;
+
+  private String coverUrl;
 }

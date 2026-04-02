@@ -39,53 +39,85 @@ function getStatusConfig(status: BookStatus): StatusConfig {
 
 /* ─── BookCard ─── */
 
+const PROGRESS_COLOR: Record<BookStatus, string> = {
+  COMPLETED: "#10b981",
+  READING:   "#A78BFA",
+  DROPPED:   "#ef4444",
+  TO_READ:   "#94A3B8",
+};
+
+const PROGRESS_PCT: Record<BookStatus, number> = {
+  COMPLETED: 100,
+  READING:   45,   // visual indicator — real % comes from reading sessions
+  DROPPED:   20,
+  TO_READ:   0,
+};
+
 function BookCard({ book, index }: { book: BookDTO; index: number }) {
   const { bgClass, label } = getStatusConfig(book.status);
+  const progressColor = PROGRESS_COLOR[book.status];
+  const progressPct   = PROGRESS_PCT[book.status];
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(index * 30)}
-      className="w-[48%] aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
+      className="w-[48%]"
     >
-      {/* Cover */}
-      {book.coverUrl ? (
-        <Image
-          source={{ uri: book.coverUrl }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
-      ) : (
-        <View className="w-full h-full bg-[#e9ddff] dark:bg-[#334155] items-center justify-center">
-          <Text className="text-5xl">📖</Text>
-        </View>
-      )}
+      {/* ── Cover (image-only container with rounded corners) ── */}
+      <View className="w-full aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]">
+        {book.coverUrl ? (
+          <Image
+            source={{ uri: book.coverUrl }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-full bg-[#e9ddff] dark:bg-[#1E293B] items-center justify-center">
+            <Text className="text-5xl">📖</Text>
+          </View>
+        )}
 
-      {/* Bottom strip */}
-      <View className="absolute bottom-0 left-0 right-0 bg-black/55 px-2.5 py-2">
-        <Text className="text-xs font-bold text-white" numberOfLines={1}>
+        {/* Status badge — top-left, over the image */}
+        <View className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}>
+          <Text className="text-[10px] font-bold text-white">{label}</Text>
+        </View>
+
+        {/* Genre badge — top-right, over the image */}
+        {book.genre && (
+          <View className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]">
+            <Text
+              className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
+              numberOfLines={1}
+            >
+              {book.genre}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* ── Text + progress bar below the cover ── */}
+      <View className="mt-2.5 px-0.5">
+        <Text
+          className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC] leading-[18px]"
+          numberOfLines={1}
+        >
           {book.title}
         </Text>
-        <Text className="text-[10px] text-white/80" numberOfLines={1}>
+        <Text
+          className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
+          numberOfLines={1}
+        >
           {book.author}
         </Text>
-      </View>
 
-      {/* Status badge (top-left) */}
-      <View className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}>
-        <Text className="text-[10px] font-bold text-white">{label}</Text>
-      </View>
-
-      {/* Genre badge (top-right) */}
-      {book.genre && (
-        <View className="absolute top-2 right-2 bg-[#e9ddff] dark:bg-[#334155] rounded-full px-2 py-0.5 max-w-[80px]">
-          <Text
-            className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
-            numberOfLines={1}
-          >
-            {book.genre}
-          </Text>
+        {/* Reading progress bar */}
+        <View className="mt-2 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+          <View
+            className="h-full rounded-full"
+            style={{ width: `${progressPct}%`, backgroundColor: progressColor }}
+          />
         </View>
-      )}
+      </View>
     </Animated.View>
   );
 }
@@ -94,29 +126,43 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
 
 function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
   const initial = saga.name.charAt(0).toUpperCase();
+  const volumeCount = saga.bookCount ?? 0;
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(index * 40)}
-      className="w-40 h-[200px] rounded-2xl overflow-hidden bg-[#f0f3ff] dark:bg-[#1E293B] dark:border dark:border-[#334155] mr-3"
+      className="w-[280px] rounded-2xl overflow-hidden mr-4"
+      style={{ aspectRatio: 16 / 9 }}
     >
-      {/* Cover placeholder */}
-      <View className="h-[60%] bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 items-center justify-center">
-        <Text className="text-5xl font-bold text-[#6b38d4] dark:text-[#A78BFA]">
-          {initial}
-        </Text>
-      </View>
+      {/* Background: cover image or placeholder */}
+      {saga.coverUrl ? (
+        <Image
+          source={{ uri: saga.coverUrl }}
+          className="absolute inset-0 w-full h-full"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="absolute inset-0 bg-[#1E293B] items-center justify-center">
+          <Text className="text-6xl font-bold text-[#A78BFA]/30">{initial}</Text>
+        </View>
+      )}
 
-      {/* Info */}
-      <View className="flex-1 p-3 justify-center">
-        <Text
-          className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC]"
-          numberOfLines={1}
-        >
+      {/* Dark overlay for contrast */}
+      <View className="absolute inset-0 bg-black/30" />
+
+      {/* Volume badge — above title strip */}
+      {volumeCount > 0 && (
+        <View className="absolute left-3 bg-[#334155]/80 rounded-full px-2.5 py-1" style={{ bottom: 52 }}>
+          <Text className="text-[10px] font-bold text-[#A78BFA] uppercase tracking-wider">
+            {volumeCount} {volumeCount === 1 ? "volume" : "volumes"}
+          </Text>
+        </View>
+      )}
+
+      {/* Title strip */}
+      <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-4 py-3">
+        <Text className="font-bold text-base text-white" numberOfLines={1}>
           {saga.name}
-        </Text>
-        <Text className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5">
-          Sem categoria
         </Text>
       </View>
     </Animated.View>
