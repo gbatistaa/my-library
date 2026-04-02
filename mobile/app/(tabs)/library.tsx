@@ -1,4 +1,5 @@
-import React from "react";
+import { useState, useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   View,
   Text,
@@ -7,19 +8,16 @@ import {
   Pressable,
   Image,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getAllBooks, searchBooks } from "@/src/services/bookService";
 import { getSagas } from "@/src/services/sagaService";
 import { getCategories } from "@/src/services/categoryService";
-import { AddBookModal } from "@/src/components/library/AddBookModal";
-import { AddSagaModal } from "@/src/components/library/AddSagaModal";
 import type { BookDTO, BookStatus, SagaDTO, CategoryDTO } from "@/src/types/book";
 
 /* ─── Status / progress helpers ─── */
@@ -210,8 +208,7 @@ export default function LibraryScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fabOpen, setFabOpen] = useState(false);
-  const [addBookVisible, setAddBookVisible] = useState(false);
-  const [addSagaVisible, setAddSagaVisible] = useState(false);
+  const router = useRouter();
 
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const searchIconColor = mode === "dark" ? "#94A3B8" : "#494454";
@@ -261,21 +258,14 @@ export default function LibraryScreen() {
         open={fabOpen}
         onClose={() => setFabOpen(false)}
         onAction={(action) => {
-          if (action === "book") setAddBookVisible(true);
-          else if (action === "saga") setAddSagaVisible(true);
+          if (action === "book") router.push("/add-book");
+          else if (action === "saga") router.push("/add-saga");
         }}
         fabTop={insets.top + 68}
         iconColor={iconColor}
       />
 
-      <AddBookModal
-        visible={addBookVisible}
-        onClose={() => setAddBookVisible(false)}
-      />
-      <AddSagaModal
-        visible={addSagaVisible}
-        onClose={() => setAddSagaVisible(false)}
-      />
+
 
       <ScrollView
         showsVerticalScrollIndicator={false}

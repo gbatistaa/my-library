@@ -29,6 +29,7 @@ import {
   updateProfile,
   fetchCurrentUser,
 } from "@/src/services/profileService";
+import { showApiError } from "@/src/services/apiError";
 import { LogoutButton } from "@/src/components/profile/LogoutButton";
 import { ThemePreferences } from "@/src/components/profile/ThemePreferences";
 import type { DeviceSessionDTO, UserDTO } from "@/src/types/auth";
@@ -101,10 +102,7 @@ function EditProfileModal({
       onSave(updated);
       onClose();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to update profile.";
-      Alert.alert("Error", msg);
+      showApiError("Failed to update profile", err);
     } finally {
       setSaving(false);
     }
@@ -499,8 +497,8 @@ export default function ProfileScreen() {
             try {
               await revokeDevice(sessionId);
               queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-            } catch {
-              Alert.alert("Error", "Failed to revoke session.");
+            } catch (err: unknown) {
+              showApiError("Failed to revoke session", err);
             }
           },
         },

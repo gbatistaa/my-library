@@ -22,6 +22,7 @@ import {
   submitReadingSession,
   fetchRecentReadingSessions,
 } from "@/src/services/readingSessionService";
+import { showApiError } from "@/src/services/apiError";
 import { TimerRing } from "@/src/components/session/TimerRing";
 import type { BookDTO } from "@/src/types/book";
 
@@ -125,11 +126,8 @@ const SessionScreen = () => {
       queryClient.invalidateQueries({ queryKey: ["dna"] });
       queryClient.invalidateQueries({ queryKey: ["goalProgress"] });
     },
-    onError: (err: any) => {
-      Alert.alert(
-        "Error",
-        err?.response?.data?.message || "Failed to save session.",
-      );
+    onError: (err: unknown) => {
+      showApiError("Failed to save session", err);
     },
   });
 

@@ -5,15 +5,16 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  Animated as RNAnimated,
-  PanResponder,
   StyleSheet,
   Alert,
   ActivityIndicator,
   Image,
   Dimensions,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
@@ -21,6 +22,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { createBook } from "@/src/services/bookService";
+import { showApiError } from "@/src/services/apiError";
+import { persistLibraryImage } from "@/src/utils/media";
 import type { BookStatus } from "@/src/types/book";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -54,62 +57,6 @@ export function AddBookModal({
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const sheetY = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
-  const overlayAnim = useRef(new RNAnimated.Value(0)).current;
-
-  useEffect(() => {
-    if (visible) {
-      RNAnimated.parallel([
-        RNAnimated.spring(sheetY, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 22,
-          stiffness: 200,
-        }),
-        RNAnimated.timing(overlayAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      RNAnimated.parallel([
-        RNAnimated.timing(sheetY, {
-          toValue: SHEET_HEIGHT,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        RNAnimated.timing(overlayAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 0,
-      onPanResponderMove: (_, gs) => {
-        if (gs.dy > 0) sheetY.setValue(gs.dy);
-      },
-      onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 100 || gs.vy > 1) {
-          onClose();
-        } else {
-          RNAnimated.spring(sheetY, {
-            toValue: 0,
-            useNativeDriver: true,
-            damping: 20,
-            stiffness: 200,
-          }).start();
-        }
-      },
-    })
-  ).current;
 
   const resetForm = () => {
     setCoverUri(null);
@@ -182,13 +129,24 @@ export function AddBookModal({
       Alert.alert("Error", "Genre is required.");
       return;
     }
-    if (!isbn.trim()) {
+    const isbnClear = isbn.trim();
+    if (!isbnClear) {
       Alert.alert("Error", "ISBN is required.");
+      return;
+    }
+    const isbnRegex = /^(97[89])?\d{9}[\dX]$/i;
+    if (!isbnRegex.test(isbnClear)) {
+      Alert.alert("Error", "Please enter a valid ISBN-10 or ISBN-13 (must start with 978 or 979).");
       return;
     }
 
     setSaving(true);
     try {
+      let finalCoverUrl = undefined;
+      if (coverUri) {
+        finalCoverUrl = await persistLibraryImage(coverUri);
+      }
+
       await createBook({
         title: title.trim(),
         author: author.trim(),
@@ -198,15 +156,13 @@ export function AddBookModal({
         status,
         rating: rating ?? undefined,
         notes: notes.trim() || undefined,
+        coverUrl: finalCoverUrl,
       });
       await queryClient.invalidateQueries({ queryKey: ["books"] });
       resetForm();
       onClose();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to add book. Please check all fields.";
-      Alert.alert("Error", msg);
+      showApiError("Failed to add book", err);
     } finally {
       setSaving(false);
     }
@@ -217,265 +173,269 @@ export function AddBookModal({
   const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
 
   return (
-    <View
-      style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
-      pointerEvents={visible ? "auto" : "none"}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={handleClose}
+      statusBarTranslucent
     >
-      {/* Backdrop */}
-      <RNAnimated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          backgroundColor: "rgba(0,0,0,0.65)",
-          opacity: overlayAnim,
-        }}
-      >
-        <Pressable style={{ flex: 1 }} onPress={handleClose} />
-      </RNAnimated.View>
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}>
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={handleClose}
+        />
 
-      {/* Sheet */}
-      <RNAnimated.View
-        className="absolute bottom-0 left-0 right-0 bg-[#f9f9ff] dark:bg-[#0F172A] overflow-hidden"
-        style={{
-          height: SHEET_HEIGHT,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          transform: [{ translateY: sheetY }],
-        }}
-      >
-        {/* Drag handle */}
-        <View
-          className="items-center pt-4 pb-2"
-          {...panResponder.panHandlers}
-        >
-          <View className="w-12 h-1.5 rounded-full bg-[#cbc3d7]/40 dark:bg-[#475569]/50" />
-        </View>
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingBottom: insets.bottom + 32,
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{
+            height: SHEET_HEIGHT,
+            backgroundColor: mode === "dark" ? "#0F172A" : "#FFFFFF",
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -10 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+            elevation: 24,
           }}
-          keyboardShouldPersistTaps="handled"
         >
+          {/* Drag handle decoration */}
+          <View className="w-12 h-1.5 bg-[#cbc3d7]/30 dark:bg-[#334155] rounded-full self-center mt-3 mb-1" />
+
           {/* Header */}
-          <View className="flex-row justify-between items-center pt-3 pb-6">
-            <Text className="text-[24px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
-              Add New Book
-            </Text>
+          <View className="flex-row justify-between items-center px-6 py-4 border-b border-[#cbc3d7]/10 dark:border-[#334155]/20">
+            <View>
+              <Text className="text-2xl font-bold text-[#111c2d] dark:text-[#F8FAFC]">
+                Add New Book
+              </Text>
+              <Text className="text-xs text-[#494454] dark:text-[#94A3B8] mt-0.5">
+                Build your personal universe
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={handleClose}
               className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
             >
-              <Feather name="x" size={18} color={closeIconColor} />
+              <Feather name="x" size={20} color={closeIconColor} />
             </TouchableOpacity>
           </View>
 
-          {/* Cover image picker */}
-          <TouchableOpacity
-            onPress={pickImage}
-            activeOpacity={0.85}
-            className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mb-8 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingBottom: insets.bottom + 40,
+            }}
+            keyboardShouldPersistTaps="handled"
+            className="flex-1"
           >
-            {coverUri ? (
-              <>
-                <Image
-                  source={{ uri: coverUri }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-                <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                  <Feather name="camera" size={28} color="#fff" />
-                  <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
-                    Change Cover
+            {/* Cover image picker */}
+            <TouchableOpacity
+              onPress={pickImage}
+              activeOpacity={0.85}
+              className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mt-6 mb-8 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+            >
+              {coverUri ? (
+                <>
+                  <Image
+                    source={{ uri: coverUri }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                    <Feather name="camera" size={28} color="#fff" />
+                    <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
+                      Change Cover
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Feather name="camera" size={32} color={iconColor} />
+                  <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-3">
+                    Upload Cover Image
                   </Text>
-                </View>
-              </>
-            ) : (
-              <>
-                <Feather name="camera" size={32} color={iconColor} />
-                <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-3">
-                  Upload Cover Image
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Title */}
+            <View className="mb-5">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                Book Title
+              </Text>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder="e.g. The Secret History"
+                placeholderTextColor={placeholderColor}
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Author */}
+            <View className="mb-5">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                Author
+              </Text>
+              <TextInput
+                value={author}
+                onChangeText={setAuthor}
+                placeholder="e.g. Donna Tartt"
+                placeholderTextColor={placeholderColor}
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Pages row */}
+            <View className="flex-row gap-4 mb-5">
+              <View className="flex-1">
+                <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                  Total Pages
                 </Text>
-              </>
-            )}
-          </TouchableOpacity>
+                <TextInput
+                  value={pages}
+                  onChangeText={(t) => setPages(t.replace(/[^0-9]/g, ""))}
+                  placeholder="559"
+                  placeholderTextColor={placeholderColor}
+                  className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                  keyboardType="numeric"
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                  ISBN
+                </Text>
+                <TextInput
+                  value={isbn}
+                  onChangeText={(t) => setIsbn(t.replace(/[^0-9X]/gi, ""))}
+                  placeholder="9780525559474"
+                  placeholderTextColor={placeholderColor}
+                  className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                  keyboardType="numeric"
+                  maxLength={13}
+                />
+              </View>
+            </View>
 
-          {/* Title */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Book Title
-            </Text>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder="e.g. The Secret History"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
-
-          {/* Author */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Author
-            </Text>
-            <TextInput
-              value={author}
-              onChangeText={setAuthor}
-              placeholder="e.g. Donna Tartt"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
-
-          {/* Pages row */}
-          <View className="flex-row gap-4 mb-5">
-            <View className="flex-1">
+            {/* Genre */}
+            <View className="mb-5">
               <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-                Total Pages
+                Genre
               </Text>
               <TextInput
-                value={pages}
-                onChangeText={(t) => setPages(t.replace(/[^0-9]/g, ""))}
-                placeholder="559"
+                value={genre}
+                onChangeText={setGenre}
+                placeholder="e.g. Fiction, Mystery, Sci-Fi"
                 placeholderTextColor={placeholderColor}
                 className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-                keyboardType="numeric"
+                autoCapitalize="words"
               />
             </View>
-            <View className="flex-1">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-                ISBN
+
+            {/* Status */}
+            <View className="mb-5">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+                Status
               </Text>
-              <TextInput
-                value={isbn}
-                onChangeText={(t) => setIsbn(t.replace(/[^0-9X]/gi, ""))}
-                placeholder="9780525559474"
-                placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-                keyboardType="numeric"
-                maxLength={13}
-              />
-            </View>
-          </View>
-
-          {/* Genre */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Genre
-            </Text>
-            <TextInput
-              value={genre}
-              onChangeText={setGenre}
-              placeholder="e.g. Fiction, Mystery, Sci-Fi"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
-
-          {/* Status */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
-              Status
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              {STATUS_OPTIONS.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => setStatus(opt.value)}
-                  className={`rounded-full px-4 py-2 ${
-                    status === opt.value
-                      ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
-                      : "bg-[#f0f3ff] dark:bg-[#1E293B] border border-[#cbc3d7]/40 dark:border-[#334155]"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-bold ${
+              <View className="flex-row flex-wrap gap-2">
+                {STATUS_OPTIONS.map((opt) => (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => setStatus(opt.value)}
+                    className={`rounded-full px-4 py-2 ${
                       status === opt.value
-                        ? "text-white"
-                        : "text-[#494454] dark:text-[#94A3B8]"
+                        ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
+                        : "bg-[#f0f3ff] dark:bg-[#1E293B] border border-[#cbc3d7]/40 dark:border-[#334155]"
                     }`}
                   >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      className={`text-xs font-bold ${
+                        status === opt.value
+                          ? "text-white"
+                          : "text-[#494454] dark:text-[#94A3B8]"
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
 
-          {/* Rating */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
-              Rating (optional)
-            </Text>
-            <View className="flex-row gap-3">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Pressable
-                  key={star}
-                  onPress={() => setRating(rating === star ? null : star)}
-                  hitSlop={4}
-                >
-                  <Feather
-                    name="star"
-                    size={30}
-                    color={
-                      rating !== null && star <= rating
-                        ? "#f59e0b"
-                        : mode === "dark"
-                          ? "#334155"
-                          : "#e2e8f0"
-                    }
-                  />
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {/* Notes */}
-          <View className="mb-8">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Notes (optional)
-            </Text>
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Your thoughts, quotes, impressions…"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              multiline
-              textAlignVertical="top"
-              style={{ height: 96 }}
-              maxLength={1000}
-            />
-          </View>
-
-          {/* CTA */}
-          <Pressable
-            onPress={handleSubmit}
-            disabled={saving}
-            className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
-            style={{
-              shadowColor: "#6b38d4",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.4,
-              shadowRadius: 16,
-              elevation: 8,
-            }}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white tracking-wide">
-                Add Book to Sanctuary
+            {/* Rating */}
+            <View className="mb-5">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+                Rating (optional)
               </Text>
-            )}
-          </Pressable>
-        </ScrollView>
-      </RNAnimated.View>
-    </View>
+              <View className="flex-row gap-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Pressable
+                    key={star}
+                    onPress={() => setRating(rating === star ? null : star)}
+                    hitSlop={4}
+                  >
+                    <Feather
+                      name="star"
+                      size={30}
+                      color={
+                        rating !== null && star <= rating
+                          ? "#f59e0b"
+                          : mode === "dark"
+                            ? "#334155"
+                            : "#e2e8f0"
+                      }
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Notes */}
+            <View className="mb-8">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                Notes (optional)
+              </Text>
+              <TextInput
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Your thoughts, quotes, impressions…"
+                placeholderTextColor={placeholderColor}
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                multiline
+                textAlignVertical="top"
+                style={{ height: 96 }}
+                maxLength={1000}
+              />
+            </View>
+
+            {/* CTA */}
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={saving}
+              className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
+              style={{
+                shadowColor: "#6b38d4",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.4,
+                shadowRadius: 16,
+                elevation: 8,
+              }}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-base font-bold text-white tracking-wide">
+                  Add Book to Sanctuary
+                </Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }

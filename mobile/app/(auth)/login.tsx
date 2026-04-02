@@ -6,7 +6,6 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert,
   Modal,
 } from "react-native";
 import { useState, useCallback } from "react";
@@ -24,6 +23,7 @@ import { StatusBar } from "expo-status-bar";
 
 import { userAtom } from "@/src/store/auth";
 import { login, register } from "@/src/services/authService";
+import { showApiError } from "@/src/services/apiError";
 import { AuthInput } from "@/src/components/AuthInput";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { Feather } from "@expo/vector-icons";
@@ -183,10 +183,7 @@ export default function AuthScreen() {
         setUser(user);
         router.replace("/(tabs)");
       } catch (err: unknown) {
-        const msg =
-          (err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? "Invalid credentials. Please try again.";
-        Alert.alert("Login failed", msg);
+        showApiError("Login failed", err);
       } finally {
         setIsLoading(false);
       }
@@ -201,10 +198,7 @@ export default function AuthScreen() {
         setUser(user);
         router.replace("/(tabs)");
       } catch (err: unknown) {
-        const msg =
-          (err as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? "Could not create account. Please try again.";
-        Alert.alert("Registration failed", msg);
+        showApiError("Registration failed", err);
       } finally {
         setIsLoading(false);
       }

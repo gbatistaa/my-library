@@ -74,6 +74,20 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="add-book"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="add-saga"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
           </Stack>
         </AuthGate>
         <StatusBar style="auto" />

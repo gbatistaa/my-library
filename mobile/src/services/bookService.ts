@@ -10,6 +10,7 @@ export interface CreateBookPayload {
   status: BookStatus;
   rating?: number;
   notes?: string;
+  coverUrl?: string;
 }
 
 export async function createBook(payload: CreateBookPayload): Promise<BookDTO> {

@@ -18,11 +18,11 @@ export interface BookDTO {
 export interface SagaDTO {
   id: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
 export interface CategoryDTO {
   id: string;
   name: string;
-  description: string;
+  description?: string;
 }

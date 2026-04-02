@@ -46,4 +46,6 @@ public class CreateBookDTO {
 
   @Size(max = 1000, message = "Notes must not exceed 1000 characters")
   private String notes;
+
+  private String coverUrl;
 }

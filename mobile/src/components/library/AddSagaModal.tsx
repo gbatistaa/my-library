@@ -5,15 +5,16 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  Animated as RNAnimated,
-  PanResponder,
   StyleSheet,
   Alert,
   ActivityIndicator,
   Image,
   Dimensions,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { createSaga, addBookToSaga } from "@/src/services/sagaService";
 import { getAllBooks } from "@/src/services/bookService";
+import { showApiError } from "@/src/services/apiError";
 import type { BookDTO } from "@/src/types/book";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -110,67 +112,18 @@ export function AddSagaModal({
   );
   const [saving, setSaving] = useState(false);
 
-  const sheetY = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
-  const overlayAnim = useRef(new RNAnimated.Value(0)).current;
-
   const { data: allBooks } = useQuery({
     queryKey: ["books", "all"],
-    queryFn: getAllBooks,
+    queryFn: () => getAllBooks(),
   });
   const books: BookDTO[] = Array.isArray(allBooks) ? allBooks : [];
 
-  useEffect(() => {
-    if (visible) {
-      RNAnimated.parallel([
-        RNAnimated.spring(sheetY, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 22,
-          stiffness: 200,
-        }),
-        RNAnimated.timing(overlayAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      RNAnimated.parallel([
-        RNAnimated.timing(sheetY, {
-          toValue: SHEET_HEIGHT,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        RNAnimated.timing(overlayAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible]);
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gs) => gs.dy > 0,
-      onPanResponderMove: (_, gs) => {
-        if (gs.dy > 0) sheetY.setValue(gs.dy);
-      },
-      onPanResponderRelease: (_, gs) => {
-        if (gs.dy > 100 || gs.vy > 1) {
-          onClose();
-        } else {
-          RNAnimated.spring(sheetY, {
-            toValue: 0,
-            useNativeDriver: true,
-            damping: 20,
-            stiffness: 200,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  const toggleBook = (id: string) => {
+    const next = new Set(selectedBookIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedBookIds(next);
+  };
 
   const resetForm = () => {
     setName("");
@@ -183,206 +136,177 @@ export function AddSagaModal({
     onClose();
   };
 
-  const toggleBook = (id: string) => {
-    setSelectedBookIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
   const handleSubmit = async () => {
-    const trimmedName = name.trim();
-    const trimmedDesc = description.trim();
-
-    if (trimmedName.length < 3) {
-      Alert.alert("Error", "Saga name must be at least 3 characters.");
-      return;
-    }
-    if (trimmedDesc.length < 3) {
-      Alert.alert("Error", "Description must be at least 3 characters.");
+    if (!name.trim()) {
+      Alert.alert("Error", "Saga name is required.");
       return;
     }
 
     setSaving(true);
     try {
       const saga = await createSaga({
-        name: trimmedName,
-        description: trimmedDesc,
+        name: name.trim(),
+        description: description.trim() || undefined,
       });
 
-      // Attach selected books sequentially
+      // Add selected books to saga
       for (const bookId of selectedBookIds) {
         await addBookToSaga(saga.id, bookId);
       }
 
       await queryClient.invalidateQueries({ queryKey: ["sagas"] });
-      resetForm();
-      onClose();
+      handleClose();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to create saga. Please try again.";
-      Alert.alert("Error", msg);
+      showApiError("Failed to create saga", err);
     } finally {
       setSaving(false);
     }
   };
 
-  const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
   const closeIconColor = mode === "dark" ? "#94A3B8" : "#494454";
-  const selectedCount = selectedBookIds.size;
-
-  // Input style: saga modal uses white/light inputs per design system
-  const inputClass =
-    "bg-white dark:bg-[#1E293B] rounded-2xl px-5 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC] border border-[#E2E8F0]/80 dark:border-[#334155]";
+  const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
 
   return (
-    <View
-      style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
-      pointerEvents={visible ? "auto" : "none"}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={handleClose}
+      statusBarTranslucent
     >
-      {/* Backdrop */}
-      <RNAnimated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          backgroundColor: "rgba(0,0,0,0.65)",
-          opacity: overlayAnim,
-        }}
-      >
-        <Pressable style={{ flex: 1 }} onPress={handleClose} />
-      </RNAnimated.View>
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}>
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={handleClose}
+        />
 
-      {/* Sheet */}
-      <RNAnimated.View
-        className="absolute bottom-0 left-0 right-0 bg-[#f9f9ff] dark:bg-[#0F172A] overflow-hidden"
-        style={{
-          height: SHEET_HEIGHT,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          transform: [{ translateY: sheetY }],
-        }}
-      >
-        {/* Drag handle */}
-        <View
-          className="items-center pt-4 pb-2"
-          {...panResponder.panHandlers}
-        >
-          <View className="w-12 h-1.5 rounded-full bg-[#cbc3d7]/40 dark:bg-[#475569]/50" />
-        </View>
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingBottom: insets.bottom + 32,
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{
+            height: SHEET_HEIGHT,
+            backgroundColor: mode === "dark" ? "#0F172A" : "#FFFFFF",
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -10 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+            elevation: 24,
           }}
-          keyboardShouldPersistTaps="handled"
         >
+          {/* Drag handle decoration */}
+          <View className="w-12 h-1.5 bg-[#cbc3d7]/30 dark:bg-[#334155] rounded-full self-center mt-3 mb-1" />
+
           {/* Header */}
-          <View className="flex-row justify-between items-center pt-3 pb-6">
-            <Text className="text-[24px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
-              Create New Saga
-            </Text>
+          <View className="flex-row justify-between items-center px-6 py-4 border-b border-[#cbc3d7]/10 dark:border-[#334155]/20">
+            <View>
+              <Text className="text-2xl font-bold text-[#111c2d] dark:text-[#F8FAFC]">
+                Create New Saga
+              </Text>
+              <Text className="text-xs text-[#494454] dark:text-[#94A3B8] mt-0.5">
+                Group your epic collections
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={handleClose}
               className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
             >
-              <Feather name="x" size={18} color={closeIconColor} />
+              <Feather name="x" size={20} color={closeIconColor} />
             </TouchableOpacity>
           </View>
 
-          {/* Saga name */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Saga Name
-            </Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. The Chronicles of Aethelgard"
-              placeholderTextColor={placeholderColor}
-              className={inputClass}
-              autoCapitalize="words"
-              maxLength={50}
-            />
-          </View>
-
-          {/* Description */}
-          <View className="mb-8">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Description
-            </Text>
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Define the scope and theme of this literary journey…"
-              placeholderTextColor={placeholderColor}
-              className={inputClass}
-              multiline
-              textAlignVertical="top"
-              style={{ height: 110 }}
-            />
-          </View>
-
-          {/* Select books header */}
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest">
-              Select Books
-            </Text>
-            {selectedCount > 0 && (
-              <Text className="text-[10px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-wider">
-                {selectedCount} {selectedCount === 1 ? "book" : "books"} selected
-              </Text>
-            )}
-          </View>
-
-          {/* Book grid */}
-          {books.length === 0 ? (
-            <View className="py-10 items-center">
-              <Text className="text-sm text-[#494454] dark:text-[#94A3B8] text-center">
-                No books in your library yet.{"\n"}Add books first to include them in a saga.
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-row flex-wrap gap-3 mb-8">
-              {books.map((book) => (
-                <View key={book.id} className="w-[48%]">
-                  <BookSelectCard
-                    book={book}
-                    selected={selectedBookIds.has(book.id)}
-                    onToggle={() => toggleBook(book.id)}
-                    mode={mode}
-                  />
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* CTA */}
-          <Pressable
-            onPress={handleSubmit}
-            disabled={saving}
-            className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
-            style={{
-              shadowColor: "#6b38d4",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.4,
-              shadowRadius: 16,
-              elevation: 8,
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingBottom: insets.bottom + 40,
             }}
+            keyboardShouldPersistTaps="handled"
+            className="flex-1"
           >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white tracking-wide">
-                Create Saga
+            {/* Name */}
+            <View className="mt-6 mb-5">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                Saga Name
               </Text>
-            )}
-          </Pressable>
-        </ScrollView>
-      </RNAnimated.View>
-    </View>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="e.g. The Lord of the Rings"
+                placeholderTextColor={placeholderColor}
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Description */}
+            <View className="mb-6">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                Description (optional)
+              </Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Talk about this saga..."
+                placeholderTextColor={placeholderColor}
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                multiline
+                textAlignVertical="top"
+                style={{ height: 80 }}
+              />
+            </View>
+
+            {/* Book Selection */}
+            <View className="mb-8">
+              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+                Select Books ({selectedBookIds.size})
+              </Text>
+              {books.length > 0 ? (
+                <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
+                  {books.map((book) => (
+                    <View key={book.id} className="w-1/3 p-1.5">
+                      <BookSelectCard
+                        book={book}
+                        selected={selectedBookIds.has(book.id!)}
+                        onToggle={() => toggleBook(book.id!)}
+                        mode={mode}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View className="py-8 items-center justify-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-2xl border border-dashed border-[#cbc3d7] dark:border-[#334155]">
+                  <Text className="text-sm text-[#494454] dark:text-[#94A3B8]">
+                    No books found in your library yet.
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* CTA */}
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={saving}
+              className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
+              style={{
+                shadowColor: "#6b38d4",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.4,
+                shadowRadius: 16,
+                elevation: 8,
+              }}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-base font-bold text-white tracking-wide">
+                  Create Saga
+                </Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }
