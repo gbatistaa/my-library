@@ -40,7 +40,6 @@ function formatRelativeDate(isoDate: string): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays}d ago`;
@@ -62,10 +61,9 @@ const SessionScreen = () => {
   const [selectedBook, setSelectedBook] = useState<BookDTO | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [targetTime, setTargetTime] = useState(30 * 60); // default 30 min
+  const [targetTime, setTargetTime] = useState(30 * 60);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Custom Animation Pattern from User
   const SHEET_HEIGHT = 650;
   const slideAnim = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
   const overlayAnim = useRef(new RNAnimated.Value(0)).current;
@@ -101,9 +99,7 @@ const SessionScreen = () => {
     }
   }, [bookModalVisible, overlayAnim, slideAnim, SHEET_HEIGHT]);
 
-  const closeBookModal = useCallback(() => {
-    setBookModalVisible(false);
-  }, []);
+  const closeBookModal = useCallback(() => setBookModalVisible(false), []);
 
   const { data: readingBooks } = useQuery({
     queryKey: ["currentlyReadingSelection"],
@@ -141,7 +137,6 @@ const SessionScreen = () => {
     (overrideElapsed?: number) => {
       setIsActive(false);
       const duration = overrideElapsed ?? elapsed;
-
       if (duration < 30) {
         Alert.alert("Too Short", "Sessions must be at least 30 seconds.");
         return;
@@ -151,7 +146,6 @@ const SessionScreen = () => {
         setBookModalVisible(true);
         return;
       }
-
       Alert.prompt(
         "Pages Read",
         "How many pages did you read this session?",
@@ -159,7 +153,7 @@ const SessionScreen = () => {
           { text: "Cancel", style: "cancel" },
           {
             text: "Save",
-            onPress: (val: string | undefined) => {
+            onPress: (val?: string) => {
               const num = parseInt(val || "0", 10);
               if (num <= 0) {
                 Alert.alert("Invalid", "Enter a valid number of pages.");
@@ -235,35 +229,29 @@ const SessionScreen = () => {
     }
   };
 
-  // Calculate display values
   const displaySeconds =
     modeState === "timer" && isActive
       ? Math.max(0, targetTime - elapsed)
       : elapsed;
-
-  // Ring progress: stopwatch pulses slowly, timer fills toward completion
   const ringProgress =
     modeState === "timer"
       ? targetTime > 0
         ? Math.min(elapsed / targetTime, 1)
         : 0
       : elapsed > 0
-        ? Math.min(elapsed / 3600, 1) // fills over 1 hour for stopwatch
+        ? Math.min(elapsed / 3600, 1)
         : 0;
-
   const timerSubtitle =
     modeState === "timer" && !isActive && elapsed === 0
       ? `${Math.floor(targetTime / 60)} min session`
       : modeState === "stopwatch" && !isActive && elapsed === 0
         ? "Tap play to start"
         : undefined;
-
-  // Whether cancel/save should be functional
   const canDiscard = elapsed > 0 && !isActive;
   const canSave = elapsed >= 30 && !isActive;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 10,
@@ -273,40 +261,24 @@ const SessionScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* -- Header -------------------------------- */}
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={{ paddingTop: 14, paddingBottom: 8 }}
-        >
+        <Animated.View entering={FadeIn.duration(400)} className="pt-3.5 pb-2">
           <Text
-            style={{
-              fontSize: 28,
-              fontWeight: "800",
-              color: colors.text,
-              letterSpacing: -0.5,
-            }}
+            className="font-extrabold text-[28px] tracking-[-0.5px]"
+            style={{ color: colors.text }}
           >
             Reading Session
           </Text>
         </Animated.View>
 
         {/* -- Mode Toggle --------------------------- */}
-        <View
-          style={{
-            alignSelf: "center",
-            maxWidth: 280,
-            width: "100%",
-            marginTop: 20,
-          }}
-        >
+        <View className="self-center mt-5 w-full">
           <View
+            className="flex-row p-1.5 rounded-xl w-full"
             style={{
-              flexDirection: "row",
               backgroundColor: colors.surfaceContainerLow,
-              borderRadius: 12,
-              padding: 6,
               ...(isDark && {
                 borderWidth: 1,
-                borderColor: colors.outlineVariant + "4D", // 30% opacity
+                borderColor: colors.outlineVariant + "4D",
               }),
             }}
           >
@@ -315,14 +287,11 @@ const SessionScreen = () => {
               return (
                 <TouchableOpacity
                   key={m}
+                  className="flex-1 items-center py-3 rounded-[10px]"
                   style={{
-                    flex: 1,
-                    paddingVertical: 8,
-                    alignItems: "center",
                     backgroundColor: isSelected
                       ? colors.primary
                       : "transparent",
-                    borderRadius: 10,
                     ...(isSelected && {
                       shadowColor: "#000",
                       shadowOffset: { width: 0, height: 1 },
@@ -344,12 +313,12 @@ const SessionScreen = () => {
                   }}
                 >
                   <Text
+                    className="text-sm"
                     style={{
                       color: isSelected
                         ? colors.onPrimary
                         : colors.textSecondary,
                       fontWeight: isSelected ? "600" : "500",
-                      fontSize: 14,
                     }}
                   >
                     {m === "stopwatch" ? "Stopwatch" : "Timer"}
@@ -361,100 +330,59 @@ const SessionScreen = () => {
         </View>
 
         {/* -- Book Selector ------------------------- */}
-        <Pressable
-          onPress={() => setBookModalVisible(true)}
-          style={({ pressed }) => ({
-            marginTop: 32,
-            marginBottom: 32,
-            minHeight: selectedBook ? 80 : 56,
-            borderRadius: selectedBook ? 16 : 14,
-            backgroundColor: selectedBook 
-                ? (isDark ? colors.surfaceContainerLow : colors.surface)
-                : (pressed ? colors.primary + "CC" : colors.primary), 
-            borderWidth: selectedBook && isDark ? 1 : 0,
-            borderColor: selectedBook && isDark ? colors.outlineVariant + "4D" : "transparent",
-            borderStyle: "solid",
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 16,
-            paddingVertical: selectedBook ? 12 : 0,
-            justifyContent: "space-between",
-            transform: [{ scale: pressed ? 0.98 : 1 }],
-            ...(selectedBook && !isDark && {
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
-                elevation: 2,
-            })
-          })}
-        >
+        <View className="mt-8 mb-8">
           {selectedBook ? (
-             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-                 {/* Book cover thumbnail placeholder */}
-                 <View
-                   style={{
-                     width: 48,
-                     height: 64,
-                     borderRadius: 6,
-                     backgroundColor: isDark ? colors.surface + "80" : colors.primary + "15",
-                     alignItems: "center",
-                     justifyContent: "center",
-                   }}
-                 >
-                   <Feather name="book" size={20} color={colors.primary} />
-                 </View>
-                 <View style={{ flex: 1, justifyContent: "center" }}>
-                   <Text
-                     style={{
-                       fontSize: 16,
-                       fontWeight: "700",
-                       color: isDark ? colors.text : colors.text,
-                       marginBottom: 4,
-                     }}
-                     numberOfLines={1}
-                   >
-                     {selectedBook.title}
-                   </Text>
-                   <Text
-                     style={{
-                       fontSize: 13,
-                       fontWeight: "500",
-                       color: colors.textSecondary,
-                     }}
-                     numberOfLines={1}
-                   >
-                     {selectedBook.author || "Unknown Author"} • {selectedBook.pages || 0} pages
-                   </Text>
-                 </View>
-             </View>
-          ) : (
-            <View
-              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", flex: 1, gap: 8 }}
+            /* ── With book: glassmorphism card ── */
+            <Pressable
+              onPress={() => setBookModalVisible(true)}
+              className="flex-row justify-between items-center bg-white/65 dark:bg-[#1E293B]/60 shadow-black/[0.08] shadow-lg dark:shadow-black/30 px-4 py-3.5 border border-[#6b38d4]/[0.12] dark:border-[#A78BFA]/[0.18] rounded-2xl active:scale-[0.98]"
+              style={{ elevation: 4 }}
             >
-              <Feather name="plus-circle" size={20} color="#FFFFFF" />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#FFFFFF",
-                }}
-              >
-                Select a book to read
-              </Text>
-            </View>
-          )}
-          {selectedBook && (
+              {/* Thumbnail */}
+              <View className="justify-center items-center bg-[#6b38d4]/[0.09] dark:bg-[#A78BFA]/[0.15] rounded-lg w-12 h-16">
+                <Feather name="book" size={20} color={colors.primary} />
+              </View>
+
+              {/* Info */}
+              <View className="flex-1 justify-center ml-3.5">
+                <Text
+                  className="mb-1 font-bold text-[#111c2d] dark:text-[#F8FAFC] text-base"
+                  numberOfLines={1}
+                >
+                  {selectedBook.title}
+                </Text>
+                <Text
+                  className="font-medium text-[#494454] text-[13px] dark:text-[#94A3B8]"
+                  numberOfLines={1}
+                >
+                  {selectedBook.author || "Unknown Author"} •{" "}
+                  {selectedBook.pages || 0} pages
+                </Text>
+              </View>
+
               <Feather
                 name="chevron-right"
                 size={20}
                 color={colors.textSecondary}
               />
+            </Pressable>
+          ) : (
+            /* ── Empty: solid purple button ── */
+            <Pressable
+              onPress={() => setBookModalVisible(true)}
+              className="flex-row justify-center items-center gap-2.5 bg-[#6b38d4] active:bg-[#6b38d4]/80 dark:active:bg-[#A78BFA]/80 dark:bg-[#A78BFA] shadow-[#6b38d4]/35 shadow-lg dark:shadow-[#A78BFA]/35 rounded-[14px] h-14 active:scale-[0.97]"
+              style={{ elevation: 6 }}
+            >
+              <Feather name="plus-circle" size={20} color="#FFFFFF" />
+              <Text className="font-bold text-white text-base tracking-[0.2px]">
+                Select a book to read
+              </Text>
+            </Pressable>
           )}
-        </Pressable>
+        </View>
 
         {/* -- Timer Ring ---------------------------- */}
-        <View style={{ alignItems: "center", marginBottom: 16 }}>
+        <View className="items-center mb-4">
           <TimerRing
             progress={ringProgress}
             timeDisplay={formatTime(displaySeconds)}
@@ -467,13 +395,7 @@ const SessionScreen = () => {
         {modeState === "timer" && !isActive && elapsed === 0 && (
           <Animated.View
             entering={FadeIn.duration(300)}
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              flexWrap: "wrap",
-              gap: 12,
-              marginBottom: 24,
-            }}
+            className="flex-row flex-wrap justify-center gap-3 mb-6"
           >
             {TIMER_PRESETS.map((mins) => {
               const isSelected = targetTime === mins * 60;
@@ -482,10 +404,8 @@ const SessionScreen = () => {
                   key={mins}
                   onPress={() => setTargetTime(mins * 60)}
                   activeOpacity={0.7}
+                  className="justify-center items-center px-5 py-2.5 rounded-full"
                   style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 20,
-                    borderRadius: 999,
                     backgroundColor: isSelected
                       ? isDark
                         ? colors.primary
@@ -496,20 +416,17 @@ const SessionScreen = () => {
                         borderWidth: 1,
                         borderColor: colors.outlineVariant + "4D",
                       }),
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
                 >
                   <Text
+                    className="text-sm text-center"
                     style={{
-                      fontSize: 14,
                       fontWeight: isSelected ? "700" : "500",
                       color: isSelected
                         ? isDark
                           ? colors.onPrimary
                           : colors.onPrimaryFixedVariant
                         : colors.textSecondary,
-                      textAlign: "center",
                     }}
                   >
                     {mins}m
@@ -517,6 +434,7 @@ const SessionScreen = () => {
                 </TouchableOpacity>
               );
             })}
+
             <TouchableOpacity
               onPress={() => {
                 Alert.prompt(
@@ -532,15 +450,9 @@ const SessionScreen = () => {
                 );
               }}
               activeOpacity={0.7}
+              className="flex-row justify-center items-center gap-1.5 px-5 py-2.5 rounded-full"
               style={{
-                paddingVertical: 10,
-                paddingHorizontal: 20,
-                borderRadius: 999,
                 backgroundColor: colors.surfaceContainerLow,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
                 ...(isDark && {
                   borderWidth: 1,
                   borderColor: colors.outlineVariant + "4D",
@@ -549,12 +461,8 @@ const SessionScreen = () => {
             >
               <Feather name="edit-2" size={12} color={colors.textSecondary} />
               <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "500",
-                  color: colors.textSecondary,
-                  textAlign: "center",
-                }}
+                className="font-medium text-sm text-center"
+                style={{ color: colors.textSecondary }}
               >
                 Custom
               </Text>
@@ -563,15 +471,7 @@ const SessionScreen = () => {
         )}
 
         {/* -- Controls ------------------------------ */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 48,
-            marginBottom: 48,
-          }}
-        >
+        <View className="flex-row justify-center items-center gap-12 mb-12">
           {/* Cancel (X) */}
           <TouchableOpacity
             onPress={() => {
@@ -590,17 +490,13 @@ const SessionScreen = () => {
               );
             }}
             activeOpacity={canDiscard ? 0.7 : 1}
+            className="justify-center items-center rounded-full w-14 h-14"
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
               backgroundColor: colors.surfaceContainerLow,
-              justifyContent: "center",
-              alignItems: "center",
               opacity: canDiscard ? 1 : 0.35,
               ...(isDark && {
                 borderWidth: 1,
-                borderColor: colors.outlineVariant + "80", // 50% opacity
+                borderColor: colors.outlineVariant + "80",
               }),
             }}
           >
@@ -611,13 +507,9 @@ const SessionScreen = () => {
           <TouchableOpacity
             onPress={handleToggleTimer}
             activeOpacity={0.8}
+            className="justify-center items-center rounded-full w-[72px] h-[72px]"
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
               backgroundColor: colors.primary,
-              justifyContent: "center",
-              alignItems: "center",
               transform: [{ scale: 1.1 }],
               shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 6 },
@@ -640,17 +532,13 @@ const SessionScreen = () => {
               handleSaveSession();
             }}
             activeOpacity={canSave ? 0.7 : 1}
+            className="justify-center items-center rounded-full w-14 h-14"
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
               backgroundColor: colors.surfaceContainerLow,
-              justifyContent: "center",
-              alignItems: "center",
               opacity: canSave ? 1 : 0.35,
               ...(isDark && {
                 borderWidth: 1,
-                borderColor: colors.outlineVariant + "80", // 50% opacity
+                borderColor: colors.outlineVariant + "80",
               }),
             }}
           >
@@ -664,30 +552,17 @@ const SessionScreen = () => {
 
         {/* -- Recent Sessions ----------------------- */}
         <View>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              marginBottom: 16,
-            }}
-          >
+          <View className="flex-row justify-between items-baseline mb-4">
             <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "700",
-                color: colors.text,
-              }}
+              className="font-bold text-[18px]"
+              style={{ color: colors.text }}
             >
               Recent Sessions
             </Text>
             <TouchableOpacity onPress={() => router.push("/session-history")}>
               <Text
-                style={{
-                  color: colors.primary,
-                  fontWeight: "500",
-                  fontSize: 13,
-                }}
+                className="font-medium text-[13px]"
+                style={{ color: colors.primary }}
               >
                 View All
               </Text>
@@ -695,48 +570,35 @@ const SessionScreen = () => {
           </View>
 
           {!Array.isArray(recentSessions) || recentSessions.length === 0 ? (
-            <View style={{ paddingVertical: 20 }}>
+            <View className="py-5">
               <Text
-                style={{
-                  color: colors.textSecondary,
-                  fontSize: 14,
-                  lineHeight: 20,
-                }}
+                className="text-sm leading-5"
+                style={{ color: colors.textSecondary }}
               >
                 No sessions yet. Start your first reading session above!
               </Text>
             </View>
           ) : (
-            <View style={{ gap: 16 }}>
+            <View className="gap-4">
               {recentSessions.map((session, index) => (
                 <Animated.View
                   key={session.id}
                   entering={FadeInDown.delay(index * 60)}
+                  className="flex-row items-center p-4 rounded-lg"
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    padding: 16,
-                    borderRadius: 8,
                     backgroundColor: isDark
                       ? colors.surfaceContainerLow
                       : colors.surface,
                     ...(isDark && {
                       borderWidth: 1,
-                      borderColor: colors.outlineVariant + "4D", // 30% opacity
+                      borderColor: colors.outlineVariant + "4D",
                     }),
                   }}
                 >
-                  {/* Book cover thumbnail */}
+                  {/* Thumbnail */}
                   <View
-                    style={{
-                      width: 48,
-                      height: 64,
-                      borderRadius: 6,
-                      backgroundColor: colors.surfaceContainerHigh,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: 12,
-                    }}
+                    className="justify-center items-center mr-3 rounded-md w-12 h-16"
+                    style={{ backgroundColor: colors.surfaceContainerHigh }}
                   >
                     <Feather
                       name="book-open"
@@ -746,23 +608,17 @@ const SessionScreen = () => {
                   </View>
 
                   {/* Info */}
-                  <View style={{ flex: 1 }}>
+                  <View className="flex-1">
                     <Text
-                      style={{
-                        fontWeight: "700",
-                        color: colors.text,
-                        fontSize: 15,
-                      }}
+                      className="font-bold text-[15px]"
+                      style={{ color: colors.text }}
                       numberOfLines={1}
                     >
                       {session.bookTitle ?? "Unknown Book"}
                     </Text>
                     <Text
-                      style={{
-                        color: colors.textSecondary,
-                        fontSize: 12,
-                        marginTop: 4,
-                      }}
+                      className="mt-1 text-xs"
+                      style={{ color: colors.textSecondary }}
                     >
                       {formatRelativeDate(session.createdAt)} {"\u2022"}{" "}
                       {Math.ceil(session.durationSeconds / 60)}m session
@@ -771,23 +627,20 @@ const SessionScreen = () => {
 
                   {/* Points badge */}
                   <View
+                    className="px-2.5 py-[5px] rounded-full"
                     style={{
-                      paddingHorizontal: 10,
-                      paddingVertical: 5,
-                      borderRadius: 999,
                       backgroundColor: isDark
                         ? colors.surfaceContainerHigh
                         : colors.secondaryFixed,
                       ...(isDark && {
                         borderWidth: 1,
-                        borderColor: colors.primary + "33", // 20% opacity
+                        borderColor: colors.primary + "33",
                       }),
                     }}
                   >
                     <Text
+                      className="font-bold text-xs"
                       style={{
-                        fontSize: 12,
-                        fontWeight: "700",
                         color: isDark
                           ? colors.primaryContainer
                           : colors.secondary,
@@ -803,12 +656,12 @@ const SessionScreen = () => {
         </View>
       </ScrollView>
 
-      {/* -- Book Selection Modal (kept exactly as-is) -- */}
+      {/* -- Book Selection Modal ------------------- */}
       <View
         style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
         pointerEvents={bookModalVisible ? "auto" : "none"}
       >
-        {/* Backdrop with FADE */}
+        {/* Backdrop */}
         <RNAnimated.View
           style={{
             ...StyleSheet.absoluteFillObject,
@@ -817,12 +670,12 @@ const SessionScreen = () => {
           }}
         >
           <Pressable
-            style={{ flex: 1 }}
+            className="flex-1"
             onPress={() => setBookModalVisible(false)}
           />
         </RNAnimated.View>
 
-        {/* Sheet with SLIDE (using Transform) */}
+        {/* Sheet */}
         <RNAnimated.View
           style={{
             position: "absolute",
@@ -845,60 +698,30 @@ const SessionScreen = () => {
             transform: [{ translateY: slideAnim }],
           }}
         >
-          {/* Handle / Pill */}
+          {/* Handle pill */}
           <View
-            style={{
-              width: 40,
-              height: 5,
-              borderRadius: 2.5,
-              backgroundColor: colors.border,
-              alignSelf: "center",
-              marginBottom: 24,
-            }}
+            className="self-center mb-6 rounded-full w-10 h-[5px]"
+            style={{ backgroundColor: colors.border }}
           />
 
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
+          <View className="flex-row justify-between items-center mb-5">
             <Text
-              style={{
-                fontSize: 24,
-                fontWeight: "800",
-                color: colors.text,
-                letterSpacing: -0.5,
-              }}
+              className="font-extrabold text-2xl tracking-[-0.5px]"
+              style={{ color: colors.text }}
             >
               Choose a Book
             </Text>
             <TouchableOpacity
               onPress={closeBookModal}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="justify-center items-center rounded-full w-9 h-9"
+              style={{ backgroundColor: colors.surface }}
             >
               <Feather name="x" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {!readingBooks || readingBooks.length === 0 ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                paddingBottom: 40,
-              }}
-            >
+            <View className="flex-1 justify-center items-center pb-10">
               <Feather
                 name="book"
                 size={48}
@@ -906,12 +729,8 @@ const SessionScreen = () => {
                 style={{ marginBottom: 16 }}
               />
               <Text
-                style={{
-                  color: colors.textSecondary,
-                  fontSize: 16,
-                  textAlign: "center",
-                  maxWidth: "80%",
-                }}
+                className="max-w-[80%] text-base text-center"
+                style={{ color: colors.textSecondary }}
               >
                 {
                   "No books currently being read.\nAdd one to your library first!"
@@ -927,114 +746,79 @@ const SessionScreen = () => {
               renderItem={({ item }) => {
                 const isSelected = selectedBook?.id === item.id;
                 return (
-                  <Pressable
-                    style={({ pressed }) => ({
-                      marginBottom: 16,
-                      padding: 16,
-                      borderRadius: 20,
-                      backgroundColor: isSelected
-                        ? colors.primary + "15"
-                        : colors.surface,
-                      borderWidth: 2,
-                      borderColor: isSelected
-                        ? colors.primary
-                        : colors.border + "40",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 16,
-                      opacity: pressed ? 0.8 : 1,
-                    })}
-                    onPress={() => {
-                      setSelectedBook(item);
-                      setBookModalVisible(false);
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 50,
-                        height: 70,
-                        borderRadius: 10,
-                        backgroundColor: colors.primary + "15",
-                        alignItems: "center",
-                        justifyContent: "center",
+                  <View className="mb-4">
+                    <Pressable
+                      className="flex-row items-center gap-4 p-4 rounded-[20px]"
+                      style={({ pressed }) => ({
+                        backgroundColor: isSelected
+                          ? colors.primary + "15"
+                          : colors.surface,
+                        borderWidth: 2,
+                        borderColor: isSelected
+                          ? colors.primary
+                          : colors.border + "40",
+                        opacity: pressed ? 0.8 : 1,
+                      })}
+                      onPress={() => {
+                        setSelectedBook(item);
+                        setBookModalVisible(false);
                       }}
                     >
-                      <Feather name="book" size={24} color={colors.primary} />
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          color: colors.text,
-                          fontSize: 17,
-                          fontWeight: "800",
-                        }}
-                        numberOfLines={1}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text
-                        style={{
-                          color: colors.textSecondary,
-                          fontSize: 14,
-                          marginTop: 3,
-                          fontWeight: "500",
-                        }}
-                        numberOfLines={1}
-                      >
-                        {item.author}
-                      </Text>
                       <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          marginTop: 8,
-                          gap: 6,
-                        }}
+                        className="justify-center items-center rounded-xl w-[50px] h-[70px]"
+                        style={{ backgroundColor: colors.primary + "15" }}
                       >
-                        <View
-                          style={{
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            backgroundColor: colors.primary + "10",
-                            borderRadius: 4,
-                          }}
+                        <Feather name="book" size={24} color={colors.primary} />
+                      </View>
+
+                      <View className="flex-1">
+                        <Text
+                          className="font-extrabold text-[17px]"
+                          style={{ color: colors.text }}
+                          numberOfLines={1}
                         >
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              color: colors.primary,
-                              fontWeight: "700",
-                            }}
+                          {item.title}
+                        </Text>
+                        <Text
+                          className="mt-[3px] font-medium text-sm"
+                          style={{ color: colors.textSecondary }}
+                          numberOfLines={1}
+                        >
+                          {item.author}
+                        </Text>
+                        <View className="flex-row items-center gap-1.5 mt-2">
+                          <View
+                            className="px-2 py-0.5 rounded-[4px]"
+                            style={{ backgroundColor: colors.primary + "10" }}
                           >
-                            {item.pages} pgs
-                          </Text>
+                            <Text
+                              className="font-bold text-[11px]"
+                              style={{ color: colors.primary }}
+                            >
+                              {item.pages} pgs
+                            </Text>
+                          </View>
+                          {item.genre && (
+                            <Text
+                              className="text-[13px]"
+                              style={{ color: colors.textSecondary }}
+                            >
+                              • {item.genre}
+                            </Text>
+                          )}
                         </View>
-                        {item.genre && (
-                          <Text
-                            style={{
-                              fontSize: 13,
-                              color: colors.textSecondary,
-                            }}
-                          >
-                            • {item.genre}
-                          </Text>
-                        )}
                       </View>
-                    </View>
 
-                    {isSelected && (
-                      <View
-                        style={{
-                          backgroundColor: colors.primary,
-                          borderRadius: 12,
-                          padding: 6,
-                        }}
-                      >
-                        <Feather name="check" size={16} color="#FFF" />
-                      </View>
-                    )}
-                  </Pressable>
+                      {isSelected && (
+                        <View
+                          className="p-1.5 rounded-xl"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          <Feather name="check" size={16} color="#FFF" />
+                        </View>
+                      )}
+                    </Pressable>
+                  </View>
                 );
               }}
             />

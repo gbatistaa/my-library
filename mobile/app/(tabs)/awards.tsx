@@ -2,8 +2,8 @@ import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { StatusBar } from "expo-status-bar";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getAchievements } from "@/src/services/profileService";
@@ -25,7 +25,6 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   GOALS: "\u{1F3AF}",
 };
 
-// Unique emojis per achievement name, with category-based fallbacks
 const ACHIEVEMENT_EMOJIS: Record<string, string> = {
   Bookworm: "\u{1F4D6}",
   "Library Titan": "\u{1F3DB}\uFE0F",
@@ -45,110 +44,59 @@ function getAchievementEmoji(achievement: AchievementDTO): string {
   );
 }
 
-// Map categories to color keys for earned icon backgrounds
-function getIconBgColor(
-  category: string,
-  earned: boolean,
-  colors: any,
-  mode: string
-): string {
+/* ── Icon bg class per category (earned, light mode) ── */
+const CATEGORY_ICON_BG: Record<string, string> = {
+  VOLUME: "bg-[#e9ddff]",
+  VELOCITY: "bg-[#ffddb8]",
+  DIVERSITY: "bg-[#ffd9e4]",
+  GOALS: "bg-[#e9ddff]",
+};
+
+function getIconBgClass(category: string, earned: boolean): string {
   if (!earned) {
-    return colors.surfaceContainerHigh;
+    // unearned: surfaceContainerHigh
+    return "bg-[#dee8ff] dark:bg-[#334155]";
   }
-  if (mode === "dark") {
-    return colors.primary + "33"; // 20% opacity
-  }
-  switch (category) {
-    case "VOLUME":
-      return colors.primaryFixed;
-    case "VELOCITY":
-      return colors.secondaryFixed;
-    case "DIVERSITY":
-      return colors.tertiaryFixed;
-    case "GOALS":
-      return colors.primaryFixed;
-    default:
-      return colors.primaryFixed;
-  }
+  // earned dark: primary/33
+  // earned light: category-based
+  const lightBg = CATEGORY_ICON_BG[category] ?? "bg-[#e9ddff]";
+  return `${lightBg} dark:bg-[#A78BFA]/20`;
 }
 
 function AchievementCard({
   achievement,
-  colors,
-  mode,
   index,
 }: {
   achievement: AchievementDTO;
-  colors: any;
-  mode: string;
   index: number;
 }) {
   const earned = achievement.earned;
   const progress = achievement.progress ?? 0;
   const pct = Math.round(progress * 100);
 
-  const cardBg = earned
-    ? colors.surface
-    : mode === "dark"
-      ? colors.surface + "66" // 40% opacity
-      : colors.surface + "99"; // 60% opacity
+  const cardClass = earned
+    ? "bg-white dark:bg-[#1E293B] dark:border dark:border-[#475569]/10"
+    : "bg-white/60 dark:bg-[#1E293B]/40 border border-[#cbc3d7]/10 dark:border-[#475569]/20 opacity-80";
 
-  const cardBorder = earned
-    ? mode === "dark"
-      ? colors.outline + "1A" // 10% opacity
-      : "transparent"
-    : mode === "dark"
-      ? colors.outline + "33" // 20% opacity
-      : colors.outlineVariant + "1A"; // 10% opacity
+  const iconBgClass = getIconBgClass(achievement.category, earned);
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(index * 40)}
-      style={{
-        width: "48%",
-        backgroundColor: cardBg,
-        padding: 20,
-        borderRadius: 12,
-        alignItems: "center",
-        opacity: earned ? 1 : 0.8,
-        borderWidth: earned ? (mode === "dark" ? 1 : 0) : 1,
-        borderColor: cardBorder,
-      }}
+      className={`w-[48%] items-center p-5 rounded-xl ${cardClass}`}
     >
       {/* Icon circle */}
       <View
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: 32,
-          backgroundColor: getIconBgColor(
-            achievement.category,
-            earned,
-            colors,
-            mode
-          ),
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: earned ? 1 : 0.6,
-        }}
+        className={`w-16 h-16 rounded-full items-center justify-center ${iconBgClass} ${!earned ? "opacity-60" : ""}`}
       >
-        <Text
-          style={{
-            fontSize: 28,
-          }}
-        >
+        <Text className="text-[28px]">
           {getAchievementEmoji(achievement)}
         </Text>
       </View>
 
       {/* Title */}
       <Text
-        style={{
-          fontWeight: "700",
-          color: colors.text,
-          textAlign: "center",
-          marginTop: 16,
-        }}
+        className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-center mt-4"
         numberOfLines={2}
       >
         {achievement.name}
@@ -156,49 +104,23 @@ function AchievementCard({
 
       {/* Description */}
       <Text
-        style={{
-          fontSize: 12,
-          color: colors.textSecondary,
-          textAlign: "center",
-          lineHeight: 18,
-          marginTop: 4,
-          marginBottom: 12,
-        }}
+        className="text-xs text-[#494454] dark:text-[#94A3B8] text-center leading-[18px] mt-1 mb-3"
         numberOfLines={3}
       >
         {achievement.description}
       </Text>
 
       {/* Progress bar */}
-      <View
-        style={{
-          width: "100%",
-          height: 6,
-          borderRadius: 3,
-          backgroundColor: colors.primary + "1A", // 10% opacity
-          overflow: "hidden",
-        }}
-      >
+      <View className="w-full h-1.5 rounded-full bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 overflow-hidden">
         <View
-          style={{
-            width: earned ? "100%" : `${pct}%`,
-            height: "100%",
-            borderRadius: 3,
-            backgroundColor: colors.primary,
-          }}
+          className="h-full rounded-full bg-[#6b38d4] dark:bg-[#A78BFA]"
+          style={{ width: earned ? "100%" : `${pct}%` }}
         />
       </View>
 
       {/* Progress label for unearned */}
       {!earned && (
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: colors.primary,
-            marginTop: 8,
-          }}
-        >
+        <Text className="text-[10px] font-bold text-[#6b38d4] dark:text-[#A78BFA] mt-2">
           {achievement.progressLabel || `${pct}%`}
         </Text>
       )}
@@ -209,57 +131,28 @@ function AchievementCard({
 function CategoryGroup({
   category,
   achievements,
-  colors,
-  mode,
 }: {
   category: string;
   achievements: AchievementDTO[];
-  colors: any;
-  mode: string;
 }) {
   return (
-    <View style={{ marginBottom: 48 }}>
+    <View className="mb-12">
       {/* Category header: emoji + uppercase label */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 24,
-        }}
-      >
-        <Text style={{ fontSize: 20 }}>
+      <View className="flex-row items-center gap-2 mb-6">
+        <Text className="text-xl">
           {CATEGORY_EMOJIS[category] ?? "\u{1F3C6}"}
         </Text>
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: "700",
-            color: colors.text,
-            opacity: 0.6,
-            textTransform: "uppercase",
-            letterSpacing: 3,
-          }}
-        >
+        <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px]">
           {CATEGORY_LABELS[category] ?? category}
         </Text>
       </View>
 
       {/* Achievement grid (2 columns) */}
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          gap: 16,
-        }}
-      >
+      <View className="flex-row flex-wrap justify-between gap-4">
         {achievements.map((a, i) => (
           <AchievementCard
             key={a.code}
             achievement={a}
-            colors={colors}
-            mode={mode}
             index={i}
           />
         ))}
@@ -268,29 +161,14 @@ function CategoryGroup({
   );
 }
 
-function EmptyState({ colors }: { colors: any }) {
+function EmptyState() {
   return (
-    <View style={{ paddingVertical: 60, alignItems: "center" }}>
-      <Text style={{ fontSize: 40, marginBottom: 16 }}>{"\u{1F3C6}"}</Text>
-      <Text
-        style={{
-          fontSize: 17,
-          fontWeight: "600",
-          color: colors.text,
-          marginBottom: 6,
-        }}
-      >
+    <View className="py-[60px] items-center">
+      <Text className="text-[40px] mb-4">{"\u{1F3C6}"}</Text>
+      <Text className="text-[17px] font-semibold text-[#111c2d] dark:text-[#F8FAFC] mb-1.5">
         No achievements yet
       </Text>
-      <Text
-        style={{
-          fontSize: 14,
-          color: colors.textSecondary,
-          textAlign: "center",
-          lineHeight: 20,
-          maxWidth: 260,
-        }}
-      >
+      <Text className="text-sm text-[#494454] dark:text-[#94A3B8] text-center leading-5 max-w-[260px]">
         Start reading to unlock your first badges. There are 16 to collect!
       </Text>
     </View>
@@ -319,14 +197,13 @@ export default function AchievementsScreen() {
   const earnedTotal = safeAchievements.filter((a) => a.earned).length;
   const total = safeAchievements.length;
 
-  // Group by category
   const grouped = CATEGORY_ORDER.map((cat) => ({
     category: cat,
     items: safeAchievements.filter((a) => a.category === cat),
   })).filter((g) => g.items.length > 0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={{
@@ -346,40 +223,14 @@ export default function AchievementsScreen() {
         {/* Header */}
         <Animated.View
           entering={FadeIn.duration(400)}
-          style={{
-            paddingTop: 14,
-            paddingBottom: 24,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          className="pt-3.5 pb-6 flex-row justify-between items-center"
         >
-          <Text
-            style={{
-              fontSize: 28,
-              fontWeight: "800",
-              color: colors.text,
-              letterSpacing: -0.5,
-            }}
-          >
+          <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
             Achievements
           </Text>
           {total > 0 && (
-            <View
-              style={{
-                backgroundColor: colors.primary + "1A", // 10% opacity
-                paddingHorizontal: 16,
-                paddingVertical: 6,
-                borderRadius: 999,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "700",
-                  color: colors.primary,
-                }}
-              >
+            <View className="bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 px-4 py-1.5 rounded-full">
+              <Text className="text-sm font-bold text-[#6b38d4] dark:text-[#A78BFA]">
                 {earnedTotal} / {total} earned
               </Text>
             </View>
@@ -389,29 +240,23 @@ export default function AchievementsScreen() {
         {/* Content */}
         <View>
           {isLoading ? (
-            <View style={{ gap: 16, paddingTop: 20 }}>
+            <View className="gap-4 pt-5">
               {[120, 100, 140, 100].map((h, i) => (
                 <View
                   key={i}
-                  style={{
-                    height: h,
-                    borderRadius: 12,
-                    backgroundColor: colors.border + "40",
-                    opacity: 0.5,
-                  }}
+                  className="rounded-xl bg-[#E2E8F0]/40 dark:bg-[#334155]/40 opacity-50"
+                  style={{ height: h }}
                 />
               ))}
             </View>
           ) : grouped.length === 0 ? (
-            <EmptyState colors={colors} />
+            <EmptyState />
           ) : (
             grouped.map((g) => (
               <CategoryGroup
                 key={g.category}
                 category={g.category}
                 achievements={g.items}
-                colors={colors}
-                mode={mode}
               />
             ))
           )}
