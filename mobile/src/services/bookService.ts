@@ -1,5 +1,21 @@
 import { api } from "./api";
-import type { BookDTO } from "@/src/types/book";
+import type { BookDTO, BookStatus } from "@/src/types/book";
+
+export interface CreateBookPayload {
+  title: string;
+  author: string;
+  pages: number;
+  isbn: string;
+  genre: string;
+  status: BookStatus;
+  rating?: number;
+  notes?: string;
+}
+
+export async function createBook(payload: CreateBookPayload): Promise<BookDTO> {
+  const { data } = await api.post<BookDTO>("/books", payload);
+  return data;
+}
 
 export async function searchBooks(title: string): Promise<BookDTO[]> {
   const { data } = await api.get<{ content: BookDTO[] }>("/books/search", {

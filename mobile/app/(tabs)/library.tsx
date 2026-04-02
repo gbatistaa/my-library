@@ -1,3 +1,4 @@
+import React from "react";
 import {
   View,
   Text,
@@ -17,6 +18,8 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getAllBooks, searchBooks } from "@/src/services/bookService";
 import { getSagas } from "@/src/services/sagaService";
 import { getCategories } from "@/src/services/categoryService";
+import { AddBookModal } from "@/src/components/library/AddBookModal";
+import { AddSagaModal } from "@/src/components/library/AddSagaModal";
 import type { BookDTO, BookStatus, SagaDTO, CategoryDTO } from "@/src/types/book";
 
 /* ─── Status / progress helpers ─── */
@@ -124,22 +127,24 @@ function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
 
 /* ─── FAB Menu ─── */
 
-const FAB_ITEMS = [
-  { icon: "book" as const, label: "Add Book" },
-  { icon: "layers" as const, label: "Add Saga" },
-  { icon: "tag" as const, label: "Add Category" },
-] as const;
+type FABAction = "book" | "saga" | "category";
+
+const FAB_ITEMS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; action: FABAction }[] = [
+  { icon: "book", label: "Add Book", action: "book" },
+  { icon: "layers", label: "Add Saga", action: "saga" },
+  { icon: "tag", label: "Add Category", action: "category" },
+];
 
 function FABMenu({
   open,
-  onToggle,
   onClose,
+  onAction,
   fabTop,
   iconColor,
 }: {
   open: boolean;
-  onToggle: () => void;
   onClose: () => void;
+  onAction: (action: FABAction) => void;
   fabTop: number;
   iconColor: string;
 }) {
@@ -149,24 +154,16 @@ function FABMenu({
         <Pressable className="absolute inset-0 z-10" onPress={onClose} />
       )}
 
-      <Pressable
-        onPress={onToggle}
-        className="absolute right-5 z-20 w-11 h-11 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center"
-        style={{ top: fabTop }}
-      >
-        <Text className="text-white text-[22px] leading-none">+</Text>
-      </Pressable>
-
       {open && (
         <Animated.View
           entering={FadeInDown.duration(200)}
-          className="absolute right-5 z-20 bg-white dark:bg-[#1E293B] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
-          style={{ top: fabTop + 52, minWidth: 180 }}
+          className="absolute right-5 z-20 bg-white dark:bg-[#1E293B] rounded-2xl overflow-hidden dark:border dark:border-[#334155] shadow-2xl"
+          style={{ top: fabTop, minWidth: 180 }}
         >
           {FAB_ITEMS.map((item, i) => (
             <Pressable
               key={item.label}
-              onPress={onClose}
+              onPress={() => { onClose(); onAction(item.action); }}
               className={`flex-row items-center gap-3 px-4 py-3.5 ${
                 i < FAB_ITEMS.length - 1
                   ? "border-b border-[#E2E8F0] dark:border-[#334155]"
@@ -213,6 +210,8 @@ export default function LibraryScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fabOpen, setFabOpen] = useState(false);
+  const [addBookVisible, setAddBookVisible] = useState(false);
+  const [addSagaVisible, setAddSagaVisible] = useState(false);
 
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const searchIconColor = mode === "dark" ? "#94A3B8" : "#494454";
@@ -260,25 +259,48 @@ export default function LibraryScreen() {
 
       <FABMenu
         open={fabOpen}
-        onToggle={() => setFabOpen((p) => !p)}
         onClose={() => setFabOpen(false)}
-        fabTop={insets.top + 14}
+        onAction={(action) => {
+          if (action === "book") setAddBookVisible(true);
+          else if (action === "saga") setAddSagaVisible(true);
+        }}
+        fabTop={insets.top + 68}
         iconColor={iconColor}
+      />
+
+      <AddBookModal
+        visible={addBookVisible}
+        onClose={() => setAddBookVisible(false)}
+      />
+      <AddSagaModal
+        visible={addSagaVisible}
+        onClose={() => setAddSagaVisible(false)}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top + 70,
+          paddingTop: insets.top + 10,
           paddingHorizontal: 20,
           paddingBottom: 48,
         }}
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(400)} className="pb-5">
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          className="pt-3.5 pb-6 flex-row justify-between items-center"
+        >
           <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
             Library
           </Text>
+
+          <Pressable
+            onPress={() => setFabOpen((p) => !p)}
+            className="w-10 h-10 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center shadow-lg shadow-[#6b38d4]/30 dark:shadow-[#A78BFA]/30 active:scale-95"
+            style={{ elevation: 4 }}
+          >
+            <Text className="text-white text-[22px] leading-none font-bold">+</Text>
+          </Pressable>
         </Animated.View>
 
         {/* Search input */}
