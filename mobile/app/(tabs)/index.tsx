@@ -8,7 +8,6 @@ import Animated, { FadeIn } from "react-native-reanimated";
 
 import { userAtom } from "@/src/store/auth";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
-import { colors as themeColors } from "@/src/theme/colors";
 import {
   getStreak,
   getAchievements,
@@ -113,6 +112,7 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 10,
+          paddingHorizontal: 20,
           paddingBottom: 48,
         }}
         showsVerticalScrollIndicator={false}
@@ -128,7 +128,6 @@ export default function HomeScreen() {
         <Animated.View
           entering={FadeIn.duration(400)}
           style={{
-            paddingHorizontal: 20,
             paddingTop: 14,
             paddingBottom: 24,
             flexDirection: "row",
@@ -213,7 +212,7 @@ export default function HomeScreen() {
         <View style={{ gap: 40 }}>
           {/* ── Currently Reading (horizontal scroll) ──── */}
           {loadingBooks ? (
-            <View style={{ paddingHorizontal: 20 }}>
+            <View>
               <Skeleton height={180} />
             </View>
           ) : (
@@ -221,7 +220,7 @@ export default function HomeScreen() {
           )}
 
           {/* ── Quick Stats (bento grid) ────────────── */}
-          <View style={{ paddingHorizontal: 20 }}>
+          <View>
             {loadingDna && loadingStreak ? (
               <Skeleton height={260} />
             ) : (
@@ -230,7 +229,7 @@ export default function HomeScreen() {
           </View>
 
           {/* ── Reading Goal ─────────────────────────── */}
-          <View style={{ paddingHorizontal: 20 }}>
+          <View>
             {loadingGoal ? (
               <Skeleton height={160} />
             ) : (
@@ -240,7 +239,7 @@ export default function HomeScreen() {
 
           {/* ── Achievements ─────────────────────────── */}
           {loadingAchievements ? (
-            <View style={{ paddingHorizontal: 20 }}>
+            <View>
               <Skeleton height={120} />
             </View>
           ) : (

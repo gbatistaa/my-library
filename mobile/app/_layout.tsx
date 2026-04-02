@@ -41,7 +41,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, segments, router]);
 
   return <>{children}</>;
 }
@@ -65,7 +65,7 @@ export default function RootLayout() {
         SplashScreen.hideAsync();
       }
     })();
-  }, [setIsLoading, setUser]);
+  }, [setIsLoading, setUser, loadTheme]);
 
   return (
     <QueryClientProvider client={queryClient}>

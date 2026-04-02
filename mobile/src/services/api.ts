@@ -1,9 +1,13 @@
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from "react-native";
+import Constants from "expo-constants";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import * as SecureStore from "expo-secure-store";
 
-import type { AuthResponse, JwtPayload, RefreshRequest } from '@/src/types/auth';
+import type {
+  AuthResponse,
+  JwtPayload,
+  RefreshRequest,
+} from "@/src/types/auth";
 
 const API_PORT = 8080;
 
@@ -17,21 +21,21 @@ function resolveBaseUrl(): string {
   // Expo exposes the dev server host as "192.168.x.x:8081" — extract the IP
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
-    const host = hostUri.split(':')[0];
+    const host = hostUri.split(":")[0];
     return `http://${host}:${API_PORT}`;
   }
 
   // Fallback without Expo context
-  if (Platform.OS === 'android') return `http://10.0.2.2:${API_PORT}`;
+  if (Platform.OS === "android") return `http://10.0.2.2:${API_PORT}`;
   return `http://localhost:${API_PORT}`;
 }
 
 export const BASE_URL = resolveBaseUrl();
 
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'mylibrary_access_token',
-  USER_ID: 'mylibrary_user_id',
-  DEVICE_ID: 'mylibrary_device_id',
+  ACCESS_TOKEN: "mylibrary_access_token",
+  USER_ID: "mylibrary_user_id",
+  DEVICE_ID: "mylibrary_device_id",
 } as const;
 
 // ─── Axios instance ───────────────────────────────────────────────────────────
@@ -39,7 +43,7 @@ export const STORAGE_KEYS = {
 export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 15_000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
@@ -69,8 +73,8 @@ export async function getStoredUserId(): Promise<string | null> {
 
 export function decodeJwtPayload(token: string): JwtPayload | null {
   try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '=='.slice(0, (4 - (base64.length % 4)) % 4);
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "==".slice(0, (4 - (base64.length % 4)) % 4);
     return JSON.parse(atob(padded)) as JwtPayload;
   } catch {
     return null;
@@ -115,7 +119,9 @@ async function silentRefresh(): Promise<string | null> {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const original = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     if (error.response?.status === 401 && !original?._retry) {
       original._retry = true;

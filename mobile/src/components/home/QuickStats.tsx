@@ -9,54 +9,63 @@ interface Props {
   streak: StreakDTO | undefined;
 }
 
-function StatRow({
-  icon,
-  label,
-  value,
-  colors,
-}: {
-  icon: React.ComponentProps<typeof Feather>["name"];
-  label: string;
+interface StatCardProps {
+  iconName: React.ComponentProps<typeof Feather>["name"];
+  iconBg: string;
+  iconColor: string;
   value: string | number;
+  label: string;
   colors: any;
-}) {
+}
+
+function StatCard({ iconName, iconBg, iconColor, value, label, colors }: StatCardProps) {
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 13,
+        width: "48%",
+        backgroundColor: colors.surfaceContainerLow,
+        borderRadius: 12,
+        padding: 20,
+        gap: 12,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Feather name={icon} size={16} color={colors.textSecondary} />
+      {/* Icon circle */}
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: iconBg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Feather name={iconName} size={18} color={iconColor} />
+      </View>
+
+      {/* Value + label */}
+      <View style={{ gap: 3 }}>
         <Text
           style={{
-            fontSize: 14,
-            fontWeight: "500",
+            fontSize: 30,
+            fontWeight: "700",
+            color: colors.text,
+            lineHeight: 34,
+            letterSpacing: -0.5,
+          }}
+        >
+          {value}
+        </Text>
+        <Text
+          style={{
+            fontSize: 11,
             color: colors.textSecondary,
           }}
         >
           {label}
         </Text>
       </View>
-      <Text
-        style={{
-          fontSize: 16,
-          fontWeight: "600",
-          color: colors.text,
-        }}
-      >
-        {value}
-      </Text>
     </View>
-  );
-}
-
-function Separator({ colors }: { colors: any }) {
-  return (
-    <View style={{ height: 1, backgroundColor: colors.border + "80" }} />
   );
 }
 
@@ -69,32 +78,63 @@ export function QuickStats({ dna, streak }: Props) {
     : "0";
   const totalDays = streak?.totalReadingDays ?? 0;
   const avgRating = dna?.avgRating ? dna.avgRating.toFixed(1) : "—";
-  const topGenre = dna?.genreBreakdown?.[0]?.genre ?? "—";
 
   return (
     <Animated.View entering={FadeIn.duration(300).delay(100)}>
       <Text
         style={{
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: "600",
           color: colors.textSecondary,
           textTransform: "uppercase",
-          letterSpacing: 0.8,
-          marginBottom: 6,
+          letterSpacing: 2,
+          marginBottom: 14,
         }}
       >
-        Your numbers
+        Quick Insights
       </Text>
 
-      <StatRow icon="book-open" label="Books read" value={booksRead} colors={colors} />
-      <Separator colors={colors} />
-      <StatRow icon="file-text" label="Pages read" value={pagesRead} colors={colors} />
-      <Separator colors={colors} />
-      <StatRow icon="calendar" label="Reading days" value={totalDays} colors={colors} />
-      <Separator colors={colors} />
-      <StatRow icon="star" label="Avg rating" value={avgRating} colors={colors} />
-      <Separator colors={colors} />
-      <StatRow icon="tag" label="Top genre" value={topGenre} colors={colors} />
+      {/* 2×2 bento grid */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <StatCard
+          iconName="book-open"
+          iconBg={colors.violet100}
+          iconColor={colors.primary}
+          value={booksRead}
+          label="Books Read"
+          colors={colors}
+        />
+        <StatCard
+          iconName="file-text"
+          iconBg={colors.orange100}
+          iconColor={colors.secondary}
+          value={pagesRead}
+          label="Pages Read"
+          colors={colors}
+        />
+        <StatCard
+          iconName="calendar"
+          iconBg={colors.pink100}
+          iconColor={colors.tertiary}
+          value={totalDays}
+          label="Reading Days"
+          colors={colors}
+        />
+        <StatCard
+          iconName="star"
+          iconBg={colors.blue100}
+          iconColor={colors.blue600}
+          value={avgRating}
+          label="Avg Rating"
+          colors={colors}
+        />
+      </View>
     </Animated.View>
   );
 }

@@ -38,13 +38,11 @@ export function LogoutButton() {
           gap: 8,
           paddingVertical: 16,
           borderRadius: 12,
-          backgroundColor:
-            mode === "light"
-              ? colors.primaryFixed + "80"
-              : colors.surface,
-          ...(mode === "dark"
-            ? { borderWidth: 1, borderColor: colors.outline }
-            : {}),
+          backgroundColor: mode === "dark" ? colors.error + "25" : colors.error + "12",
+          ...(mode === "dark" && {
+            borderWidth: 1,
+            borderColor: colors.error + "40",
+          }),
         }}
       >
         {isLoading ? (

@@ -137,7 +137,6 @@ function EmptyState({ colors }: { colors: any }) {
         alignItems: "center",
         gap: 16,
         paddingVertical: 8,
-        paddingHorizontal: 20,
       }}
     >
       <View
@@ -190,7 +189,6 @@ export function CurrentlyReading({ books }: Props) {
           justifyContent: "space-between",
           alignItems: "flex-end",
           marginBottom: 16,
-          paddingHorizontal: 20,
         }}
       >
         <Text
@@ -201,7 +199,7 @@ export function CurrentlyReading({ books }: Props) {
             letterSpacing: -0.5,
           }}
         >
-          CURRENTLY READING
+          Currently Reading
         </Text>
         <Text
           style={{
@@ -219,9 +217,8 @@ export function CurrentlyReading({ books }: Props) {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal: 20,
-            gap: 16,
             paddingBottom: 4,
+            gap: 16,
           }}
         >
           {books.map((book) => (

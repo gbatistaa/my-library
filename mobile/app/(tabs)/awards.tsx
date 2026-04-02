@@ -331,6 +331,7 @@ export default function AchievementsScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 10,
+          paddingHorizontal: 20,
           paddingBottom: 48,
         }}
         showsVerticalScrollIndicator={false}
@@ -346,7 +347,6 @@ export default function AchievementsScreen() {
         <Animated.View
           entering={FadeIn.duration(400)}
           style={{
-            paddingHorizontal: 20,
             paddingTop: 14,
             paddingBottom: 24,
             flexDirection: "row",
@@ -387,7 +387,7 @@ export default function AchievementsScreen() {
         </Animated.View>
 
         {/* Content */}
-        <View style={{ paddingHorizontal: 20 }}>
+        <View>
           {isLoading ? (
             <View style={{ gap: 16, paddingTop: 20 }}>
               {[120, 100, 140, 100].map((h, i) => (

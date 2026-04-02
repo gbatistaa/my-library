@@ -279,10 +279,10 @@ const SessionScreen = () => {
         >
           <Text
             style={{
-              fontSize: 22,
-              fontWeight: "700",
-              color: colors.primary,
-              letterSpacing: -0.3,
+              fontSize: 28,
+              fontWeight: "800",
+              color: colors.text,
+              letterSpacing: -0.5,
             }}
           >
             Reading Session
@@ -364,67 +364,97 @@ const SessionScreen = () => {
         <Pressable
           onPress={() => setBookModalVisible(true)}
           style={({ pressed }) => ({
-            marginTop: 24,
-            height: 56,
-            borderRadius: 8,
-            backgroundColor: isDark
-              ? colors.surfaceContainerLow
-              : colors.primaryContainer,
-            ...(isDark && {
-              borderWidth: 1,
-              borderColor: colors.outlineVariant + "4D",
-            }),
+            marginTop: 32,
+            marginBottom: 32,
+            minHeight: selectedBook ? 80 : 56,
+            borderRadius: selectedBook ? 16 : 14,
+            backgroundColor: selectedBook 
+                ? (isDark ? colors.surfaceContainerLow : colors.surface)
+                : (pressed ? colors.primary + "CC" : colors.primary), 
+            borderWidth: selectedBook && isDark ? 1 : 0,
+            borderColor: selectedBook && isDark ? colors.outlineVariant + "4D" : "transparent",
+            borderStyle: "solid",
             flexDirection: "row",
             alignItems: "center",
             paddingHorizontal: 16,
+            paddingVertical: selectedBook ? 12 : 0,
             justifyContent: "space-between",
             transform: [{ scale: pressed ? 0.98 : 1 }],
+            ...(selectedBook && !isDark && {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 2,
+            })
           })}
         >
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-          >
-            {/* Book cover thumbnail placeholder */}
+          {selectedBook ? (
+             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                 {/* Book cover thumbnail placeholder */}
+                 <View
+                   style={{
+                     width: 48,
+                     height: 64,
+                     borderRadius: 6,
+                     backgroundColor: isDark ? colors.surface + "80" : colors.primary + "15",
+                     alignItems: "center",
+                     justifyContent: "center",
+                   }}
+                 >
+                   <Feather name="book" size={20} color={colors.primary} />
+                 </View>
+                 <View style={{ flex: 1, justifyContent: "center" }}>
+                   <Text
+                     style={{
+                       fontSize: 16,
+                       fontWeight: "700",
+                       color: isDark ? colors.text : colors.text,
+                       marginBottom: 4,
+                     }}
+                     numberOfLines={1}
+                   >
+                     {selectedBook.title}
+                   </Text>
+                   <Text
+                     style={{
+                       fontSize: 13,
+                       fontWeight: "500",
+                       color: colors.textSecondary,
+                     }}
+                     numberOfLines={1}
+                   >
+                     {selectedBook.author || "Unknown Author"} • {selectedBook.pages || 0} pages
+                   </Text>
+                 </View>
+             </View>
+          ) : (
             <View
-              style={{
-                width: 32,
-                height: 40,
-                borderRadius: 4,
-                backgroundColor: isDark
-                  ? colors.surface + "80"
-                  : colors.onPrimary + "40",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", flex: 1, gap: 8 }}
             >
-              <Feather
-                name="book"
-                size={16}
-                color={
-                  isDark ? colors.textSecondary : colors.onPrimaryFixedVariant
-                }
-              />
+              <Feather name="plus-circle" size={20} color="#FFFFFF" />
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#FFFFFF",
+                }}
+              >
+                Select a book to read
+              </Text>
             </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "600",
-                color: isDark ? colors.text : colors.onPrimaryFixedVariant,
-              }}
-              numberOfLines={1}
-            >
-              {selectedBook ? selectedBook.title : "Select your book"}
-            </Text>
-          </View>
-          <Feather
-            name="chevron-right"
-            size={18}
-            color={isDark ? colors.textSecondary : colors.onPrimaryFixedVariant}
-          />
+          )}
+          {selectedBook && (
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={colors.textSecondary}
+              />
+          )}
         </Pressable>
 
         {/* -- Timer Ring ---------------------------- */}
-        <View style={{ alignItems: "center", marginTop: 40, marginBottom: 16 }}>
+        <View style={{ alignItems: "center", marginBottom: 16 }}>
           <TimerRing
             progress={ringProgress}
             timeDisplay={formatTime(displaySeconds)}
@@ -440,6 +470,7 @@ const SessionScreen = () => {
             style={{
               flexDirection: "row",
               justifyContent: "center",
+              flexWrap: "wrap",
               gap: 12,
               marginBottom: 24,
             }}

@@ -28,29 +28,29 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="library"
+        options={{
+          title: "Library",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="book" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="awards"
+        options={{
+          title: "Awards",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="award" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Feather name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: "Search",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="search" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="achievements"
-        options={{
-          title: "Badges",
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="star" size={size} color={color} />
           ),
         }}
       />
