@@ -28,6 +28,9 @@ public class CreateBookDTO {
   @Min(value = 1, message = "Book must have at least 1 page")
   private Integer pages;
 
+  @Min(value = 0, message = "Pages read cannot be negative")
+  private Integer pagesRead;
+
   @NotBlank(message = "ISBN is required")
   @Size(min = 10, max = 13, message = "ISBN must be between 10 and 13 characters")
   @Pattern(regexp = "^(97[89])?\\d{9}[\\dX]$", message = "ISBN must be a valid format (10 or 13 digits)")

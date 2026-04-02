@@ -87,6 +87,14 @@ public class BookService {
       throw new ResourceConflictException("Finish date cannot be before start date");
     }
 
+    if (newBook.getPagesRead() != null && newBook.getPagesRead() > newBook.getPages()) {
+      throw new ResourceConflictException("Pages read cannot exceed total pages");
+    }
+
+    if (newBook.getStatus() == BookStatus.COMPLETED) {
+      newBook.setPagesRead(newBook.getPages());
+    }
+
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
 
@@ -109,6 +117,10 @@ public class BookService {
 
     bookMapper.updateEntityFromDto(dto, book);
 
+    if (book.getPagesRead() != null && book.getPagesRead() > book.getPages()) {
+      throw new ResourceConflictException("Pages read cannot exceed total pages");
+    }
+
     if (book.getStatus() == BookStatus.COMPLETED && book.getRating() == null) {
       throw new ResourceConflictException("Rating is required when status is COMPLETED");
     }
@@ -120,6 +132,10 @@ public class BookService {
     if (book.getStartDate() != null && book.getFinishDate() != null
         && book.getFinishDate().isBefore(book.getStartDate())) {
       throw new ResourceConflictException("Finish date cannot be before start date");
+    }
+
+    if (book.getStatus() == BookStatus.COMPLETED) {
+      book.setPagesRead(book.getPages());
     }
 
     BookDTO result = bookMapper.toDto(bookRepository.save(book));

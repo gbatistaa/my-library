@@ -46,17 +46,12 @@ const PROGRESS_COLOR: Record<BookStatus, string> = {
   TO_READ:   "#94A3B8",
 };
 
-const PROGRESS_PCT: Record<BookStatus, number> = {
-  COMPLETED: 100,
-  READING:   45,   // visual indicator — real % comes from reading sessions
-  DROPPED:   20,
-  TO_READ:   0,
-};
-
 function BookCard({ book, index }: { book: BookDTO; index: number }) {
   const { bgClass, label } = getStatusConfig(book.status);
   const progressColor = PROGRESS_COLOR[book.status];
-  const progressPct   = PROGRESS_PCT[book.status];
+  const progressPercentage = book.pages && book.pages > 0
+    ? Math.floor(((book.pagesRead ?? 0) / book.pages) * 100)
+    : 0;
 
   return (
     <Animated.View
@@ -110,11 +105,18 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
           {book.author}
         </Text>
 
+        <Text
+          className="text-[10px] font-bold uppercase mt-1.5"
+          style={{ color: progressColor }}
+        >
+          {progressPercentage}% read
+        </Text>
+
         {/* Reading progress bar */}
-        <View className="mt-2 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+        <View className="mt-1 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
           <View
             className="h-full rounded-full"
-            style={{ width: `${progressPct}%`, backgroundColor: progressColor }}
+            style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
           />
         </View>
       </View>

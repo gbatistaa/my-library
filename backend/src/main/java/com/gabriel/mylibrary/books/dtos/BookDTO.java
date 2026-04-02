@@ -16,6 +16,7 @@ public class BookDTO {
   private String author;
   private Integer rating;
   private Integer pages;
+  private Integer pagesRead;
   private String isbn;
   private String genre;
   private BookStatus status;

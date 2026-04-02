@@ -10,6 +10,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  type TextInputProps,
 } from "react-native";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +32,99 @@ const STATUS_OPTIONS: { value: BookStatus; label: string }[] = [
   { value: "DROPPED", label: "Dropped" },
 ];
 
+function FormInput({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  placeholderColor,
+  mode,
+  className,
+  ...props
+}: {
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  placeholderColor: string;
+  mode: "light" | "dark";
+  className?: string;
+} & TextInputProps) {
+  const [focused, setFocused] = useState(false);
+  const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  
+  return (
+    <View className="mb-5">
+      <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+        {label}
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={placeholderColor}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
+        style={{
+          borderWidth: 1.5,
+          borderColor: focused 
+            ? purple 
+            : mode === "dark" 
+              ? "rgba(255,255,255,0.08)" 
+              : "rgba(107, 56, 212, 0.08)",
+        }}
+        {...props}
+      />
+    </View>
+  );
+}
+
+function TextInputFocusable({
+  value,
+  onChangeText,
+  placeholder,
+  placeholderColor,
+  mode,
+  className,
+  style,
+  ...props
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  placeholderColor: string;
+  mode: "light" | "dark";
+  className?: string;
+} & TextInputProps) {
+  const [focused, setFocused] = useState(false);
+  const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={placeholderColor}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
+      style={[
+        {
+          borderWidth: 1.5,
+          borderColor: focused
+            ? purple
+            : mode === "dark"
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(107, 56, 212, 0.08)",
+        },
+        style,
+      ]}
+      {...props}
+    />
+  );
+}
+
 export default function AddBookScreen() {
   const { mode } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -41,6 +135,7 @@ export default function AddBookScreen() {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [pages, setPages] = useState("");
+  const [pagesRead, setPagesRead] = useState("0");
   const [status, setStatus] = useState<BookStatus>("TO_READ");
   const [genre, setGenre] = useState("");
   const [isbn, setIsbn] = useState("");
@@ -98,6 +193,15 @@ export default function AddBookScreen() {
       Alert.alert("Error", "Enter a valid page count (min 1).");
       return;
     }
+    const pagesReadNum = parseInt(pagesRead, 10);
+    if (isNaN(pagesReadNum) || pagesReadNum < 0) {
+      Alert.alert("Error", "Pages read must be 0 or more.");
+      return;
+    }
+    if (pagesReadNum > pagesNum) {
+      Alert.alert("Error", "Pages read cannot exceed total pages.");
+      return;
+    }
     if (!genre.trim()) {
       Alert.alert("Error", "Genre is required.");
       return;
@@ -124,6 +228,7 @@ export default function AddBookScreen() {
         title: title.trim(),
         author: author.trim(),
         pages: pagesNum,
+        pagesRead: pagesReadNum,
         isbn: isbn.trim(),
         genre: genre.trim(),
         status,
@@ -192,6 +297,11 @@ export default function AddBookScreen() {
             onPress={pickImage}
             activeOpacity={0.85}
             className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mt-6 mb-8 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+            style={{
+              borderWidth: coverUri ? 0 : 2,
+              borderStyle: "dashed",
+              borderColor: mode === "dark" ? "#334155" : "#cbc3d7",
+            }}
           >
             {coverUri ? (
               <>
@@ -218,34 +328,26 @@ export default function AddBookScreen() {
           </TouchableOpacity>
 
           {/* Title */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Book Title
-            </Text>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder="e.g. The Secret History"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
+          <FormInput
+            label="Book Title"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="e.g. The Secret History"
+            placeholderColor={placeholderColor}
+            mode={mode}
+            autoCapitalize="words"
+          />
 
           {/* Author */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Author
-            </Text>
-            <TextInput
-              value={author}
-              onChangeText={setAuthor}
-              placeholder="e.g. Donna Tartt"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
+          <FormInput
+            label="Author"
+            value={author}
+            onChangeText={setAuthor}
+            placeholder="e.g. Donna Tartt"
+            placeholderColor={placeholderColor}
+            mode={mode}
+            autoCapitalize="words"
+          />
 
           {/* Pages row */}
           <View className="flex-row gap-4 mb-5">
@@ -253,12 +355,12 @@ export default function AddBookScreen() {
               <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
                 Total Pages
               </Text>
-              <TextInput
+              <TextInputFocusable
                 value={pages}
-                onChangeText={(t) => setPages(t.replace(/[^0-9]/g, ""))}
+                onChangeText={(t: string) => setPages(t.replace(/[^0-9]/g, ""))}
                 placeholder="559"
-                placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                placeholderColor={placeholderColor}
+                mode={mode}
                 keyboardType="numeric"
               />
             </View>
@@ -266,32 +368,43 @@ export default function AddBookScreen() {
               <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
                 ISBN
               </Text>
-              <TextInput
+              <TextInputFocusable
                 value={isbn}
-                onChangeText={(t) => setIsbn(t.replace(/[^0-9X]/gi, ""))}
+                onChangeText={(t: string) => setIsbn(t.replace(/[^0-9X]/gi, ""))}
                 placeholder="9780525559474"
-                placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                placeholderColor={placeholderColor}
+                mode={mode}
                 keyboardType="numeric"
                 maxLength={13}
               />
             </View>
           </View>
 
-          {/* Genre */}
+          {/* Pages Read */}
           <View className="mb-5">
             <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Genre
+              Pages Read
             </Text>
-            <TextInput
-              value={genre}
-              onChangeText={setGenre}
-              placeholder="e.g. Fiction, Mystery, Sci-Fi"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
+            <TextInputFocusable
+              value={pagesRead}
+              onChangeText={(t: string) => setPagesRead(t.replace(/[^0-9]/g, ""))}
+              placeholder="0"
+              placeholderColor={placeholderColor}
+              mode={mode}
+              keyboardType="numeric"
             />
           </View>
+
+          {/* Genre */}
+          <FormInput
+            label="Genre"
+            value={genre}
+            onChangeText={setGenre}
+            placeholder="e.g. Fiction, Mystery, Sci-Fi"
+            placeholderColor={placeholderColor}
+            mode={mode}
+            autoCapitalize="words"
+          />
 
           {/* Status */}
           <View className="mb-5">
@@ -302,7 +415,10 @@ export default function AddBookScreen() {
               {STATUS_OPTIONS.map((opt) => (
                 <Pressable
                   key={opt.value}
-                  onPress={() => setStatus(opt.value)}
+                  onPress={() => {
+                    setStatus(opt.value);
+                    if (opt.value === "COMPLETED" && pages) setPagesRead(pages);
+                  }}
                   className={`rounded-full px-4 py-2 ${
                     status === opt.value
                       ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
@@ -356,12 +472,12 @@ export default function AddBookScreen() {
             <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
               Notes (optional)
             </Text>
-            <TextInput
+            <TextInputFocusable
               value={notes}
               onChangeText={setNotes}
               placeholder="Your thoughts, quotes, impressions…"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+              placeholderColor={placeholderColor}
+              mode={mode}
               multiline
               textAlignVertical="top"
               style={{ height: 96 }}

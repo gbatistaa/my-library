@@ -46,6 +46,9 @@ public class BookEntity extends BaseEntity {
   @Column(nullable = false)
   private Integer pages;
 
+  @Column(name = "pages_read", columnDefinition = "integer default 0")
+  private Integer pagesRead;
+
   @NotBlank
   @Size(min = 10, max = 13)
   @Column(nullable = false, length = 13)

@@ -6,6 +6,7 @@ export interface BookDTO {
   author: string;
   rating: number | null;
   pages: number;
+  pagesRead: number | null;
   isbn: string | null;
   genre: string | null;
   status: BookStatus;

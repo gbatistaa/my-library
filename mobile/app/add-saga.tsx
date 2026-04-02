@@ -10,6 +10,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  type TextInputProps,
 } from "react-native";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +25,87 @@ import { getAllBooks } from "@/src/services/bookService";
 import { showApiError } from "@/src/services/apiError";
 import { persistLibraryImage } from "@/src/utils/media";
 import type { BookDTO } from "@/src/types/book";
+
+function TextInputFocusable({
+  value,
+  onChangeText,
+  placeholder,
+  placeholderColor,
+  mode,
+  className,
+  style,
+  ...props
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  placeholderColor: string;
+  mode: "light" | "dark";
+  className?: string;
+} & TextInputProps) {
+  const [focused, setFocused] = useState(false);
+  const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+
+  return (
+    <TextInput
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={placeholderColor}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
+      style={[
+        {
+          borderWidth: 1.5,
+          borderColor: focused
+            ? purple
+            : mode === "dark"
+              ? "rgba(255,255,255,0.08)"
+              : "rgba(107, 56, 212, 0.08)",
+        },
+        style,
+      ]}
+      {...props}
+    />
+  );
+}
+
+function FormInput({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  placeholderColor,
+  mode,
+  className,
+  ...props
+}: {
+  label: string;
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder: string;
+  placeholderColor: string;
+  mode: "light" | "dark";
+  className?: string;
+} & TextInputProps) {
+  return (
+    <View className="mb-5">
+      <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+        {label}
+      </Text>
+      <TextInputFocusable
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderColor={placeholderColor}
+        mode={mode}
+        className={className}
+        {...props}
+      />
+    </View>
+  );
+}
 
 function BookSelectCard({
   book,
@@ -238,7 +320,12 @@ export default function AddSagaScreen() {
             onPress={pickImage}
             activeOpacity={0.85}
             className="w-full rounded-2xl overflow-hidden items-center justify-center mt-6 mb-6 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
-            style={{ aspectRatio: 16 / 9 }}
+            style={{ 
+              aspectRatio: 16 / 9,
+              borderWidth: coverUri ? 0 : 2,
+              borderStyle: "dashed",
+              borderColor: mode === "dark" ? "#334155" : "#cbc3d7",
+            }}
           >
             {coverUri ? (
               <>
@@ -265,31 +352,27 @@ export default function AddSagaScreen() {
           </TouchableOpacity>
 
           {/* Name */}
-          <View className="mb-5">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Saga Name
-            </Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. The Lord of the Rings"
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              autoCapitalize="words"
-            />
-          </View>
+          <FormInput
+            label="Saga Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. The Lord of the Rings"
+            placeholderColor={placeholderColor}
+            mode={mode}
+            autoCapitalize="words"
+          />
 
           {/* Description */}
           <View className="mb-6">
             <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
               Description (optional)
             </Text>
-            <TextInput
+            <TextInputFocusable
               value={description}
               onChangeText={setDescription}
               placeholder="Talk about this saga..."
-              placeholderTextColor={placeholderColor}
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+              placeholderColor={placeholderColor}
+              mode={mode}
               multiline
               textAlignVertical="top"
               style={{ height: 80 }}
