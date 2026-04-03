@@ -21,8 +21,16 @@ import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getBookById, updateBook } from "@/src/services/bookService";
+import { getCategories, createCategory } from "@/src/services/categoryService";
 import { showApiError } from "@/src/services/apiError";
 import { persistLibraryImage } from "@/src/utils/media";
+
+function randomHexColor(): string {
+  const hex = Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0");
+  return `#${hex.toUpperCase()}`;
+}
 
 const STATUS_OPTIONS: { value: "TO_READ" | "READING" | "COMPLETED" | "DROPPED"; label: string }[] = [
   { value: "TO_READ", label: "To Read" },
@@ -137,12 +145,32 @@ export default function EditBookScreen() {
   const [author, setAuthor] = useState("");
   const [pages, setPages] = useState("");
   const [status, setStatus] = useState<"TO_READ" | "READING" | "COMPLETED" | "DROPPED">("TO_READ");
-  const [genre, setGenre] = useState("");
+  const [categoryInput, setCategoryInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<
+    { id: string | null; name: string; color: string }[]
+  >([]);
   const [isbn, setIsbn] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [pagesRead, setPagesRead] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
+  const filteredCategories = categories.filter((c) => {
+    if (selectedCategories.some((s) => s.id === c.id)) return false;
+    if (categoryInput.trim().length === 0) return true;
+    return c.name.toLowerCase().includes(categoryInput.toLowerCase());
+  });
+
+  const isNewCategory =
+    categoryInput.trim().length > 0 &&
+    !categories.some((c) => c.name.toLowerCase() === categoryInput.trim().toLowerCase()) &&
+    !selectedCategories.some((s) => s.name.toLowerCase() === categoryInput.trim().toLowerCase());
 
   const { data: book } = useQuery({
     queryKey: ["book", id],
@@ -157,13 +185,40 @@ export default function EditBookScreen() {
       setAuthor(book.author);
       setPages(String(book.pages));
       setStatus(book.status);
-      setGenre(book.genre ?? "");
+      setSelectedCategories(
+        (book.categories ?? []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          color: c.color ?? randomHexColor(),
+        }))
+      );
       setIsbn(book.isbn ?? "");
       setRating(book.rating);
       setPagesRead(String(book.pagesRead ?? 0));
       setNotes(book.notes ?? "");
     }
   }, [book]);
+
+  function addExistingCategory(cat: { id: string; name: string; color?: string | null }) {
+    setSelectedCategories((prev) => [
+      ...prev,
+      { id: cat.id, name: cat.name, color: cat.color ?? randomHexColor() },
+    ]);
+    setCategoryInput("");
+    setShowSuggestions(false);
+  }
+
+  function addNewCategory() {
+    const name = categoryInput.trim();
+    if (!name) return;
+    setSelectedCategories((prev) => [...prev, { id: null, name, color: randomHexColor() }]);
+    setCategoryInput("");
+    setShowSuggestions(false);
+  }
+
+  function removeCategory(index: number) {
+    setSelectedCategories((prev) => prev.filter((_, i) => i !== index));
+  }
 
   const pickImage = async () => {
     const { status: permStatus } =
@@ -220,8 +275,8 @@ export default function EditBookScreen() {
       Alert.alert("Error", `Pages read must be between 0 and ${pagesNum}.`);
       return;
     }
-    if (!genre.trim()) {
-      Alert.alert("Error", "Genre is required.");
+    if (selectedCategories.length === 0) {
+      Alert.alert("Error", "At least one category is required.");
       return;
     }
     const isbnClear = isbn.trim();
@@ -237,6 +292,17 @@ export default function EditBookScreen() {
 
     setSaving(true);
     try {
+      const categoryIds: string[] = [];
+      for (const cat of selectedCategories) {
+        if (cat.id) {
+          categoryIds.push(cat.id);
+        } else {
+          const newCat = await createCategory({ name: cat.name, color: cat.color });
+          categoryIds.push(newCat.id);
+        }
+      }
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+
       let finalCoverUrl: string | undefined = existingCoverUrl ?? undefined;
       if (localCoverUri) {
         finalCoverUrl = await persistLibraryImage(localCoverUri);
@@ -248,7 +314,7 @@ export default function EditBookScreen() {
         pages: pagesNum,
         pagesRead: isNaN(pagesReadNum) ? 0 : pagesReadNum,
         isbn: isbnClear,
-        genre: genre.trim(),
+        categoryIds,
         rating: status === "COMPLETED" ? (rating ?? undefined) : undefined,
         notes: notes.trim() || undefined,
         coverUrl: finalCoverUrl,
@@ -416,16 +482,97 @@ export default function EditBookScreen() {
             />
           </View>
 
-          {/* Genre */}
-          <FormInput
-            label="Genre"
-            value={genre}
-            onChangeText={setGenre}
-            placeholder="e.g. Fiction, Mystery, Sci-Fi"
-            placeholderColor={placeholderColor}
-            mode={mode}
-            autoCapitalize="words"
-          />
+          {/* Categories */}
+          <View className="mb-5">
+            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              Categories
+            </Text>
+
+            {/* Selected category badges */}
+            {selectedCategories.length > 0 && (
+              <View className="flex-row flex-wrap gap-2 mb-3">
+                {selectedCategories.map((cat, i) => (
+                  <View
+                    key={`${cat.name}-${i}`}
+                    className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+                    style={{
+                      backgroundColor: `${cat.color}28`,
+                      borderWidth: 1,
+                      borderColor: cat.color,
+                    }}
+                  >
+                    <Text className="text-xs font-bold" style={{ color: cat.color }}>
+                      {cat.name}
+                    </Text>
+                    <Pressable onPress={() => removeCategory(i)} hitSlop={6}>
+                      <Feather name="x" size={11} color={cat.color} />
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <TextInput
+              value={categoryInput}
+              onChangeText={(t) => {
+                setCategoryInput(t);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="Add a category…"
+              placeholderTextColor={placeholderColor}
+              autoCapitalize="words"
+              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+              style={{
+                borderWidth: 1.5,
+                borderColor:
+                  mode === "dark"
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(107, 56, 212, 0.08)",
+              }}
+            />
+
+            {showSuggestions && filteredCategories.length > 0 && (
+              <View
+                className="bg-white dark:bg-[#1E293B] rounded-xl mt-1 overflow-hidden"
+                style={{ borderWidth: 1, borderColor: mode === "dark" ? "#334155" : "#E2E8F0" }}
+              >
+                {filteredCategories.slice(0, 6).map((cat, i) => (
+                  <Pressable
+                    key={cat.id}
+                    onPress={() => addExistingCategory(cat)}
+                    className={`flex-row items-center px-4 py-3 gap-3 ${
+                      i < Math.min(filteredCategories.length, 6) - 1
+                        ? "border-b border-[#E2E8F0] dark:border-[#334155]"
+                        : ""
+                    }`}
+                  >
+                    {cat.color ? (
+                      <View
+                        style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: cat.color }}
+                      />
+                    ) : null}
+                    <Text className="text-[14px] text-[#111c2d] dark:text-[#F8FAFC]">
+                      {cat.name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            {isNewCategory && (
+              <Pressable
+                onPress={addNewCategory}
+                className="flex-row items-center gap-1.5 mt-2"
+              >
+                <Feather name="plus-circle" size={13} color="#10b981" />
+                <Text className="text-[12px] font-semibold text-[#10b981]">
+                  Add "{categoryInput.trim()}" as new category
+                </Text>
+              </Pressable>
+            )}
+          </View>
 
           {/* Status */}
           <View className="mb-5">

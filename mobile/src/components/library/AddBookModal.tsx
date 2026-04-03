@@ -17,13 +17,21 @@ import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { createBook } from "@/src/services/bookService";
+import { getCategories, createCategory } from "@/src/services/categoryService";
 import { showApiError } from "@/src/services/apiError";
 import { persistLibraryImage } from "@/src/utils/media";
 import type { BookStatus } from "@/src/types/book";
+
+function randomHexColor(): string {
+  const hex = Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0");
+  return `#${hex.toUpperCase()}`;
+}
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.92;
@@ -51,11 +59,26 @@ export function AddBookModal({
   const [author, setAuthor] = useState("");
   const [pages, setPages] = useState("");
   const [status, setStatus] = useState<BookStatus>("TO_READ");
-  const [genre, setGenre] = useState("");
+  const [categoryInput, setCategoryInput] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isbn, setIsbn] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
+  const filteredCategories = categoryInput.trim().length > 0
+    ? categories.filter((c) =>
+        c.name.toLowerCase().includes(categoryInput.toLowerCase())
+      )
+    : categories;
+
+  const isNewCategory = selectedCategoryId === null && categoryInput.trim().length > 0;
 
   const resetForm = () => {
     setCoverUri(null);
@@ -63,7 +86,9 @@ export function AddBookModal({
     setAuthor("");
     setPages("");
     setStatus("TO_READ");
-    setGenre("");
+    setCategoryInput("");
+    setSelectedCategoryId(null);
+    setShowSuggestions(false);
     setIsbn("");
     setRating(null);
     setNotes("");
@@ -121,8 +146,8 @@ export function AddBookModal({
       Alert.alert("Error", "Enter a valid page count (min 1).");
       return;
     }
-    if (!genre.trim()) {
-      Alert.alert("Error", "Genre is required.");
+    if (!categoryInput.trim()) {
+      Alert.alert("Error", "Category is required.");
       return;
     }
     const isbnClear = isbn.trim();
@@ -141,6 +166,18 @@ export function AddBookModal({
 
     setSaving(true);
     try {
+      let catId: string;
+      if (selectedCategoryId) {
+        catId = selectedCategoryId;
+      } else {
+        const newCat = await createCategory({
+          name: categoryInput.trim(),
+          color: randomHexColor(),
+        });
+        catId = newCat.id;
+        await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      }
+
       let finalCoverUrl = undefined;
       if (coverUri) {
         finalCoverUrl = await persistLibraryImage(coverUri);
@@ -150,8 +187,8 @@ export function AddBookModal({
         title: title.trim(),
         author: author.trim(),
         pages: pagesNum,
-        isbn: isbn.trim(),
-        genre: genre.trim(),
+        isbn: isbnClear,
+        categoryId: catId,
         status,
         rating: rating ?? undefined,
         notes: notes.trim() || undefined,
@@ -317,19 +354,72 @@ export function AddBookModal({
               </View>
             </View>
 
-            {/* Genre */}
+            {/* Category */}
             <View className="mb-5">
               <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
-                Genre
+                Category
               </Text>
               <TextInput
-                value={genre}
-                onChangeText={setGenre}
+                value={categoryInput}
+                onChangeText={(t) => {
+                  setCategoryInput(t);
+                  setSelectedCategoryId(null);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="e.g. Fiction, Mystery, Sci-Fi"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 autoCapitalize="words"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: selectedCategoryId
+                    ? (mode === "dark" ? "#A78BFA" : "#6b38d4")
+                    : mode === "dark"
+                      ? "rgba(255,255,255,0.08)"
+                      : "rgba(107, 56, 212, 0.08)",
+                }}
               />
+
+              {showSuggestions && filteredCategories.length > 0 && (
+                <View
+                  className="bg-white dark:bg-[#1E293B] rounded-xl mt-1 overflow-hidden"
+                  style={{ borderWidth: 1, borderColor: mode === "dark" ? "#334155" : "#E2E8F0" }}
+                >
+                  {filteredCategories.slice(0, 6).map((cat, i) => (
+                    <Pressable
+                      key={cat.id}
+                      onPress={() => {
+                        setCategoryInput(cat.name);
+                        setSelectedCategoryId(cat.id);
+                        setShowSuggestions(false);
+                      }}
+                      className={`flex-row items-center px-4 py-3 gap-3 ${
+                        i < Math.min(filteredCategories.length, 6) - 1
+                          ? "border-b border-[#E2E8F0] dark:border-[#334155]"
+                          : ""
+                      }`}
+                    >
+                      {cat.color ? (
+                        <View
+                          style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: cat.color }}
+                        />
+                      ) : null}
+                      <Text className="text-[14px] text-[#111c2d] dark:text-[#F8FAFC]">
+                        {cat.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              {isNewCategory && (
+                <View className="flex-row items-center gap-1.5 mt-2">
+                  <Feather name="plus-circle" size={13} color="#10b981" />
+                  <Text className="text-[12px] font-semibold text-[#10b981]">New category</Text>
+                </View>
+              )}
             </View>
 
             {/* Status */}

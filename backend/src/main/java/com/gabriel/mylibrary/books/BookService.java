@@ -1,6 +1,8 @@
 package com.gabriel.mylibrary.books;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -91,10 +93,12 @@ public class BookService {
       newBook.setPagesRead(newBook.getPages());
     }
 
-    if (dto.getCategoryId() != null) {
-      CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), userId)
-          .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + dto.getCategoryId()));
-      newBook.setCategory(category);
+    if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
+      Set<CategoryEntity> categories = dto.getCategoryIds().stream()
+          .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
+              .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + catId)))
+          .collect(Collectors.toSet());
+      newBook.setCategories(categories);
     }
 
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
@@ -119,10 +123,12 @@ public class BookService {
 
     bookMapper.updateEntityFromDto(dto, book);
 
-    if (dto.getCategoryId() != null) {
-      CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), userId)
-          .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + dto.getCategoryId()));
-      book.setCategory(category);
+    if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
+      Set<CategoryEntity> categories = dto.getCategoryIds().stream()
+          .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
+              .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + catId)))
+          .collect(Collectors.toSet());
+      book.setCategories(categories);
     }
 
     if (book.getPagesRead() != null && book.getPagesRead() > book.getPages()) {

@@ -1,6 +1,7 @@
 package com.gabriel.mylibrary.books;
 
 import com.gabriel.mylibrary.common.enums.BookStatus;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -36,7 +37,9 @@ public class BookSpecification {
       }
 
       if (categoryId != null) {
-        predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+        var catJoin = root.join("categories", JoinType.INNER);
+        predicates.add(cb.equal(catJoin.get("id"), categoryId));
+        query.distinct(true);
       }
 
       if (author != null && !author.isBlank()) {

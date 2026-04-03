@@ -7,7 +7,7 @@ export interface CreateBookPayload {
   pages: number;
   pagesRead?: number;
   isbn: string;
-  categoryId: string;
+  categoryIds: string[];
   status: BookStatus;
   rating?: number;
   notes?: string;
@@ -72,7 +72,7 @@ export interface UpdateBookPayload {
   pages?: number;
   pagesRead?: number;
   isbn?: string;
-  genre?: string;
+  categoryIds?: string[];
   rating?: number;
   notes?: string;
   coverUrl?: string;

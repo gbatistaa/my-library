@@ -75,7 +75,7 @@ public class AchievementService {
       case IRON_READER, HABIT_FORMED ->
         (double) streakRepository.findByUserId(userId).map(StreakEntity::getCurrentStreak).orElse(0);
       case GENRE_EXPLORER ->
-        (double) bookRepository.countDistinctGenresByUserId(userId);
+        (double) bookRepository.countDistinctCategoriesByUserId(userId);
       case NEW_VOICE ->
         (double) bookRepository.countDistinctAuthorsByUserId(userId);
       default -> 0.0;
@@ -99,8 +99,8 @@ public class AchievementService {
         yield streak + " de " + def.getThreshold() + " dias";
       }
       case GENRE_EXPLORER -> {
-        long genres = bookRepository.countDistinctGenresByUserId(userId);
-        yield genres + " de " + def.getThreshold() + " gêneros";
+        long genres = bookRepository.countDistinctCategoriesByUserId(userId);
+        yield genres + " de " + def.getThreshold() + " categorias";
       }
       case NEW_VOICE -> {
         long authors = bookRepository.countDistinctAuthorsByUserId(userId);

@@ -42,7 +42,7 @@ public class StatsService {
     double avgVelocity = totalMinutes == 0 ? 0 : (double) totalPages / (totalMinutes / 60.0);
 
     // Genre breakdown
-    List<Object[]> genreData = bookRepository.countBooksByGenre(userId);
+    List<Object[]> genreData = bookRepository.countBooksByCategory(userId);
     long totalGenreBooks = genreData.stream().mapToLong(g -> (Long) g[1]).sum();
     List<GenreShareDTO> genreBreakdown = genreData.stream()
         .map(g -> new GenreShareDTO(
@@ -205,7 +205,7 @@ public class StatsService {
         .orElse("N/A");
 
     // Most rereadable genre (highest avg rating)
-    List<Object[]> genreRatings = bookRepository.avgRatingByGenre(userId);
+    List<Object[]> genreRatings = bookRepository.avgRatingByCategory(userId);
     String mostRereadable = genreRatings.isEmpty() ? "N/A" : (String) genreRatings.get(0)[0];
 
     // Best reading day

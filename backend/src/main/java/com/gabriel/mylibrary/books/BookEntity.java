@@ -1,6 +1,8 @@
 package com.gabriel.mylibrary.books;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.gabriel.mylibrary.categories.CategoryEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
@@ -52,9 +54,14 @@ public class BookEntity extends BaseEntity {
   @Column(nullable = false, length = 13)
   private String isbn;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "category_id", nullable = true)
-  private CategoryEntity category;
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "books_categories",
+      joinColumns = @JoinColumn(name = "book_id"),
+      inverseJoinColumns = @JoinColumn(name = "category_id")
+  )
+  @Builder.Default
+  private Set<CategoryEntity> categories = new HashSet<>();
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

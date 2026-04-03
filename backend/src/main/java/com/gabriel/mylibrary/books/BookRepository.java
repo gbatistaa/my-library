@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpecificationExecutor<BookEntity> {
   boolean existsByIsbnAndUserId(String isbn, UUID userId);
 
+  @EntityGraph(attributePaths = { "categories" })
   Optional<BookEntity> findByIdAndUserId(UUID id, UUID userId);
 
   @EntityGraph(attributePaths = { "categories" })
@@ -38,8 +39,8 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   @Query("SELECT b FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
   List<BookEntity> findAllCompletedByUserId(@Param("userId") UUID userId);
 
-  @Query("SELECT COUNT(DISTINCT b.genre) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
-  long countDistinctGenresByUserId(@Param("userId") UUID userId);
+  @Query("SELECT COUNT(DISTINCT c) FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
+  long countDistinctCategoriesByUserId(@Param("userId") UUID userId);
 
   @Query("SELECT COUNT(DISTINCT b.author) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
   long countDistinctAuthorsByUserId(@Param("userId") UUID userId);
@@ -52,8 +53,8 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
       @Param("start") LocalDate start, @Param("end") LocalDate end);
 
   // Stats / Analytics queries
-  @Query("SELECT b.genre, COUNT(b) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY b.genre ORDER BY COUNT(b) DESC")
-  List<Object[]> countBooksByGenre(@Param("userId") UUID userId);
+  @Query("SELECT c.name, COUNT(b) FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY c.name ORDER BY COUNT(b) DESC")
+  List<Object[]> countBooksByCategory(@Param("userId") UUID userId);
 
   @Query("SELECT b.author, COUNT(b) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY b.author ORDER BY COUNT(b) DESC")
   List<Object[]> countBooksByAuthor(@Param("userId") UUID userId);
@@ -61,8 +62,8 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   @Query("SELECT AVG(b.rating) FROM BookEntity b WHERE b.user.id = :userId AND b.rating IS NOT NULL")
   Double avgRatingByUserId(@Param("userId") UUID userId);
 
-  @Query("SELECT b.genre, AVG(b.rating) FROM BookEntity b WHERE b.user.id = :userId AND b.rating IS NOT NULL GROUP BY b.genre ORDER BY AVG(b.rating) DESC")
-  List<Object[]> avgRatingByGenre(@Param("userId") UUID userId);
+  @Query("SELECT c.name, AVG(b.rating) FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.rating IS NOT NULL GROUP BY c.name ORDER BY AVG(b.rating) DESC")
+  List<Object[]> avgRatingByCategory(@Param("userId") UUID userId);
 
   long countByUserId(UUID userId);
 }

@@ -3,6 +3,7 @@ package com.gabriel.mylibrary.books.dtos;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,8 +38,8 @@ public class CreateBookDTO {
   @Pattern(regexp = "^(97[89])?\\d{9}[\\dX]$", message = "ISBN must be a valid format (10 or 13 digits)")
   private String isbn;
 
-  @NotNull(message = "Category is required")
-  private UUID categoryId;
+  @NotEmpty(message = "At least one category is required")
+  private List<UUID> categoryIds;
 
   @NotNull(message = "Book status is required")
   private BookStatus status;

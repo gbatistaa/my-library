@@ -98,8 +98,8 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
                 <Text className="text-[10px] font-bold text-white">{label}</Text>
               </View>
 
-              {/* Genre badge — top-right, over the image */}
-              {book.genre && (
+              {/* Category tag — top-right, over the image */}
+              {book.categoryName && (
                 <View 
                   className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]"
                   style={{ opacity: pressed ? 0.8 : 1 }}
@@ -108,7 +108,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
                     className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
                     numberOfLines={1}
                   >
-                    {book.genre}
+                    {book.categoryName}
                   </Text>
                 </View>
               )}
@@ -325,7 +325,7 @@ export default function LibraryScreen() {
     debouncedQuery.length > 0 ? (searchResults ?? []) : (allBooks ?? []);
 
   const filteredBooks = selectedCategory
-    ? rawBooks.filter((b) => b.genre === selectedCategory)
+    ? rawBooks.filter((b) => b.categoryId === selectedCategory)
     : rawBooks;
 
   const safeCategories: CategoryDTO[] = Array.isArray(categories) ? categories : [];
@@ -433,18 +433,18 @@ export default function LibraryScreen() {
                   key={cat.id}
                   onPress={() =>
                     setSelectedCategory(
-                      selectedCategory === cat.name ? null : cat.name
+                      selectedCategory === cat.id ? null : cat.id
                     )
                   }
                   className={`rounded-full px-4 py-2 ${
-                    selectedCategory === cat.name
+                    selectedCategory === cat.id
                       ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
                       : "bg-[#f0f3ff] dark:bg-[#1E293B]"
                   }`}
                 >
                   <Text
                     className={`text-xs font-bold ${
-                      selectedCategory === cat.name
+                      selectedCategory === cat.id
                         ? "text-white"
                         : "text-[#494454] dark:text-[#94A3B8]"
                     }`}

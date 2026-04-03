@@ -1,5 +1,11 @@
 export type BookStatus = "TO_READ" | "READING" | "COMPLETED" | "DROPPED";
 
+export interface BookCategoryDTO {
+  id: string;
+  name: string;
+  color?: string;
+}
+
 export interface BookDTO {
   id: string;
   title: string;
@@ -8,9 +14,7 @@ export interface BookDTO {
   pages: number;
   pagesRead: number | null;
   isbn: string | null;
-  categoryId: string | null;
-  categoryName: string | null;
-  categoryColor: string | null;
+  categories: BookCategoryDTO[];
   status: BookStatus;
   coverUrl: string | null;
   startDate: string | null;
@@ -30,4 +34,5 @@ export interface CategoryDTO {
   id: string;
   name: string;
   description?: string;
+  color?: string;
 }

@@ -298,22 +298,19 @@ export default function BookDetailsScreen() {
               </Text>
             </Animated.View>
 
-            {/* ─── Genre Tags ─── */}
-            {book.genre && (
+            {/* Category Tag */}
+            {book.categoryName && (
               <Animated.View
                 entering={FadeInDown.duration(350).delay(130)}
                 className="flex-row flex-wrap gap-2 mt-4"
               >
-                {book.genre.split(",").map((tag) => (
-                  <View
-                    key={tag.trim()}
-                    className="bg-purple-500/10 border border-purple-500/30 rounded-full px-3 py-1"
-                  >
-                    <Text className="text-purple-400 text-xs font-medium">
-                      {tag.trim()}
-                    </Text>
-                  </View>
-                ))}
+                <View
+                  className="bg-purple-500/10 border border-purple-500/30 rounded-full px-3 py-1"
+                >
+                  <Text className="text-purple-400 text-xs font-medium">
+                    {book.categoryName}
+                  </Text>
+                </View>
               </Animated.View>
             )}
 
