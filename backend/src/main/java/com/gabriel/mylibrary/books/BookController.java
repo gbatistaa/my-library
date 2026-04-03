@@ -1,6 +1,5 @@
 package com.gabriel.mylibrary.books;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
-import com.gabriel.mylibrary.categories.dtos.CategoryDTO;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.user.UserEntity;
 
@@ -42,15 +40,15 @@ public class BookController {
       @AuthenticationPrincipal UserEntity user,
       @RequestParam(required = false) BookStatus status,
       @RequestParam(required = false) Integer minRating,
-      @RequestParam(required = false) String genre,
+      @RequestParam(required = false) UUID categoryId,
       @RequestParam(required = false) String author,
       @RequestParam(required = false) Integer year,
       @PageableDefault(size = 10, sort = "title") Pageable pageable) {
-    if (status == null && minRating == null && genre == null && author == null && year == null) {
+    if (status == null && minRating == null && categoryId == null && author == null && year == null) {
       return ResponseEntity.ok(bookService.findAll(user.getId(), pageable));
     }
     return ResponseEntity
-        .ok(bookService.findWithFilters(user.getId(), status, minRating, genre, author, year, pageable));
+        .ok(bookService.findWithFilters(user.getId(), status, minRating, categoryId, author, year, pageable));
   }
 
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -95,32 +93,6 @@ public class BookController {
       @PathVariable UUID id,
       @AuthenticationPrincipal UserEntity user) {
     bookService.delete(id, user.getId());
-    return ResponseEntity.noContent().build();
-  }
-
-  // --- Associação Livro ↔ Categorias ---
-
-  @GetMapping("/{id}/categories")
-  public ResponseEntity<List<CategoryDTO>> getCategories(
-      @PathVariable UUID id,
-      @AuthenticationPrincipal UserEntity user) {
-    return ResponseEntity.ok(bookService.getCategories(id, user.getId()));
-  }
-
-  @PostMapping("/{id}/categories/{categoryId}")
-  public ResponseEntity<BookDTO> addCategory(
-      @PathVariable UUID id,
-      @PathVariable UUID categoryId,
-      @AuthenticationPrincipal UserEntity user) {
-    return ResponseEntity.ok(bookService.addCategory(id, categoryId, user.getId()));
-  }
-
-  @DeleteMapping("/{id}/categories/{categoryId}")
-  public ResponseEntity<Void> removeCategory(
-      @PathVariable UUID id,
-      @PathVariable UUID categoryId,
-      @AuthenticationPrincipal UserEntity user) {
-    bookService.removeCategory(id, categoryId, user.getId());
     return ResponseEntity.noContent().build();
   }
 }

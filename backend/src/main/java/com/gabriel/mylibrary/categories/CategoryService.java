@@ -11,7 +11,6 @@ import com.gabriel.mylibrary.categories.dtos.CategoryDTO;
 import com.gabriel.mylibrary.categories.dtos.CreateCategoryDTO;
 import com.gabriel.mylibrary.categories.dtos.UpdateCategoryDTO;
 import com.gabriel.mylibrary.categories.mappers.CategoryMapper;
-import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.user.UserEntity;
@@ -69,10 +68,6 @@ public class CategoryService {
   public void delete(UUID id, UUID userId) {
     CategoryEntity category = categoryRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
-
-    for (BookEntity book : category.getBooks()) {
-      book.getCategories().remove(category);
-    }
 
     categoryRepository.delete(category);
   }

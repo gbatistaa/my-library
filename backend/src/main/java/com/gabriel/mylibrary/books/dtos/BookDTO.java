@@ -18,7 +18,9 @@ public class BookDTO {
   private Integer pages;
   private Integer pagesRead;
   private String isbn;
-  private String genre;
+  private String categoryId;
+  private String categoryName;
+  private String categoryColor;
   private BookStatus status;
   private String coverUrl;
   private LocalDate startDate;

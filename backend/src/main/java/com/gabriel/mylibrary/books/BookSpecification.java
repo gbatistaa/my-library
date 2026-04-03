@@ -18,7 +18,7 @@ public class BookSpecification {
       UUID userId,
       BookStatus status,
       Integer minRating,
-      String genre,
+      UUID categoryId,
       String author,
       Integer year) {
 
@@ -35,8 +35,8 @@ public class BookSpecification {
         predicates.add(cb.greaterThanOrEqualTo(root.get("rating"), minRating));
       }
 
-      if (genre != null && !genre.isBlank()) {
-        predicates.add(cb.like(cb.lower(root.get("genre")), "%" + genre.toLowerCase() + "%"));
+      if (categoryId != null) {
+        predicates.add(cb.equal(root.get("category").get("id"), categoryId));
       }
 
       if (author != null && !author.isBlank()) {

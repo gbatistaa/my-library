@@ -8,7 +8,9 @@ export interface BookDTO {
   pages: number;
   pagesRead: number | null;
   isbn: string | null;
-  genre: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
   status: BookStatus;
   coverUrl: string | null;
   startDate: string | null;

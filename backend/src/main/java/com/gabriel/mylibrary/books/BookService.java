@@ -1,6 +1,5 @@
 package com.gabriel.mylibrary.books;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,8 +13,6 @@ import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
 import com.gabriel.mylibrary.books.mappers.BookMapper;
 import com.gabriel.mylibrary.categories.CategoryEntity;
 import com.gabriel.mylibrary.categories.CategoryRepository;
-import com.gabriel.mylibrary.categories.dtos.CategoryDTO;
-import com.gabriel.mylibrary.categories.mappers.CategoryMapper;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -33,7 +30,6 @@ public class BookService {
   private final BookRepository bookRepository;
   private final EntityManager entityManager;
   private final CategoryRepository categoryRepository;
-  private final CategoryMapper categoryMapper;
   private final AchievementEvaluator achievementEvaluator;
 
   @Transactional(readOnly = true)
@@ -44,9 +40,9 @@ public class BookService {
 
   @Transactional(readOnly = true)
   public Page<BookDTO> findWithFilters(UUID userId, BookStatus status, Integer minRating,
-      String genre, String author, Integer year, Pageable pageable) {
+      UUID categoryId, String author, Integer year, Pageable pageable) {
     return bookRepository
-        .findAll(BookSpecification.withFilters(userId, status, minRating, genre, author, year), pageable)
+        .findAll(BookSpecification.withFilters(userId, status, minRating, categoryId, author, year), pageable)
         .map(bookMapper::toDto);
   }
 
@@ -95,6 +91,12 @@ public class BookService {
       newBook.setPagesRead(newBook.getPages());
     }
 
+    if (dto.getCategoryId() != null) {
+      CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), userId)
+          .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + dto.getCategoryId()));
+      newBook.setCategory(category);
+    }
+
     UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
     newBook.setUser(userRef);
 
@@ -116,6 +118,12 @@ public class BookService {
     }
 
     bookMapper.updateEntityFromDto(dto, book);
+
+    if (dto.getCategoryId() != null) {
+      CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), userId)
+          .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + dto.getCategoryId()));
+      book.setCategory(category);
+    }
 
     if (book.getPagesRead() != null && book.getPagesRead() > book.getPages()) {
       throw new ResourceConflictException("Pages read cannot exceed total pages");
@@ -168,51 +176,5 @@ public class BookService {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     bookRepository.delete(book);
-  }
-
-  @Transactional(readOnly = true)
-  public List<CategoryDTO> getCategories(UUID bookId, UUID userId) throws ResourceNotFoundException {
-    BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
-
-    return book.getCategories().stream()
-        .map(categoryMapper::toDto)
-        .toList();
-  }
-
-  @Transactional
-  public BookDTO addCategory(UUID bookId, UUID categoryId, UUID userId) throws ResourceNotFoundException {
-    BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
-
-    CategoryEntity category = categoryRepository.findByIdAndUserId(categoryId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-
-    boolean alreadyLinked = book.getCategories().stream()
-        .anyMatch(c -> c.getId().equals(categoryId));
-
-    if (alreadyLinked) {
-      throw new ResourceConflictException("Category already linked to this book: " + category.getName());
-    }
-
-    book.getCategories().add(category);
-    return bookMapper.toDto(bookRepository.save(book));
-  }
-
-  @Transactional
-  public BookDTO removeCategory(UUID bookId, UUID categoryId, UUID userId) throws ResourceNotFoundException {
-    BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
-
-    CategoryEntity category = categoryRepository.findByIdAndUserId(categoryId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
-
-    boolean wasLinked = book.getCategories().removeIf(c -> c.getId().equals(category.getId()));
-
-    if (!wasLinked) {
-      throw new ResourceNotFoundException("Category is not linked to this book: " + category.getName());
-    }
-
-    return bookMapper.toDto(bookRepository.save(book));
   }
 }
