@@ -95,6 +95,13 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             />
+            <Stack.Screen
+              name="add-category"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
           </Stack>
         </AuthGate>
         <StatusBar style="auto" />

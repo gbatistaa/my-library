@@ -311,6 +311,7 @@ export default function LibraryScreen() {
         onAction={(action) => {
           if (action === "book") router.push("/add-book");
           else if (action === "saga") router.push("/add-saga");
+          else if (action === "category") router.push("/add-category");
         }}
         fabTop={insets.top + 68}
         iconColor={iconColor}
