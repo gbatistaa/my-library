@@ -144,6 +144,26 @@ public class BookService {
   }
 
   @Transactional
+  public BookDTO resetForReread(UUID id, UUID userId) throws ResourceNotFoundException, ResourceConflictException {
+    BookEntity book = bookRepository.findByIdAndUserId(id, userId)
+        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+    if (book.getStatus() != BookStatus.COMPLETED) {
+      throw new ResourceConflictException("Only completed books can be reset for re-reading");
+    }
+
+    book.setStatus(BookStatus.READING);
+    book.setPagesRead(0);
+    book.setRating(null);
+    book.setFinishDate(null);
+    book.setStartDate(java.time.LocalDate.now());
+
+    BookDTO result = bookMapper.toDto(bookRepository.save(book));
+    achievementEvaluator.evaluate(userId);
+    return result;
+  }
+
+  @Transactional
   public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));

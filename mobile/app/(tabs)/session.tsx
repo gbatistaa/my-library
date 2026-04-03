@@ -6,6 +6,7 @@ import {
   Alert,
   FlatList,
   Pressable,
+  Image,
   StyleSheet,
   Animated as RNAnimated,
 } from "react-native";
@@ -13,11 +14,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import { useAtom } from "jotai";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getCurrentlyReadingBooks } from "@/src/services/bookService";
+import { pendingSessionBookAtom } from "@/src/store/session";
 import {
   submitReadingSession,
   fetchRecentReadingSessions,
@@ -64,6 +67,18 @@ const SessionScreen = () => {
   const [elapsed, setElapsed] = useState(0);
   const [targetTime, setTargetTime] = useState(30 * 60);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [pendingBook, setPendingBook] = useAtom(pendingSessionBookAtom);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (pendingBook) {
+        setSelectedBook(pendingBook);
+        setPendingBook(null);
+        queryClient.invalidateQueries({ queryKey: ["currentlyReadingSelection"] });
+      }
+    }, [pendingBook, setPendingBook, queryClient])
+  );
 
   const SHEET_HEIGHT = 650;
   const slideAnim = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
@@ -331,39 +346,61 @@ const SessionScreen = () => {
         <View className="mt-8 mb-8">
           {selectedBook ? (
             /* ── With book: glassmorphism card ── */
-            <Pressable
-              onPress={() => setBookModalVisible(true)}
-              className="flex-row justify-between items-center bg-white/65 dark:bg-[#1E293B]/60 shadow-black/[0.08] shadow-lg dark:shadow-black/30 px-4 py-3.5 border border-[#6b38d4]/[0.12] dark:border-[#A78BFA]/[0.18] rounded-2xl active:scale-[0.98]"
-              style={{ elevation: 4 }}
-            >
-              {/* Thumbnail */}
-              <View className="justify-center items-center bg-[#6b38d4]/[0.09] dark:bg-[#A78BFA]/[0.15] rounded-lg w-12 h-16">
-                <Feather name="book" size={20} color={colors.primary} />
-              </View>
-
-              {/* Info */}
-              <View className="flex-1 justify-center ml-3.5">
-                <Text
-                  className="mb-1 font-bold text-[#111c2d] dark:text-[#F8FAFC] text-base"
-                  numberOfLines={1}
+            <View className="relative">
+              <Pressable
+                onPress={() => setBookModalVisible(true)}
+                className="flex-row items-center bg-white/65 dark:bg-[#1E293B]/60 shadow-black/[0.08] shadow-lg dark:shadow-black/30 px-4 py-3.5 border border-[#6b38d4]/[0.12] dark:border-[#A78BFA]/[0.18] rounded-2xl active:scale-[0.98]"
+                style={{ elevation: 4 }}
+              >
+                {/* Thumbnail */}
+                <View 
+                  className="justify-center items-center bg-[#6b38d4]/[0.09] dark:bg-[#A78BFA]/[0.15] rounded-lg w-12 h-16 overflow-hidden"
                 >
-                  {selectedBook.title}
-                </Text>
-                <Text
-                  className="font-medium text-[#494454] text-[13px] dark:text-[#94A3B8]"
-                  numberOfLines={1}
-                >
-                  {selectedBook.author || "Unknown Author"} •{" "}
-                  {selectedBook.pages || 0} pages
-                </Text>
-              </View>
+                  {selectedBook.coverUrl ? (
+                    <Image 
+                      source={{ uri: selectedBook.coverUrl }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Feather name="book" size={20} color={colors.primary} />
+                  )}
+                </View>
 
-              <Feather
-                name="chevron-right"
-                size={20}
-                color={colors.textSecondary}
-              />
-            </Pressable>
+                {/* Info */}
+                <View className="flex-1 justify-center ml-3.5 mr-6">
+                  <Text
+                    className="mb-1 font-bold text-[#111c2d] dark:text-[#F8FAFC] text-base"
+                    numberOfLines={1}
+                  >
+                    {selectedBook.title}
+                  </Text>
+                  <Text
+                    className="font-medium text-[#494454] text-[13px] dark:text-[#94A3B8]"
+                    numberOfLines={1}
+                  >
+                    {selectedBook.author || "Unknown Author"} •{" "}
+                    {selectedBook.pages || 0} pages
+                  </Text>
+                </View>
+
+                <Feather
+                  name="chevron-right"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </Pressable>
+
+              {/* Remove Button */}
+              <TouchableOpacity
+                onPress={() => setSelectedBook(null)}
+                className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-red-500 items-center justify-center border-2 shadow-sm"
+                style={{ borderColor: colors.background, zIndex: 10 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Feather name="x" size={12} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           ) : (
             /* ── Empty: solid purple button ── */
             <Pressable
@@ -741,82 +778,101 @@ const SessionScreen = () => {
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
+              ItemSeparatorComponent={() => (
+                <View
+                  className="mx-4 h-[1px]"
+                  style={{
+                    backgroundColor: isDark
+                      ? "rgba(255,255,255,0.12)"
+                      : "rgba(107, 56, 212, 0.12)",
+                  }}
+                />
+              )}
               renderItem={({ item }) => {
                 const isSelected = selectedBook?.id === item.id;
                 return (
-                  <View className="mb-4">
-                    <Pressable
-                      className="flex-row items-center gap-4 p-4 rounded-[20px]"
-                      style={({ pressed }) => ({
-                        backgroundColor: isSelected
-                          ? colors.primary + "15"
-                          : colors.surface,
-                        borderWidth: 2,
-                        borderColor: isSelected
-                          ? colors.primary
-                          : colors.border + "40",
-                        opacity: pressed ? 0.8 : 1,
-                      })}
-                      onPress={() => {
-                        setSelectedBook(item);
-                        setBookModalVisible(false);
-                      }}
+                  <Pressable
+                    className="flex-row items-center gap-4 p-4 rounded-[20px]"
+                    style={({ pressed }) => ({
+                      backgroundColor: pressed
+                        ? isDark
+                          ? "rgba(255,255,255,0.12)"
+                          : "rgba(107, 56, 212, 0.10)"
+                        : isSelected
+                        ? colors.primary + "15"
+                        : "transparent",
+                      borderWidth: 2,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : "transparent",
+                    })}
+                    onPress={() => {
+                      setSelectedBook(item);
+                      setBookModalVisible(false);
+                    }}
+                  >
+                    <View
+                      className="justify-center items-center rounded-xl w-[50px] h-[70px] overflow-hidden"
+                      style={{ backgroundColor: colors.primary + "15" }}
                     >
-                      <View
-                        className="justify-center items-center rounded-xl w-[50px] h-[70px]"
-                        style={{ backgroundColor: colors.primary + "15" }}
-                      >
+                      {item.coverUrl ? (
+                        <Image
+                          source={{ uri: item.coverUrl }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      ) : (
                         <Feather name="book" size={24} color={colors.primary} />
-                      </View>
-
-                      <View className="flex-1">
-                        <Text
-                          className="font-extrabold text-[17px]"
-                          style={{ color: colors.text }}
-                          numberOfLines={1}
-                        >
-                          {item.title}
-                        </Text>
-                        <Text
-                          className="mt-[3px] font-medium text-sm"
-                          style={{ color: colors.textSecondary }}
-                          numberOfLines={1}
-                        >
-                          {item.author}
-                        </Text>
-                        <View className="flex-row items-center gap-1.5 mt-2">
-                          <View
-                            className="px-2 py-0.5 rounded-[4px]"
-                            style={{ backgroundColor: colors.primary + "10" }}
-                          >
-                            <Text
-                              className="font-bold text-[11px]"
-                              style={{ color: colors.primary }}
-                            >
-                              {item.pages} pgs
-                            </Text>
-                          </View>
-                          {item.genre && (
-                            <Text
-                              className="text-[13px]"
-                              style={{ color: colors.textSecondary }}
-                            >
-                              • {item.genre}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-
-                      {isSelected && (
-                        <View
-                          className="p-1.5 rounded-xl"
-                          style={{ backgroundColor: colors.primary }}
-                        >
-                          <Feather name="check" size={16} color="#FFF" />
-                        </View>
                       )}
-                    </Pressable>
-                  </View>
+                    </View>
+
+                    <View className="flex-1">
+                      <Text
+                        className="font-extrabold text-[17px]"
+                        style={{ color: colors.text }}
+                        numberOfLines={1}
+                      >
+                        {item.title}
+                      </Text>
+                      <Text
+                        className="mt-[3px] font-medium text-sm"
+                        style={{ color: colors.textSecondary }}
+                        numberOfLines={1}
+                      >
+                        {item.author}
+                      </Text>
+                      <View className="flex-row items-center gap-1.5 mt-2">
+                        <View
+                          className="px-2 py-0.5 rounded-[4px]"
+                          style={{ backgroundColor: colors.primary + "10" }}
+                        >
+                          <Text
+                            className="font-bold text-[11px]"
+                            style={{ color: colors.primary }}
+                          >
+                            {item.pages} pgs
+                          </Text>
+                        </View>
+                        {item.genre && (
+                          <Text
+                            className="text-[13px]"
+                            style={{ color: colors.textSecondary }}
+                          >
+                            • {item.genre}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+
+                    {isSelected && (
+                      <View
+                        className="p-1.5 rounded-xl"
+                        style={{ backgroundColor: colors.primary }}
+                      >
+                        <Feather name="check" size={16} color="#FFF" />
+                      </View>
+                    )}
+                  </Pressable>
                 );
               }}
             />

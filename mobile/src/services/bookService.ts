@@ -55,3 +55,33 @@ export async function getCurrentlyReadingBooks(): Promise<{
   });
   return data ?? { content: [] };
 }
+
+export async function getBookById(id: string): Promise<BookDTO> {
+  const { data } = await api.get<BookDTO>(`/books/${id}`);
+  return data;
+}
+
+export async function resetBookForReread(id: string): Promise<BookDTO> {
+  const { data } = await api.post<BookDTO>(`/books/${id}/reset`);
+  return data;
+}
+
+export interface UpdateBookPayload {
+  title?: string;
+  author?: string;
+  pages?: number;
+  isbn?: string;
+  genre?: string;
+  rating?: number;
+  notes?: string;
+  coverUrl?: string;
+}
+
+export async function updateBook(id: string, payload: UpdateBookPayload): Promise<BookDTO> {
+  const { data } = await api.patch<BookDTO>(`/books/${id}`, payload);
+  return data;
+}
+
+export async function deleteBook(id: string): Promise<void> {
+  await api.delete(`/books/${id}`);
+}

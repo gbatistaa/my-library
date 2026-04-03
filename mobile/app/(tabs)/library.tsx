@@ -47,6 +47,7 @@ const PROGRESS_COLOR: Record<BookStatus, string> = {
 };
 
 function BookCard({ book, index }: { book: BookDTO; index: number }) {
+  const router = useRouter();
   const { bgClass, label } = getStatusConfig(book.status);
   const progressColor = PROGRESS_COLOR[book.status];
   const progressPercentage = book.pages && book.pages > 0
@@ -58,6 +59,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
       entering={FadeInDown.duration(300).delay(index * 30)}
       className="w-[48%]"
     >
+      <Pressable onPress={() => router.push(`/book/${book.id}`)} className="w-full">
       {/* ── Cover (image-only container with rounded corners) ── */}
       <View className="w-full aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]">
         {book.coverUrl ? (
@@ -120,6 +122,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
           />
         </View>
       </View>
+      </Pressable>
     </Animated.View>
   );
 }

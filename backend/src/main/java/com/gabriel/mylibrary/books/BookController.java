@@ -83,6 +83,13 @@ public class BookController {
     return ResponseEntity.ok(bookService.update(id, user.getId(), dto));
   }
 
+  @PostMapping("/{id}/reset")
+  public ResponseEntity<BookDTO> resetForReread(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookService.resetForReread(id, user.getId()));
+  }
+
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(
       @PathVariable UUID id,
