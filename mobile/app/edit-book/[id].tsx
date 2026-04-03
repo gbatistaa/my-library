@@ -147,6 +147,7 @@ export default function EditBookScreen() {
   const [status, setStatus] = useState<"TO_READ" | "READING" | "COMPLETED" | "DROPPED">("TO_READ");
   const [categoryInput, setCategoryInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<
     { id: string | null; name: string; color: string }[]
   >([]);
@@ -208,10 +209,20 @@ export default function EditBookScreen() {
     setShowSuggestions(false);
   }
 
-  function addNewCategory() {
+  async function addNewCategory() {
     const name = categoryInput.trim();
     if (!name) return;
-    setSelectedCategories((prev) => [...prev, { id: null, name, color: randomHexColor() }]);
+    try {
+      const color = randomHexColor();
+      const newCat = await createCategory({ name, color });
+      setSelectedCategories((prev) => [
+        ...prev,
+        { id: newCat.id, name: newCat.name, color: newCat.color ?? color },
+      ]);
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+    } catch (err: unknown) {
+      showApiError("Failed to create category", err);
+    }
     setCategoryInput("");
     setShowSuggestions(false);
   }
@@ -292,16 +303,7 @@ export default function EditBookScreen() {
 
     setSaving(true);
     try {
-      const categoryIds: string[] = [];
-      for (const cat of selectedCategories) {
-        if (cat.id) {
-          categoryIds.push(cat.id);
-        } else {
-          const newCat = await createCategory({ name: cat.name, color: cat.color });
-          categoryIds.push(newCat.id);
-        }
-      }
-      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      const categoryIds = selectedCategories.map(c => c.id as string);
 
       let finalCoverUrl: string | undefined = existingCoverUrl ?? undefined;
       if (localCoverUri) {
@@ -496,7 +498,7 @@ export default function EditBookScreen() {
                     key={`${cat.name}-${i}`}
                     className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
                     style={{
-                      backgroundColor: `${cat.color}28`,
+                      backgroundColor: `${cat.color}26`,
                       borderWidth: 1,
                       borderColor: cat.color,
                     }}
@@ -512,22 +514,41 @@ export default function EditBookScreen() {
               </View>
             )}
 
+            {isNewCategory && (
+              <Pressable
+                onPress={addNewCategory}
+                className="flex-row items-center gap-1.5 mb-2"
+              >
+                <Feather name="plus-circle" size={13} color="#10b981" />
+                <Text className="text-[12px] font-semibold text-[#10b981]">
+                  Create category
+                </Text>
+              </Pressable>
+            )}
+
             <TextInput
               value={categoryInput}
               onChangeText={(t) => {
                 setCategoryInput(t);
                 setShowSuggestions(true);
               }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onFocus={() => {
+                setShowSuggestions(true);
+                setIsInputFocused(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => setShowSuggestions(false), 200);
+                setIsInputFocused(false);
+              }}
               placeholder="Add a category…"
               placeholderTextColor={placeholderColor}
               autoCapitalize="words"
               className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
               style={{
                 borderWidth: 1.5,
-                borderColor:
-                  mode === "dark"
+                borderColor: isInputFocused
+                  ? iconColor
+                  : mode === "dark"
                     ? "rgba(255,255,255,0.08)"
                     : "rgba(107, 56, 212, 0.08)",
               }}
@@ -561,17 +582,7 @@ export default function EditBookScreen() {
               </View>
             )}
 
-            {isNewCategory && (
-              <Pressable
-                onPress={addNewCategory}
-                className="flex-row items-center gap-1.5 mt-2"
-              >
-                <Feather name="plus-circle" size={13} color="#10b981" />
-                <Text className="text-[12px] font-semibold text-[#10b981]">
-                  Add &quot;{categoryInput.trim()}&quot; as new category
-                </Text>
-              </Pressable>
-            )}
+            {/* (Removed button from here) */}
           </View>
 
           {/* Status */}

@@ -60,8 +60,11 @@ export function AddBookModal({
   const [pages, setPages] = useState("");
   const [status, setStatus] = useState<BookStatus>("TO_READ");
   const [categoryInput, setCategoryInput] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<{ id: string | null; name: string; color: string }[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<
+    { id: string | null; name: string; color: string }[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [isbn, setIsbn] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
@@ -80,10 +83,18 @@ export function AddBookModal({
 
   const isNewCategory =
     categoryInput.trim().length > 0 &&
-    !categories.some((c) => c.name.toLowerCase() === categoryInput.trim().toLowerCase()) &&
-    !selectedCategories.some((s) => s.name.toLowerCase() === categoryInput.trim().toLowerCase());
+    !categories.some(
+      (c) => c.name.toLowerCase() === categoryInput.trim().toLowerCase(),
+    ) &&
+    !selectedCategories.some(
+      (s) => s.name.toLowerCase() === categoryInput.trim().toLowerCase(),
+    );
 
-  function addExistingCategory(cat: { id: string; name: string; color?: string | null }) {
+  function addExistingCategory(cat: {
+    id: string;
+    name: string;
+    color?: string | null;
+  }) {
     setSelectedCategories((prev) => [
       ...prev,
       { id: cat.id, name: cat.name, color: cat.color ?? randomHexColor() },
@@ -92,10 +103,20 @@ export function AddBookModal({
     setShowSuggestions(false);
   }
 
-  function addNewCategory() {
+  async function addNewCategory() {
     const name = categoryInput.trim();
     if (!name) return;
-    setSelectedCategories((prev) => [...prev, { id: null, name, color: randomHexColor() }]);
+    try {
+      const color = randomHexColor();
+      const newCat = await createCategory({ name, color });
+      setSelectedCategories((prev) => [
+        ...prev,
+        { id: newCat.id, name: newCat.name, color: newCat.color ?? color },
+      ]);
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+    } catch (err: unknown) {
+      showApiError("Failed to create category", err);
+    }
     setCategoryInput("");
     setShowSuggestions(false);
   }
@@ -190,16 +211,7 @@ export function AddBookModal({
 
     setSaving(true);
     try {
-      const categoryIds: string[] = [];
-      for (const cat of selectedCategories) {
-        if (cat.id) {
-          categoryIds.push(cat.id);
-        } else {
-          const newCat = await createCategory({ name: cat.name, color: cat.color });
-          categoryIds.push(newCat.id);
-        }
-      }
-      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      const categoryIds = selectedCategories.map((c) => c.id as string);
 
       let finalCoverUrl = undefined;
       if (coverUri) {
@@ -382,21 +394,24 @@ export function AddBookModal({
               <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Categories
               </Text>
-              
+
               {/* Selected category badges */}
               {selectedCategories.length > 0 && (
                 <View className="flex-row flex-wrap gap-2 mb-3">
                   {selectedCategories.map((cat, i) => (
                     <View
                       key={`${cat.name}-${i}`}
-                      className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+                      className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full"
                       style={{
-                        backgroundColor: `${cat.color}28`,
+                        backgroundColor: `${cat.color}26`,
                         borderWidth: 1,
                         borderColor: cat.color,
                       }}
                     >
-                      <Text className="text-xs font-bold" style={{ color: cat.color }}>
+                      <Text
+                        className="font-bold text-xs"
+                        style={{ color: cat.color }}
+                      >
                         {cat.name}
                       </Text>
                       <Pressable onPress={() => removeCategory(i)} hitSlop={6}>
@@ -407,28 +422,53 @@ export function AddBookModal({
                 </View>
               )}
 
+              {isNewCategory && (
+                <Pressable
+                  onPress={addNewCategory}
+                  className="flex-row items-center gap-1.5 mb-2"
+                >
+                  <Feather name="plus-circle" size={13} color="#10b981" />
+                  <Text className="font-semibold text-[#10b981] text-[12px]">
+                    Create category
+                  </Text>
+                </Pressable>
+              )}
+
               <TextInput
                 value={categoryInput}
                 onChangeText={(t) => {
                   setCategoryInput(t);
                   setShowSuggestions(true);
                 }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onFocus={() => {
+                  setShowSuggestions(true);
+                  setIsInputFocused(true);
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowSuggestions(false), 200);
+                  setIsInputFocused(false);
+                }}
                 placeholder="Add a category..."
                 placeholderTextColor={placeholderColor}
                 autoCapitalize="words"
                 className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 style={{
                   borderWidth: 1.5,
-                  borderColor: mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)",
+                  borderColor: isInputFocused
+                    ? iconColor
+                    : mode === "dark"
+                      ? "rgba(255,255,255,0.08)"
+                      : "rgba(107, 56, 212, 0.08)",
                 }}
               />
 
               {showSuggestions && filteredCategories.length > 0 && (
                 <View
-                  className="bg-white dark:bg-[#1E293B] rounded-xl mt-1 overflow-hidden"
-                  style={{ borderWidth: 1, borderColor: mode === "dark" ? "#334155" : "#E2E8F0" }}
+                  className="bg-white dark:bg-[#1E293B] mt-1 rounded-xl overflow-hidden"
+                  style={{
+                    borderWidth: 1,
+                    borderColor: mode === "dark" ? "#334155" : "#E2E8F0",
+                  }}
                 >
                   {filteredCategories.slice(0, 6).map((cat, i) => (
                     <Pressable
@@ -442,10 +482,15 @@ export function AddBookModal({
                     >
                       {cat.color ? (
                         <View
-                          style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: cat.color }}
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: cat.color,
+                          }}
                         />
                       ) : null}
-                      <Text className="text-[14px] text-[#111c2d] dark:text-[#F8FAFC]">
+                      <Text className="text-[#111c2d] text-[14px] dark:text-[#F8FAFC]">
                         {cat.name}
                       </Text>
                     </Pressable>
@@ -453,12 +498,7 @@ export function AddBookModal({
                 </View>
               )}
 
-              {isNewCategory && (
-                <Pressable onPress={addNewCategory} className="flex-row items-center gap-1.5 mt-2">
-                  <Feather name="plus-circle" size={13} color="#10b981" />
-                  <Text className="text-[12px] font-semibold text-[#10b981]">Add &quot;{categoryInput.trim()}&quot; as new category</Text>
-                </Pressable>
-              )}
+              {/* (Removed button from here) */}
             </View>
 
             {/* Status */}
