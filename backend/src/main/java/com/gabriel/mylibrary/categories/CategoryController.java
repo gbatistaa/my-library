@@ -20,6 +20,7 @@ import com.gabriel.mylibrary.categories.dtos.CreateCategoryDTO;
 import com.gabriel.mylibrary.categories.dtos.UpdateCategoryDTO;
 import com.gabriel.mylibrary.user.UserEntity;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -41,14 +42,14 @@ public class CategoryController {
   }
 
   @PostMapping
-  public ResponseEntity<CategoryDTO> createCategory(@RequestBody CreateCategoryDTO category,
+  public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CreateCategoryDTO category,
       @AuthenticationPrincipal UserEntity user) {
     CategoryDTO savedCategory = categoryService.create(category, user.getId());
     return ResponseEntity.ok(savedCategory);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody UpdateCategoryDTO category,
+  public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryDTO category,
       @AuthenticationPrincipal UserEntity user) {
     CategoryDTO updatedCategory = categoryService.update(id, user.getId(), category);
     return ResponseEntity.ok(updatedCategory);

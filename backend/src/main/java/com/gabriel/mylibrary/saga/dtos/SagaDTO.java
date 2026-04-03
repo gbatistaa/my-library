@@ -15,5 +15,4 @@ public class SagaDTO {
   private String description;
   private String coverUrl;
   private Integer bookCount;
-  private String color;
 }

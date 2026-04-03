@@ -1,7 +1,6 @@
 package com.gabriel.mylibrary.saga.dtos;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +18,4 @@ public class CreateSagaDTO {
   private String description;
 
   private String coverUrl;
-
-  @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "Invalid hexadecimal color code")
-  private String color;
 }
