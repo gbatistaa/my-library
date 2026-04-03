@@ -302,19 +302,19 @@ export default function BookDetailsScreen() {
             {book.categories && book.categories.length > 0 && (
               <Animated.View
                 entering={FadeInDown.duration(350).delay(130)}
-                className="flex-row flex-wrap gap-2 mt-4"
+                className="flex-row flex-wrap gap-2.5 mt-5"
               >
                 {book.categories.map((cat, i) => (
                   <View
                     key={`${cat.name}-${i}`}
-                    className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+                    className="flex-row items-center gap-2 rounded-full px-5 py-2.5"
                     style={{
-                      backgroundColor: cat.color ? `${cat.color}28` : "rgba(167, 139, 250, 0.1)",
-                      borderWidth: 1,
+                      backgroundColor: cat.color ? `${cat.color}26` : "rgba(167, 139, 250, 0.15)",
+                      borderWidth: 1.5,
                       borderColor: cat.color ? cat.color : "rgba(167, 139, 250, 0.3)",
                     }}
                   >
-                    <Text className="text-xs font-medium" style={{ color: cat.color ? cat.color : "#c084fc" }}>
+                    <Text className="text-[14px] font-bold" style={{ color: cat.color ? cat.color : "#c084fc" }}>
                       {cat.name}
                     </Text>
                   </View>
