@@ -472,7 +472,13 @@ export default function LibraryScreen() {
               contentContainerStyle={{ paddingRight: 4 }}
             >
               {safeSagas.map((saga, i) => (
-                <SagaCard key={saga.id} saga={saga} index={i} />
+                <Pressable
+                  key={saga.id}
+                  onPress={() => router.push(`/saga/${saga.id}`)}
+                  className="active:opacity-80"
+                >
+                  <SagaCard saga={saga} index={i} />
+                </Pressable>
               ))}
             </ScrollView>
           </Animated.View>

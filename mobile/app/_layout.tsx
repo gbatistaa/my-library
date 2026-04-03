@@ -106,6 +106,17 @@ export default function RootLayout() {
                 headerShown: false,
               }}
             />
+            <Stack.Screen
+              name="saga/[id]"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="edit-saga/[id]"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
           </Stack>
         </AuthGate>
         <StatusBar style="auto" />
