@@ -8,17 +8,10 @@ interface Props {
   streak: StreakDTO | undefined;
 }
 
-function EmptyStreak({ colors }: { colors: any }) {
+function EmptyStreak() {
   return (
-    <View style={{ paddingVertical: 4 }}>
-      <Text
-        style={{
-          fontSize: 14,
-          fontWeight: "500",
-          color: colors.textSecondary,
-          lineHeight: 20,
-        }}
-      >
+    <View className="py-1">
+      <Text className="text-[14px] font-medium text-[#494454] dark:text-[#94A3B8] leading-[20px]">
         Read today to start building your streak.
       </Text>
     </View>
@@ -33,64 +26,35 @@ export function StreakSection({ streak }: Props) {
 
   return (
     <Animated.View entering={FadeIn.duration(300).delay(200)}>
-      <Text
-        style={{
-          fontSize: 13,
-          fontWeight: "600",
-          color: colors.textSecondary,
-          textTransform: "uppercase",
-          letterSpacing: 0.8,
-          marginBottom: 12,
-        }}
-      >
+      <Text className="text-[13px] font-semibold text-[#494454] dark:text-[#94A3B8] uppercase tracking-[0.8px] mb-3">
         Reading Streak
       </Text>
 
       {current === 0 && best === 0 ? (
-        <EmptyStreak colors={colors} />
+        <EmptyStreak />
       ) : (
         <View>
           {/* Main streak number */}
-          <View style={{ flexDirection: "row", alignItems: "baseline" }}>
-            <Text
-              style={{
-                fontSize: 32,
-                fontWeight: "700",
-                color: colors.text,
-                letterSpacing: -1,
-              }}
-            >
+          <View className="flex-row items-baseline">
+            <Text className="text-[32px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-1px]">
               {current}
             </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "400",
-                color: colors.textSecondary,
-                marginLeft: 6,
-              }}
-            >
+            <Text className="text-[15px] font-normal text-[#494454] dark:text-[#94A3B8] ml-1.5">
               {current === 1 ? "day" : "days"} in a row
             </Text>
           </View>
 
           {/* Secondary stats */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 20,
-              marginTop: 10,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <View className="flex-row gap-5 mt-2.5">
+            <View className="flex-row items-center gap-1.5">
               <Feather name="award" size={13} color={colors.textSecondary} />
-              <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+              <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8]">
                 Best: {best}d
               </Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <View className="flex-row items-center gap-1.5">
               <Feather name="calendar" size={13} color={colors.textSecondary} />
-              <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+              <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8]">
                 {totalDays} total days
               </Text>
             </View>
@@ -98,31 +62,17 @@ export function StreakSection({ streak }: Props) {
 
           {/* Progress toward best */}
           {best > 0 && current < best && (
-            <View style={{ marginTop: 12 }}>
-              <View
-                style={{
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: colors.border,
-                  overflow: "hidden",
-                }}
-              >
+            <View className="mt-3">
+              <View className="h-1 rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
                 <View
                   style={{
                     width: `${Math.round(Math.min(current / best, 1) * 100)}%`,
-                    height: "100%",
-                    borderRadius: 2,
                     backgroundColor: colors.primary,
                   }}
+                  className="h-full rounded-full"
                 />
               </View>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                  marginTop: 5,
-                }}
-              >
+              <Text className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-1.5">
                 {best - current} {best - current === 1 ? "day" : "days"} to beat
                 your record
               </Text>
@@ -131,14 +81,7 @@ export function StreakSection({ streak }: Props) {
 
           {/* Insight */}
           {streak?.insight ? (
-            <Text
-              style={{
-                fontSize: 13,
-                color: colors.textSecondary,
-                marginTop: 10,
-                lineHeight: 18,
-              }}
-            >
+            <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8] mt-2.5 leading-[18px]">
               {streak.insight}
             </Text>
           ) : null}

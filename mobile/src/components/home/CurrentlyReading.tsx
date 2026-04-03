@@ -20,7 +20,7 @@ interface Props {
 function BookCoverPlaceholder() {
   const { colors } = useAppTheme();
   return (
-    <View className="w-24 h-36 rounded-lg items-center justify-center bg-[#f0f3ff] dark:bg-[#1E293B]">
+    <View className="justify-center items-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-lg w-24 h-36">
       <Feather name="book" size={28} color={colors.primary + "60"} />
     </View>
   );
@@ -37,14 +37,14 @@ function BookCard({ book }: { book: BookDTO }) {
   return (
     <Pressable
       onPress={handlePress}
-      className="w-[300px] bg-white dark:bg-[#1E293B] rounded-xl p-4 flex-row gap-4 active:opacity-90 active:scale-[0.98]"
+      className="flex-row gap-4 bg-white dark:bg-[#1E293B] active:opacity-90 p-4 rounded-xl w-[300px] active:scale-[0.98]"
     >
       {/* Cover with page badge overlay */}
       <View className="relative">
         {book.coverUrl ? (
           <Image
             source={{ uri: book.coverUrl }}
-            className="w-24 h-36 rounded-lg bg-[#f0f3ff] dark:bg-[#1E293B]"
+            className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-lg w-24 h-36"
             resizeMode="cover"
           />
         ) : (
@@ -54,9 +54,9 @@ function BookCard({ book }: { book: BookDTO }) {
         {book.pages ? (
           <View
             style={{ backgroundColor: colors.primary + "E6" }}
-            className="absolute top-2 left-2 px-2 py-0.5 rounded-full"
+            className="top-2 left-2 absolute px-2 py-0.5 rounded-full"
           >
-            <Text className="text-[10px] font-bold text-white">
+            <Text className="font-bold text-[10px] text-white">
               {book.pages} pgs
             </Text>
           </View>
@@ -67,13 +67,13 @@ function BookCard({ book }: { book: BookDTO }) {
       <View className="flex-1 justify-between py-1">
         <View>
           <Text
-            className="text-[18px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-tight leading-[22px]"
+            className="font-bold text-[#111c2d] text-[18px] dark:text-[#F8FAFC] leading-[22px] tracking-tight"
             numberOfLines={2}
           >
             {book.title}
           </Text>
           <Text
-            className="text-[14px] text-[#494454] dark:text-[#94A3B8] mt-1"
+            className="mt-1 text-[#494454] text-[14px] dark:text-[#94A3B8]"
             numberOfLines={1}
           >
             {book.author}
@@ -85,11 +85,9 @@ function BookCard({ book }: { book: BookDTO }) {
           style={({ pressed }) => ({
             backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
           })}
-          className="py-2.5 px-4 rounded-lg self-start flex-row items-center justify-center gap-1.5 active:opacity-90"
+          className="flex-row justify-center items-center self-start gap-1.5 active:opacity-90 px-4 py-2.5 rounded-lg"
         >
-          <Text className="text-[14px] font-bold text-white">
-            Continue
-          </Text>
+          <Text className="font-bold text-[14px] text-white">Continue</Text>
           <Feather name="arrow-right" size={14} color="white" />
         </Pressable>
       </View>
@@ -103,15 +101,15 @@ function EmptyState() {
     <View className="flex-row items-center gap-4 py-2">
       <View
         style={{ backgroundColor: colors.primary + "10" }}
-        className="w-14 h-14 rounded-2xl items-center justify-center"
+        className="justify-center items-center rounded-2xl w-14 h-14"
       >
         <Feather name="book-open" size={24} color={colors.primary} />
       </View>
       <View className="flex-1">
-        <Text className="text-[15px] font-bold text-[#111c2d] dark:text-[#F8FAFC] mb-1">
+        <Text className="mb-1 font-bold text-[#111c2d] text-[15px] dark:text-[#F8FAFC]">
           Nothing on your nightstand
         </Text>
-        <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8] leading-[18px]">
+        <Text className="text-[#494454] text-[13px] dark:text-[#94A3B8] leading-[18px]">
           Add a book and start reading to see it here.
         </Text>
       </View>
@@ -120,7 +118,7 @@ function EmptyState() {
 }
 
 export function CurrentlyReading({ books }: Props) {
-  const { colors, mode } = useAppTheme();
+  const { mode } = useAppTheme();
   const router = useRouter();
   const hasBooks = books && books.length > 0;
 
@@ -128,7 +126,7 @@ export function CurrentlyReading({ books }: Props) {
     <Animated.View entering={FadeIn.duration(400)}>
       {/* Header row */}
       <View className="flex-row justify-between items-end mb-4">
-        <Text className="text-[24px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-tight">
+        <Text className="font-bold text-[#111c2d] text-[24px] dark:text-[#F8FAFC] tracking-tight">
           Currently Reading
         </Text>
         <Pressable
@@ -137,7 +135,7 @@ export function CurrentlyReading({ books }: Props) {
         >
           <Text
             numberOfLines={1}
-            className="text-[14px] font-semibold text-[#6b38d4] dark:text-[#A78BFA] mr-0.5"
+            className="mr-0.5 font-semibold text-[#6b38d4] text-[14px] dark:text-[#A78BFA]"
             style={{
               includeFontPadding: false,
               textAlignVertical: "center",

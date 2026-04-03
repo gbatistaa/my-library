@@ -15,53 +15,31 @@ interface StatCardProps {
   iconColor: string;
   value: string | number;
   label: string;
-  colors: any;
 }
 
-function StatCard({ iconName, iconBg, iconColor, value, label, colors }: StatCardProps) {
+function StatCard({
+  iconName,
+  iconBg,
+  iconColor,
+  value,
+  label,
+}: StatCardProps) {
   return (
-    <View
-      style={{
-        width: "48%",
-        backgroundColor: colors.surfaceContainerLow,
-        borderRadius: 12,
-        padding: 20,
-        gap: 12,
-      }}
-    >
+    <View className="flex-1 min-w-[45%] bg-[#f8f9fa] dark:bg-[#1E293B] rounded-xl p-5 gap-3">
       {/* Icon circle */}
       <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: iconBg,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={{ backgroundColor: iconBg }}
+        className="w-10 h-10 rounded-full items-center justify-center"
       >
         <Feather name={iconName} size={18} color={iconColor} />
       </View>
 
       {/* Value + label */}
-      <View style={{ gap: 3 }}>
-        <Text
-          style={{
-            fontSize: 30,
-            fontWeight: "700",
-            color: colors.text,
-            lineHeight: 34,
-            letterSpacing: -0.5,
-          }}
-        >
+      <View className="gap-0.5">
+        <Text className="text-[30px] font-bold text-[#111c2d] dark:text-[#F8FAFC] leading-[34px] tracking-tighter">
           {value}
         </Text>
-        <Text
-          style={{
-            fontSize: 11,
-            color: colors.textSecondary,
-          }}
-        >
+        <Text className="text-[11px] text-[#494454] dark:text-[#94A3B8]">
           {label}
         </Text>
       </View>
@@ -81,34 +59,18 @@ export function QuickStats({ dna, streak }: Props) {
 
   return (
     <Animated.View entering={FadeIn.duration(300).delay(100)}>
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: "600",
-          color: colors.textSecondary,
-          textTransform: "uppercase",
-          letterSpacing: 2,
-          marginBottom: 14,
-        }}
-      >
+      <Text className="text-[11px] font-semibold text-[#494454] dark:text-[#94A3B8] uppercase tracking-[2px] mb-3.5">
         Quick Insights
       </Text>
 
       {/* 2×2 bento grid */}
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
+      <View className="flex-row flex-wrap gap-3">
         <StatCard
           iconName="book-open"
           iconBg={colors.violet100}
           iconColor={colors.primary}
           value={booksRead}
           label="Books Read"
-          colors={colors}
         />
         <StatCard
           iconName="file-text"
@@ -116,7 +78,6 @@ export function QuickStats({ dna, streak }: Props) {
           iconColor={colors.secondary}
           value={pagesRead}
           label="Pages Read"
-          colors={colors}
         />
         <StatCard
           iconName="calendar"
@@ -124,7 +85,6 @@ export function QuickStats({ dna, streak }: Props) {
           iconColor={colors.tertiary}
           value={totalDays}
           label="Reading Days"
-          colors={colors}
         />
         <StatCard
           iconName="star"
@@ -132,7 +92,6 @@ export function QuickStats({ dna, streak }: Props) {
           iconColor={colors.blue600}
           value={avgRating}
           label="Avg Rating"
-          colors={colors}
         />
       </View>
     </Animated.View>

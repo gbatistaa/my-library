@@ -8,90 +8,43 @@ interface Props {
   progress: ReadingGoalProgressDTO | null | undefined;
 }
 
-function ProgressBar({
-  value,
-  max,
-  colors,
-}: {
-  value: number;
-  max: number;
-  colors: any;
-}) {
+function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.min(value / max, 1) : 0;
+  const { colors } = useAppTheme();
+
   return (
-    <View
-      style={{
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: colors.surfaceContainerLow,
-        overflow: "hidden",
-        marginTop: 20,
-      }}
-    >
+    <View className="h-3.5 rounded-full bg-[#f1f5f9] dark:bg-[#1E293B] overflow-hidden mt-5">
       <View
         style={{
           width: `${Math.round(pct * 100)}%`,
-          height: "100%",
-          borderRadius: 7,
           backgroundColor: colors.primary,
         }}
+        className="h-full rounded-full"
       />
     </View>
   );
 }
 
-function EmptyGoal({ colors }: { colors: any }) {
+function EmptyGoal() {
+  const { colors } = useAppTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 14,
-        paddingVertical: 8,
-      }}
-    >
+    <View className="flex-row items-center gap-3.5 py-2">
       <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 13,
-          backgroundColor: colors.primary + "10",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={{ backgroundColor: colors.primary + "10" }}
+        className="w-11 h-11 rounded-xl items-center justify-center"
       >
         <Feather name="target" size={20} color={colors.primary} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: 2,
-          }}
-        >
+      <View className="flex-1">
+        <Text className="text-[14px] font-semibold text-[#111c2d] dark:text-[#F8FAFC] mb-0.5">
           No goal for {new Date().getFullYear()} yet
         </Text>
-        <Text
-          style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 17 }}
-        >
+        <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8] leading-[17px]">
           Set a target to track your progress this year.
         </Text>
       </View>
-      <Pressable
-        style={({ pressed }) => ({
-          paddingVertical: 8,
-          paddingHorizontal: 14,
-          borderRadius: 8,
-          borderWidth: 1.5,
-          borderColor: colors.primary,
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <Text
-          style={{ fontSize: 13, fontWeight: "600", color: colors.primary }}
-        >
+      <Pressable className="py-2 px-3.5 rounded-lg border-[1.5px] border-[#6b38d4] dark:border-[#A78BFA] active:opacity-70">
+        <Text className="text-[13px] font-semibold text-[#6b38d4] dark:text-[#A78BFA]">
           Set
         </Text>
       </Pressable>
@@ -105,74 +58,33 @@ export function GoalSection({ progress }: Props) {
   if (!progress) {
     return (
       <Animated.View entering={FadeIn.duration(300).delay(150)}>
-        <EmptyGoal colors={colors} />
+        <EmptyGoal />
       </Animated.View>
     );
   }
 
   const { booksRead, goal, onTrack } = progress;
-  if (!goal) return <EmptyGoal colors={colors} />;
+  if (!goal) return <EmptyGoal />;
 
   const target = goal.targetBooks;
   const pct = target > 0 ? Math.round(Math.min(booksRead / target, 1) * 100) : 0;
   const remaining = Math.max(0, target - booksRead);
 
-  const onTrackBg = mode === "dark" ? "rgba(16,185,129,0.15)" : "#dcfce7";
-  const onTrackText = mode === "dark" ? "#4ade80" : "#15803d";
-
   return (
     <Animated.View entering={FadeIn.duration(300).delay(150)}>
       {/* Card wrapper */}
-      <View
-        style={{
-          backgroundColor: colors.surface,
-          borderRadius: 16,
-          padding: 24,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: mode === "dark" ? 0 : 0.06,
-          shadowRadius: 12,
-          elevation: 2,
-          ...(mode === "dark"
-            ? { borderWidth: 1, borderColor: colors.border }
-            : {}),
-          overflow: "hidden",
-        }}
-      >
+      <View className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm dark:border dark:border-[#334155] overflow-hidden relative">
         {/* Top row: label + on-track badge */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
+        <View className="flex-row justify-between items-start">
           <View>
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: "600",
-                color: colors.textSecondary,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-              }}
-            >
+            <Text className="text-[11px] font-semibold text-[#494454] dark:text-[#94A3B8] uppercase tracking-[2px]">
               {new Date().getFullYear()} Reading Goal
             </Text>
-            <View
-              style={{ flexDirection: "row", alignItems: "baseline", marginTop: 6 }}
-            >
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: "700",
-                  color: colors.text,
-                  letterSpacing: -0.5,
-                }}
-              >
+            <View className="flex-row items-baseline mt-1.5">
+              <Text className="text-[24px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-tighter">
                 {booksRead} / {target}{" "}
               </Text>
-              <Text style={{ fontSize: 16, color: colors.textSecondary }}>
+              <Text className="text-[16px] text-[#494454] dark:text-[#94A3B8]">
                 books
               </Text>
             </View>
@@ -180,60 +92,48 @@ export function GoalSection({ progress }: Props) {
 
           {/* On track badge */}
           <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              backgroundColor: onTrackBg,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 999,
-              marginTop: 2,
-            }}
+            className={`flex-row items-center gap-1 px-3 py-1.5 rounded-full mt-0.5 ${
+              onTrack
+                ? "bg-green-100 dark:bg-green-900/30"
+                : "bg-red-100 dark:bg-red-900/30"
+            }`}
           >
             <Text
-              style={{ fontSize: 12, fontWeight: "700", color: onTrackText }}
+              className={`text-[12px] font-bold ${
+                onTrack ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
+              }`}
             >
               {onTrack ? "On track" : "Behind pace"}
             </Text>
             <Feather
               name={onTrack ? "check-circle" : "alert-circle"}
               size={12}
-              color={onTrackText}
+              color={
+                onTrack
+                  ? mode === "dark" ? "#4ade80" : "#15803d"
+                  : mode === "dark" ? "#f87171" : "#b91c1c"
+              }
             />
           </View>
         </View>
 
         {/* Progress bar */}
-        <ProgressBar value={booksRead} max={target} colors={colors} />
+        <ProgressBar value={booksRead} max={target} />
 
         {/* Footer */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 10,
-          }}
-        >
-          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+        <View className="flex-row justify-between mt-2.5">
+          <Text className="text-[12px] text-[#494454] dark:text-[#94A3B8]">
             {pct}% completed
           </Text>
-          <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+          <Text className="text-[12px] text-[#494454] dark:text-[#94A3B8]">
             {remaining} {remaining === 1 ? "book" : "books"} to go
           </Text>
         </View>
 
         {/* Decorative ambient circle */}
         <View
-          style={{
-            position: "absolute",
-            right: -16,
-            bottom: -24,
-            width: 96,
-            height: 96,
-            borderRadius: 48,
-            backgroundColor: colors.primary + "08",
-          }}
+          style={{ backgroundColor: colors.primary + "08" }}
+          className="absolute -right-4 -bottom-6 w-24 h-24 rounded-full"
           pointerEvents="none"
         />
       </View>

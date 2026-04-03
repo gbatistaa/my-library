@@ -9,49 +9,33 @@ interface Props {
 
 function Badge({
   achievement,
-  colors,
 }: {
   achievement: AchievementDTO;
-  colors: any;
 }) {
+  const { colors } = useAppTheme();
   const earned = achievement.earned;
 
   return (
     <View
-      style={{
-        width: 72,
-        alignItems: "center",
-        marginRight: 14,
-        opacity: earned ? 1 : 0.4,
-      }}
+      className={`w-[72px] items-center mr-3.5 ${earned ? "opacity-100" : "opacity-40"}`}
     >
       <View
         style={{
-          width: 48,
-          height: 48,
-          borderRadius: 14,
           backgroundColor: earned
-            ? colors.primary + "15"
-            : colors.border + "80",
-          alignItems: "center",
-          justifyContent: "center",
-          borderWidth: 1.5,
-          borderColor: earned ? colors.primary + "40" : colors.border,
+            ? `${colors.primary}15`
+            : `${colors.border}80`,
+          borderColor: earned ? `${colors.primary}40` : colors.border,
         }}
+        className="w-12 h-12 rounded-[14px] items-center justify-center border-[1.5px]"
       >
-        <Text style={{ fontSize: 20 }}>
+        <Text className="text-[20px]">
           {earned ? getIcon(achievement.category) : "?"}
         </Text>
       </View>
       <Text
-        style={{
-          marginTop: 6,
-          fontSize: 10,
-          fontWeight: earned ? "600" : "500",
-          color: earned ? colors.text : colors.textSecondary,
-          textAlign: "center",
-          lineHeight: 13,
-        }}
+        className={`mt-1.5 text-[10px] text-center leading-[13px] ${
+          earned ? "font-semibold text-[#111c2d] dark:text-[#F8FAFC]" : "font-medium text-[#494454] dark:text-[#94A3B8]"
+        }`}
         numberOfLines={2}
       >
         {achievement.name}
@@ -76,8 +60,6 @@ function getIcon(category: string): string {
 }
 
 export function AchievementsRow({ achievements }: Props) {
-  const { colors } = useAppTheme();
-
   if (!Array.isArray(achievements) || achievements.length === 0) {
     return null;
   }
@@ -93,32 +75,11 @@ export function AchievementsRow({ achievements }: Props) {
   return (
     <Animated.View entering={FadeIn.duration(300).delay(250)}>
       {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 14,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: colors.textSecondary,
-            textTransform: "uppercase",
-            letterSpacing: 0.8,
-          }}
-        >
+      <View className="flex-row justify-between items-baseline mb-3.5">
+        <Text className="text-[13px] font-semibold text-[#494454] dark:text-[#94A3B8] uppercase tracking-[0.8px]">
           Achievements
         </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "500",
-            color: colors.textSecondary,
-          }}
-        >
+        <Text className="text-[13px] font-medium text-[#494454] dark:text-[#94A3B8]">
           {earnedCount}/{totalCount}
         </Text>
       </View>
@@ -130,10 +91,10 @@ export function AchievementsRow({ achievements }: Props) {
         contentContainerStyle={{ paddingRight: 20 }}
       >
         {earned.map((a) => (
-          <Badge key={a.code} achievement={a} colors={colors} />
+          <Badge key={a.code} achievement={a} />
         ))}
         {inProgress.map((a) => (
-          <Badge key={a.code} achievement={a} colors={colors} />
+          <Badge key={a.code} achievement={a} />
         ))}
       </ScrollView>
     </Animated.View>

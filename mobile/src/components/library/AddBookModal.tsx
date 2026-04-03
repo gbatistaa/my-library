@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   Image,
@@ -81,7 +80,7 @@ export function AddBookModal({
     if (permStatus !== "granted") {
       Alert.alert(
         "Permission required",
-        "Please allow access to your photo library to upload a cover."
+        "Please allow access to your photo library to upload a cover.",
       );
       return;
     }
@@ -97,13 +96,10 @@ export function AddBookModal({
       const asset = result.assets[0];
       const mime = asset.mimeType ?? "";
       const uri = asset.uri ?? "";
-      if (
-        mime === "image/svg+xml" ||
-        uri.toLowerCase().endsWith(".svg")
-      ) {
+      if (mime === "image/svg+xml" || uri.toLowerCase().endsWith(".svg")) {
         Alert.alert(
           "Format not supported",
-          "SVG files are not supported. Please choose a JPEG, PNG, WEBP, or other photo format."
+          "SVG files are not supported. Please choose a JPEG, PNG, WEBP, or other photo format.",
         );
         return;
       }
@@ -136,7 +132,10 @@ export function AddBookModal({
     }
     const isbnRegex = /^(97[89])?\d{9}[\dX]$/i;
     if (!isbnRegex.test(isbnClear)) {
-      Alert.alert("Error", "Please enter a valid ISBN-10 or ISBN-13 (must start with 978 or 979).");
+      Alert.alert(
+        "Error",
+        "Please enter a valid ISBN-10 or ISBN-13 (must start with 978 or 979).",
+      );
       return;
     }
 
@@ -181,10 +180,7 @@ export function AddBookModal({
       statusBarTranslucent
     >
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}>
-        <Pressable
-          style={{ flex: 1 }}
-          onPress={handleClose}
-        />
+        <Pressable style={{ flex: 1 }} onPress={handleClose} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -201,21 +197,21 @@ export function AddBookModal({
           }}
         >
           {/* Drag handle decoration */}
-          <View className="w-12 h-1.5 bg-[#cbc3d7]/30 dark:bg-[#334155] rounded-full self-center mt-3 mb-1" />
+          <View className="self-center bg-[#cbc3d7]/30 dark:bg-[#334155] mt-3 mb-1 rounded-full w-12 h-1.5" />
 
           {/* Header */}
-          <View className="flex-row justify-between items-center px-6 py-4 border-b border-[#cbc3d7]/10 dark:border-[#334155]/20">
+          <View className="flex-row justify-between items-center px-6 py-4 border-[#cbc3d7]/10 dark:border-[#334155]/20 border-b">
             <View>
-              <Text className="text-2xl font-bold text-[#111c2d] dark:text-[#F8FAFC]">
+              <Text className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-2xl">
                 Add New Book
               </Text>
-              <Text className="text-xs text-[#494454] dark:text-[#94A3B8] mt-0.5">
+              <Text className="mt-0.5 text-[#494454] dark:text-[#94A3B8] text-xs">
                 Build your personal universe
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleClose}
-              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
+              className="justify-center items-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full w-10 h-10"
             >
               <Feather name="x" size={20} color={closeIconColor} />
             </TouchableOpacity>
@@ -234,7 +230,7 @@ export function AddBookModal({
             <TouchableOpacity
               onPress={pickImage}
               activeOpacity={0.85}
-              className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mt-6 mb-8 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+              className="justify-center items-center bg-[#e9ddff]/30 dark:bg-[#1E293B] mt-6 mb-8 rounded-2xl w-full h-44 overflow-hidden"
             >
               {coverUri ? (
                 <>
@@ -243,9 +239,9 @@ export function AddBookModal({
                     className="w-full h-full"
                     resizeMode="cover"
                   />
-                  <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                  <View className="absolute inset-0 justify-center items-center bg-black/30">
                     <Feather name="camera" size={28} color="#fff" />
-                    <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
+                    <Text className="mt-2 font-bold text-white text-xs uppercase tracking-widest">
                       Change Cover
                     </Text>
                   </View>
@@ -253,7 +249,7 @@ export function AddBookModal({
               ) : (
                 <>
                   <Feather name="camera" size={32} color={iconColor} />
-                  <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-3">
+                  <Text className="mt-3 font-bold text-[#6b38d4] text-[11px] dark:text-[#A78BFA] uppercase tracking-widest">
                     Upload Cover Image
                   </Text>
                 </>
@@ -262,7 +258,7 @@ export function AddBookModal({
 
             {/* Title */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Book Title
               </Text>
               <TextInput
@@ -270,14 +266,14 @@ export function AddBookModal({
                 onChangeText={setTitle}
                 placeholder="e.g. The Secret History"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 autoCapitalize="words"
               />
             </View>
 
             {/* Author */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Author
               </Text>
               <TextInput
@@ -285,7 +281,7 @@ export function AddBookModal({
                 onChangeText={setAuthor}
                 placeholder="e.g. Donna Tartt"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 autoCapitalize="words"
               />
             </View>
@@ -293,7 +289,7 @@ export function AddBookModal({
             {/* Pages row */}
             <View className="flex-row gap-4 mb-5">
               <View className="flex-1">
-                <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                   Total Pages
                 </Text>
                 <TextInput
@@ -301,12 +297,12 @@ export function AddBookModal({
                   onChangeText={(t) => setPages(t.replace(/[^0-9]/g, ""))}
                   placeholder="559"
                   placeholderTextColor={placeholderColor}
-                  className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                  className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                   keyboardType="numeric"
                 />
               </View>
               <View className="flex-1">
-                <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+                <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                   ISBN
                 </Text>
                 <TextInput
@@ -314,7 +310,7 @@ export function AddBookModal({
                   onChangeText={(t) => setIsbn(t.replace(/[^0-9X]/gi, ""))}
                   placeholder="9780525559474"
                   placeholderTextColor={placeholderColor}
-                  className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                  className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                   keyboardType="numeric"
                   maxLength={13}
                 />
@@ -323,7 +319,7 @@ export function AddBookModal({
 
             {/* Genre */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Genre
               </Text>
               <TextInput
@@ -331,14 +327,14 @@ export function AddBookModal({
                 onChangeText={setGenre}
                 placeholder="e.g. Fiction, Mystery, Sci-Fi"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 autoCapitalize="words"
               />
             </View>
 
             {/* Status */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+              <Text className="mb-3 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Status
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -368,7 +364,7 @@ export function AddBookModal({
 
             {/* Rating */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+              <Text className="mb-3 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Rating (optional)
               </Text>
               <View className="flex-row gap-3">
@@ -396,7 +392,7 @@ export function AddBookModal({
 
             {/* Notes */}
             <View className="mb-8">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Notes (optional)
               </Text>
               <TextInput
@@ -404,7 +400,7 @@ export function AddBookModal({
                 onChangeText={setNotes}
                 placeholder="Your thoughts, quotes, impressions…"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 multiline
                 textAlignVertical="top"
                 style={{ height: 96 }}
@@ -416,7 +412,7 @@ export function AddBookModal({
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={saving}
-              className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
+              className="justify-center items-center bg-[#6b38d4] dark:bg-[#8455ef] rounded-2xl w-full h-14"
               style={{
                 shadowColor: "#6b38d4",
                 shadowOffset: { width: 0, height: 8 },
@@ -428,7 +424,7 @@ export function AddBookModal({
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text className="text-base font-bold text-white tracking-wide">
+                <Text className="font-bold text-white text-base tracking-wide">
                   Add Book to Sanctuary
                 </Text>
               )}

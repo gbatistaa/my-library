@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Pressable,
   ScrollView,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   Image,
@@ -71,15 +70,15 @@ function BookSelectCard({
       )}
 
       {/* Info strip */}
-      <View className="flex-1 bg-white dark:bg-[#1E293B] px-2 py-1.5 justify-center">
+      <View className="flex-1 justify-center bg-white dark:bg-[#1E293B] px-2 py-1.5">
         <Text
-          className="text-[11px] font-bold text-[#111c2d] dark:text-[#F8FAFC]"
+          className="font-bold text-[#111c2d] text-[11px] dark:text-[#F8FAFC]"
           numberOfLines={1}
         >
           {book.title}
         </Text>
         <Text
-          className="text-[10px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
+          className="mt-0.5 text-[#494454] text-[10px] dark:text-[#94A3B8]"
           numberOfLines={1}
         >
           {book.author}
@@ -88,7 +87,7 @@ function BookSelectCard({
 
       {/* Check badge */}
       {selected && (
-        <View className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center">
+        <View className="top-2 right-2 absolute justify-center items-center bg-[#6b38d4] dark:bg-[#A78BFA] rounded-full w-7 h-7">
           <Feather name="check" size={14} color="#fff" />
         </View>
       )}
@@ -111,7 +110,7 @@ export function AddSagaModal({
   const [description, setDescription] = useState("");
   const [coverUri, setCoverUri] = useState<string | null>(null);
   const [selectedBookIds, setSelectedBookIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [saving, setSaving] = useState(false);
 
@@ -131,7 +130,10 @@ export function AddSagaModal({
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission required", "Please allow access to your photo library.");
+      Alert.alert(
+        "Permission required",
+        "Please allow access to your photo library.",
+      );
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -143,7 +145,10 @@ export function AddSagaModal({
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       const mime = asset.mimeType ?? "";
-      if (mime === "image/svg+xml" || asset.uri?.toLowerCase().endsWith(".svg")) {
+      if (
+        mime === "image/svg+xml" ||
+        asset.uri?.toLowerCase().endsWith(".svg")
+      ) {
         Alert.alert("Format not supported", "SVG files are not allowed.");
         return;
       }
@@ -209,10 +214,7 @@ export function AddSagaModal({
       statusBarTranslucent
     >
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}>
-        <Pressable
-          style={{ flex: 1 }}
-          onPress={handleClose}
-        />
+        <Pressable style={{ flex: 1 }} onPress={handleClose} />
 
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -229,21 +231,21 @@ export function AddSagaModal({
           }}
         >
           {/* Drag handle decoration */}
-          <View className="w-12 h-1.5 bg-[#cbc3d7]/30 dark:bg-[#334155] rounded-full self-center mt-3 mb-1" />
+          <View className="self-center bg-[#cbc3d7]/30 dark:bg-[#334155] mt-3 mb-1 rounded-full w-12 h-1.5" />
 
           {/* Header */}
-          <View className="flex-row justify-between items-center px-6 py-4 border-b border-[#cbc3d7]/10 dark:border-[#334155]/20">
+          <View className="flex-row justify-between items-center px-6 py-4 border-[#cbc3d7]/10 dark:border-[#334155]/20 border-b">
             <View>
-              <Text className="text-2xl font-bold text-[#111c2d] dark:text-[#F8FAFC]">
+              <Text className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-2xl">
                 Create New Saga
               </Text>
-              <Text className="text-xs text-[#494454] dark:text-[#94A3B8] mt-0.5">
+              <Text className="mt-0.5 text-[#494454] dark:text-[#94A3B8] text-xs">
                 Group your epic collections
               </Text>
             </View>
             <TouchableOpacity
               onPress={handleClose}
-              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
+              className="justify-center items-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full w-10 h-10"
             >
               <Feather name="x" size={20} color={closeIconColor} />
             </TouchableOpacity>
@@ -262,15 +264,19 @@ export function AddSagaModal({
             <TouchableOpacity
               onPress={pickImage}
               activeOpacity={0.85}
-              className="w-full rounded-2xl overflow-hidden items-center justify-center mb-6 mt-6 bg-[#e9ddff]/20 dark:bg-[#1E293B] border border-dashed border-[#6b38d4]/30 dark:border-[#A78BFA]/20"
+              className="justify-center items-center bg-[#e9ddff]/20 dark:bg-[#1E293B] mt-6 mb-6 border border-[#6b38d4]/30 dark:border-[#A78BFA]/20 border-dashed rounded-2xl w-full overflow-hidden"
               style={{ aspectRatio: 16 / 9 }}
             >
               {coverUri ? (
                 <>
-                  <Image source={{ uri: coverUri }} className="w-full h-full" resizeMode="cover" />
-                  <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                  <Image
+                    source={{ uri: coverUri }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 justify-center items-center bg-black/30">
                     <Feather name="camera" size={24} color="#fff" />
-                    <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
+                    <Text className="mt-2 font-bold text-white text-xs uppercase tracking-widest">
                       Change Cover
                     </Text>
                   </View>
@@ -278,7 +284,7 @@ export function AddSagaModal({
               ) : (
                 <>
                   <Feather name="camera" size={28} color={iconColor} />
-                  <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-2">
+                  <Text className="mt-2 font-bold text-[#6b38d4] text-[11px] dark:text-[#A78BFA] uppercase tracking-widest">
                     Upload Cover Image
                   </Text>
                 </>
@@ -287,7 +293,7 @@ export function AddSagaModal({
 
             {/* Name */}
             <View className="mb-5">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Saga Name
               </Text>
               <TextInput
@@ -295,14 +301,14 @@ export function AddSagaModal({
                 onChangeText={setName}
                 placeholder="e.g. The Lord of the Rings"
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 autoCapitalize="words"
               />
             </View>
 
             {/* Description */}
             <View className="mb-6">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Description (optional)
               </Text>
               <TextInput
@@ -310,7 +316,7 @@ export function AddSagaModal({
                 onChangeText={setDescription}
                 placeholder="Talk about this saga..."
                 placeholderTextColor={placeholderColor}
-                className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+                className="bg-[#f0f3ff] dark:bg-[#1E293B] px-4 py-4 rounded-xl text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
                 multiline
                 textAlignVertical="top"
                 style={{ height: 80 }}
@@ -319,13 +325,16 @@ export function AddSagaModal({
 
             {/* Book Selection */}
             <View className="mb-8">
-              <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
+              <Text className="mb-3 font-bold text-[#494454] text-[10px] dark:text-[#94A3B8] uppercase tracking-widest">
                 Select Books ({selectedBookIds.size})
               </Text>
               {books.length > 0 ? (
-                <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
+                <View
+                  className="flex-row flex-wrap"
+                  style={{ marginHorizontal: -6 }}
+                >
                   {books.map((book) => (
-                    <View key={book.id} className="w-1/3 p-1.5">
+                    <View key={book.id} className="p-1.5 w-1/3">
                       <BookSelectCard
                         book={book}
                         selected={selectedBookIds.has(book.id!)}
@@ -336,8 +345,8 @@ export function AddSagaModal({
                   ))}
                 </View>
               ) : (
-                <View className="py-8 items-center justify-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-2xl border border-dashed border-[#cbc3d7] dark:border-[#334155]">
-                  <Text className="text-sm text-[#494454] dark:text-[#94A3B8]">
+                <View className="justify-center items-center bg-[#f0f3ff] dark:bg-[#1E293B] py-8 border border-[#cbc3d7] dark:border-[#334155] border-dashed rounded-2xl">
+                  <Text className="text-[#494454] dark:text-[#94A3B8] text-sm">
                     No books found in your library yet.
                   </Text>
                 </View>
@@ -348,7 +357,7 @@ export function AddSagaModal({
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={saving}
-              className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef]"
+              className="justify-center items-center bg-[#6b38d4] dark:bg-[#8455ef] rounded-2xl w-full h-14"
               style={{
                 shadowColor: "#6b38d4",
                 shadowOffset: { width: 0, height: 8 },
@@ -360,7 +369,7 @@ export function AddSagaModal({
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text className="text-base font-bold text-white tracking-wide">
+                <Text className="font-bold text-white text-base tracking-wide">
                   Create Saga
                 </Text>
               )}
