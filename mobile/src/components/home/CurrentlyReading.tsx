@@ -1,6 +1,15 @@
-import { View, Text, Image, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ScrollView,
+  Platform,
+} from "react-native";
+import { useRouter } from "expo-router";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
+
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import type { BookDTO } from "@/src/types/book";
 
@@ -8,71 +17,46 @@ interface Props {
   books: BookDTO[] | undefined;
 }
 
-function BookCoverPlaceholder({ colors }: { colors: any }) {
+function BookCoverPlaceholder() {
+  const { colors } = useAppTheme();
   return (
-    <View
-      style={{
-        width: 96,
-        height: 144,
-        borderRadius: 8,
-        backgroundColor: colors.surfaceContainer,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
+    <View className="w-24 h-36 rounded-lg items-center justify-center bg-[#f0f3ff] dark:bg-[#1E293B]">
       <Feather name="book" size={28} color={colors.primary + "60"} />
     </View>
   );
 }
 
-function BookCard({ book, colors }: { book: BookDTO; colors: any }) {
+function BookCard({ book }: { book: BookDTO }) {
+  const { colors } = useAppTheme();
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push(`/book/${book.id}`);
+  };
+
   return (
-    <View
-      style={{
-        width: 300,
-        backgroundColor: colors.surface,
-        borderRadius: 12,
-        padding: 16,
-        flexDirection: "row",
-        gap: 16,
-      }}
+    <Pressable
+      onPress={handlePress}
+      className="w-[300px] bg-white dark:bg-[#1E293B] rounded-xl p-4 flex-row gap-4 active:opacity-90 active:scale-[0.98]"
     >
       {/* Cover with page badge overlay */}
-      <View style={{ position: "relative" }}>
+      <View className="relative">
         {book.coverUrl ? (
           <Image
             source={{ uri: book.coverUrl }}
-            style={{
-              width: 96,
-              height: 144,
-              borderRadius: 8,
-              backgroundColor: colors.surfaceContainer,
-            }}
+            className="w-24 h-36 rounded-lg bg-[#f0f3ff] dark:bg-[#1E293B]"
             resizeMode="cover"
           />
         ) : (
-          <BookCoverPlaceholder colors={colors} />
+          <BookCoverPlaceholder />
         )}
         {/* Page count badge */}
         {book.pages ? (
           <View
-            style={{
-              position: "absolute",
-              top: 8,
-              left: 8,
-              backgroundColor: colors.primary + "E6",
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              borderRadius: 9999,
-            }}
+            style={{ backgroundColor: colors.primary + "E6" }}
+            className="absolute top-2 left-2 px-2 py-0.5 rounded-full"
           >
-            <Text
-              style={{
-                fontSize: 10,
-                fontWeight: "700",
-                color: colors.onPrimary,
-              }}
-            >
+            <Text className="text-[10px] font-bold text-white">
               {book.pages} pgs
             </Text>
           </View>
@@ -80,26 +64,16 @@ function BookCard({ book, colors }: { book: BookDTO; colors: any }) {
       </View>
 
       {/* Info */}
-      <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: 4 }}>
+      <View className="flex-1 justify-between py-1">
         <View>
           <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: colors.text,
-              letterSpacing: -0.3,
-              lineHeight: 22,
-            }}
+            className="text-[18px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-tight leading-[22px]"
             numberOfLines={2}
           >
             {book.title}
           </Text>
           <Text
-            style={{
-              fontSize: 14,
-              color: colors.textSecondary,
-              marginTop: 4,
-            }}
+            className="text-[14px] text-[#494454] dark:text-[#94A3B8] mt-1"
             numberOfLines={1}
           >
             {book.author}
@@ -107,68 +81,37 @@ function BookCard({ book, colors }: { book: BookDTO; colors: any }) {
         </View>
 
         <Pressable
+          onPress={handlePress}
           style={({ pressed }) => ({
             backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
-            paddingVertical: 10,
-            paddingHorizontal: 16,
-            borderRadius: 10,
-            alignSelf: "flex-start",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
           })}
+          className="py-2.5 px-4 rounded-lg self-start flex-row items-center justify-center gap-1.5 active:opacity-90"
         >
-          <Text style={{ fontSize: 14, fontWeight: "600", color: colors.onPrimary }}>
+          <Text className="text-[14px] font-bold text-white">
             Continue
           </Text>
-          <Feather name="arrow-right" size={14} color={colors.onPrimary} />
+          <Feather name="arrow-right" size={14} color="white" />
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-function EmptyState({ colors }: { colors: any }) {
+function EmptyState() {
+  const { colors } = useAppTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 16,
-        paddingVertical: 8,
-      }}
-    >
+    <View className="flex-row items-center gap-4 py-2">
       <View
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
-          backgroundColor: colors.primary + "10",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={{ backgroundColor: colors.primary + "10" }}
+        className="w-14 h-14 rounded-2xl items-center justify-center"
       >
         <Feather name="book-open" size={24} color={colors.primary} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: 15,
-            fontWeight: "600",
-            color: colors.text,
-            marginBottom: 3,
-          }}
-        >
+      <View className="flex-1">
+        <Text className="text-[15px] font-bold text-[#111c2d] dark:text-[#F8FAFC] mb-1">
           Nothing on your nightstand
         </Text>
-        <Text
-          style={{
-            fontSize: 13,
-            color: colors.textSecondary,
-            lineHeight: 18,
-          }}
-        >
+        <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8] leading-[18px]">
           Add a book and start reading to see it here.
         </Text>
       </View>
@@ -177,39 +120,40 @@ function EmptyState({ colors }: { colors: any }) {
 }
 
 export function CurrentlyReading({ books }: Props) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
+  const router = useRouter();
   const hasBooks = books && books.length > 0;
 
   return (
     <Animated.View entering={FadeIn.duration(400)}>
       {/* Header row */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          marginBottom: 16,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: "700",
-            color: colors.text,
-            letterSpacing: -0.5,
-          }}
-        >
+      <View className="flex-row justify-between items-end mb-4">
+        <Text className="text-[24px] font-bold text-[#111c2d] dark:text-[#F8FAFC] tracking-tight">
           Currently Reading
         </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: colors.primary,
-          }}
+        <Pressable
+          onPress={() => router.push("/(tabs)/library")}
+          className="flex-row items-center active:opacity-70 mb-1"
         >
-          View Library
-        </Text>
+          <Text
+            numberOfLines={1}
+            className="text-[14px] font-semibold text-[#6b38d4] dark:text-[#A78BFA] mr-0.5"
+            style={{
+              includeFontPadding: false,
+              textAlignVertical: "center",
+            }}
+          >
+            View Library
+          </Text>
+          <Feather
+            name="chevron-right"
+            size={16}
+            color={mode === "dark" ? "#A78BFA" : "#6b38d4"}
+            style={{
+              marginTop: Platform.OS === "ios" ? 1 : 0,
+            }}
+          />
+        </Pressable>
       </View>
 
       {hasBooks ? (
@@ -222,11 +166,11 @@ export function CurrentlyReading({ books }: Props) {
           }}
         >
           {books.map((book) => (
-            <BookCard key={book.id} book={book} colors={colors} />
+            <BookCard key={book.id} book={book} />
           ))}
         </ScrollView>
       ) : (
-        <EmptyState colors={colors} />
+        <EmptyState />
       )}
     </Animated.View>
   );

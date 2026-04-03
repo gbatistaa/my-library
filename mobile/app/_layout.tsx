@@ -62,7 +62,11 @@ export default function RootLayout() {
         setUser(null);
       } finally {
         setIsLoading(false);
-        SplashScreen.hideAsync();
+        try {
+          await SplashScreen.hideAsync();
+        } catch {
+          // Ignore if splash screen is not registered
+        }
       }
     })();
   }, [setIsLoading, setUser, loadTheme]);

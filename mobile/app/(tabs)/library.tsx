@@ -59,69 +59,99 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
       entering={FadeInDown.duration(300).delay(index * 30)}
       className="w-[48%]"
     >
-      <Pressable onPress={() => router.push(`/book/${book.id}`)} className="w-full">
-      {/* ── Cover (image-only container with rounded corners) ── */}
-      <View className="w-full aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]">
-        {book.coverUrl ? (
-          <Image
-            source={{ uri: book.coverUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="w-full h-full bg-[#e9ddff] dark:bg-[#1E293B] items-center justify-center">
-            <Text className="text-5xl">📖</Text>
-          </View>
-        )}
-
-        {/* Status badge — top-left, over the image */}
-        <View className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}>
-          <Text className="text-[10px] font-bold text-white">{label}</Text>
-        </View>
-
-        {/* Genre badge — top-right, over the image */}
-        {book.genre && (
-          <View className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]">
-            <Text
-              className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
-              numberOfLines={1}
+      <Pressable 
+        onPress={() => router.push(`/book/${book.id}`)} 
+        className="w-full active:opacity-90"
+      >
+        {({ pressed }) => (
+          <>
+            {/* ── Cover (image-only container with rounded corners) ── */}
+            <View 
+              className="w-full aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
+              style={{
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+              }}
             >
-              {book.genre}
-            </Text>
-          </View>
+              <View className="w-full h-full">
+                {book.coverUrl ? (
+                  <Image
+                    source={{ uri: book.coverUrl }}
+                    className="w-full h-full"
+                    style={{ opacity: pressed ? 0.7 : 1 }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View 
+                    className="w-full h-full bg-[#e9ddff] dark:bg-[#1E293B] items-center justify-center"
+                    style={{ opacity: pressed ? 0.7 : 1 }}
+                  >
+                    <Text className="text-5xl">📖</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Status badge — top-left, over the image */}
+              <View 
+                className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}
+                style={{ opacity: pressed ? 0.8 : 1 }}
+              >
+                <Text className="text-[10px] font-bold text-white">{label}</Text>
+              </View>
+
+              {/* Genre badge — top-right, over the image */}
+              {book.genre && (
+                <View 
+                  className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]"
+                  style={{ opacity: pressed ? 0.8 : 1 }}
+                >
+                  <Text
+                    className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
+                    numberOfLines={1}
+                  >
+                    {book.genre}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* ── Text + progress bar below the cover ── */}
+            <View 
+              className="mt-2.5 px-0.5"
+              style={{
+                transform: [{ scale: pressed ? 0.98 : 1 }],
+                opacity: pressed ? 0.8 : 1
+              }}
+            >
+              <Text
+                className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC] leading-[18px]"
+                numberOfLines={1}
+              >
+                {book.title}
+              </Text>
+              <Text
+                className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
+                numberOfLines={1}
+              >
+                {book.author}
+              </Text>
+
+              <Text
+                className={`text-[10px] font-bold uppercase mt-1.5`}
+                style={{ color: progressColor }}
+              >
+                {progressPercentage}% read
+              </Text>
+
+              {/* Reading progress bar */}
+              <View className="mt-1 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+                <View
+                  className="h-full rounded-full"
+                  style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
+                />
+              </View>
+            </View>
+          </>
         )}
-      </View>
-
-      {/* ── Text + progress bar below the cover ── */}
-      <View className="mt-2.5 px-0.5">
-        <Text
-          className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC] leading-[18px]"
-          numberOfLines={1}
-        >
-          {book.title}
-        </Text>
-        <Text
-          className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
-          numberOfLines={1}
-        >
-          {book.author}
-        </Text>
-
-        <Text
-          className="text-[10px] font-bold uppercase mt-1.5"
-          style={{ color: progressColor }}
-        >
-          {progressPercentage}% read
-        </Text>
-
-        {/* Reading progress bar */}
-        <View className="mt-1 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
-          <View
-            className="h-full rounded-full"
-            style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
-          />
-        </View>
-      </View>
       </Pressable>
     </Animated.View>
   );

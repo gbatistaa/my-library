@@ -122,6 +122,7 @@ export default function AddCategoryScreen() {
   const screenHeight = Dimensions.get("window").height;
   // height drives everything — no translateY. useNativeDriver: false (layout property).
   const colorHeightAnim = useRef(new RNAnimated.Value(0)).current;
+  const colorOpacityAnim = useRef(new RNAnimated.Value(0)).current;
   const colorOverlayAnim = useRef(new RNAnimated.Value(0)).current;
 
   useEffect(() => {
@@ -130,6 +131,11 @@ export default function AddCategoryScreen() {
       RNAnimated.parallel([
         RNAnimated.timing(colorHeightAnim, {
           toValue: PICKER_SHEET_HEIGHT,
+          duration: 320,
+          useNativeDriver: false,
+        }),
+        RNAnimated.timing(colorOpacityAnim, {
+          toValue: 1,
           duration: 320,
           useNativeDriver: false,
         }),
@@ -147,6 +153,11 @@ export default function AddCategoryScreen() {
           duration: 220,
           useNativeDriver: false,
         }),
+        RNAnimated.timing(colorOpacityAnim, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: false,
+        }),
         RNAnimated.timing(colorOverlayAnim, {
           toValue: 0,
           duration: 200,
@@ -154,7 +165,7 @@ export default function AddCategoryScreen() {
         }),
       ]).start();
     }
-  }, [colorPickerVisible, colorHeightAnim, colorOverlayAnim]);
+  }, [colorPickerVisible, colorHeightAnim, colorOpacityAnim, colorOverlayAnim]);
 
   // Grow sheet to full screen when keyboard opens, shrink back when it closes
   useEffect(() => {
@@ -558,6 +569,7 @@ export default function AddCategoryScreen() {
             left: 0,
             right: 0,
             height: colorHeightAnim,
+            opacity: colorOpacityAnim,
             backgroundColor: mode === "dark" ? "#1E293B" : "#FFFFFF",
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,

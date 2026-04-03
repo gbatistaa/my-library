@@ -140,6 +140,7 @@ export default function EditBookScreen() {
   const [genre, setGenre] = useState("");
   const [isbn, setIsbn] = useState("");
   const [rating, setRating] = useState<number | null>(null);
+  const [pagesRead, setPagesRead] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -159,6 +160,7 @@ export default function EditBookScreen() {
       setGenre(book.genre ?? "");
       setIsbn(book.isbn ?? "");
       setRating(book.rating);
+      setPagesRead(String(book.pagesRead ?? 0));
       setNotes(book.notes ?? "");
     }
   }, [book]);
@@ -213,6 +215,11 @@ export default function EditBookScreen() {
       Alert.alert("Error", "Enter a valid page count (min 1).");
       return;
     }
+    const pagesReadNum = parseInt(pagesRead, 10);
+    if (pagesRead && (isNaN(pagesReadNum) || pagesReadNum < 0 || pagesReadNum > pagesNum)) {
+      Alert.alert("Error", `Pages read must be between 0 and ${pagesNum}.`);
+      return;
+    }
     if (!genre.trim()) {
       Alert.alert("Error", "Genre is required.");
       return;
@@ -239,6 +246,7 @@ export default function EditBookScreen() {
         title: title.trim(),
         author: author.trim(),
         pages: pagesNum,
+        pagesRead: isNaN(pagesReadNum) ? 0 : pagesReadNum,
         isbn: isbnClear,
         genre: genre.trim(),
         rating: status === "COMPLETED" ? (rating ?? undefined) : undefined,
@@ -391,6 +399,21 @@ export default function EditBookScreen() {
                 maxLength={13}
               />
             </View>
+          </View>
+
+          {/* Pages Read */}
+          <View className="mb-5">
+            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+              Pages Read
+            </Text>
+            <TextInputFocusable
+              value={pagesRead}
+              onChangeText={(t: string) => setPagesRead(t.replace(/[^0-9]/g, ""))}
+              placeholder="0"
+              placeholderColor={placeholderColor}
+              mode={mode}
+              keyboardType="numeric"
+            />
           </View>
 
           {/* Genre */}

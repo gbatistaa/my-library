@@ -70,6 +70,7 @@ export interface UpdateBookPayload {
   title?: string;
   author?: string;
   pages?: number;
+  pagesRead?: number;
   isbn?: string;
   genre?: string;
   rating?: number;

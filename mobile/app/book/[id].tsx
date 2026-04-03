@@ -163,9 +163,10 @@ export default function BookDetailsScreen() {
   });
 
   function handleDelete() {
+    if (!book) return;
     Alert.alert(
       "Delete Book",
-      `Are you sure you want to permanently delete "${book!.title}"? This action cannot be undone.`,
+      `Are you sure you want to permanently delete "${book.title}"? This action cannot be undone.`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: () => removeBook() },
@@ -174,15 +175,17 @@ export default function BookDetailsScreen() {
   }
 
   function handleContinueOrStartReading() {
-    setPendingBook(book!);
+    if (!book) return;
+    setPendingBook(book);
     queryClient.invalidateQueries({ queryKey: ["currentlyReadingSelection"] });
     router.push("/(tabs)/session");
   }
 
   function handleReadAgain() {
+    if (!book) return;
     Alert.alert(
       "Read Again",
-      `"${book!.title}" will be reset. Your progress and rating will be cleared. Are you sure?`,
+      `"${book.title}" will be reset. Your progress and rating will be cleared. Are you sure?`,
       [
         { text: "Cancel", style: "cancel" },
         { text: "Reset & Read", style: "destructive", onPress: () => readAgain() },
@@ -205,7 +208,7 @@ export default function BookDetailsScreen() {
       <StatusBar style="light" />
       <Stack.Screen
         options={{
-          title: book.title,
+          title: book?.title ?? "Book Details",
           headerShown: false,
         }}
       />
@@ -232,7 +235,7 @@ export default function BookDetailsScreen() {
               className="text-white font-bold text-base flex-1 text-center mx-3"
               numberOfLines={1}
             >
-              {book.title}
+              {book?.title}
             </Text>
 
             <Pressable
