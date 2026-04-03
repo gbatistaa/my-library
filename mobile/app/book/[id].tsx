@@ -173,6 +173,12 @@ export default function BookDetailsScreen() {
     );
   }
 
+  function handleContinueOrStartReading() {
+    setPendingBook(book!);
+    queryClient.invalidateQueries({ queryKey: ["currentlyReadingSelection"] });
+    router.push("/(tabs)/session");
+  }
+
   function handleReadAgain() {
     Alert.alert(
       "Read Again",
@@ -316,11 +322,15 @@ export default function BookDetailsScreen() {
               {/* Buttons row */}
               <View className="flex-row mb-4">
                 <Pressable
-                  onPress={book.status === "COMPLETED" ? handleReadAgain : undefined}
-                  disabled={isResetting}
+                  onPress={
+                    book.status === "COMPLETED"
+                      ? handleReadAgain
+                      : handleContinueOrStartReading
+                  }
+                  disabled={book.status === "COMPLETED" && isResetting}
                   className="flex-1 bg-purple-600 rounded-full h-14 flex-row items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
                 >
-                  {isResetting ? (
+                  {book.status === "COMPLETED" && isResetting ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <MaterialIcons name="play-arrow" size={22} color="#fff" />

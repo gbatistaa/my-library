@@ -35,6 +35,9 @@ public class SagaEntity extends BaseEntity {
   @Column
   private String coverUrl;
 
+  @Column(length = 7)
+  private String color;
+
   @OneToMany(mappedBy = "saga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookEntity> books = new ArrayList<>();
 

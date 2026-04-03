@@ -13,4 +13,5 @@ public class CategoryDTO {
   private UUID id;
   private String name;
   private String description;
+  private String color;
 }

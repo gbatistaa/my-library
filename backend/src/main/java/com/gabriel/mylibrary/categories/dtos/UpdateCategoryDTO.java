@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.categories.dtos;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,4 +16,7 @@ public class UpdateCategoryDTO {
 
   @Size(max = 255, message = "The description must not exceed 255 characters")
   private String description;
+
+  @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$", message = "Invalid hexadecimal color code")
+  private String color;
 }

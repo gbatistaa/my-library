@@ -30,6 +30,9 @@ public class CategoryEntity extends BaseEntity {
   @Column(nullable = true)
   private String description;
 
+  @Column(length = 7)
+  private String color;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   private UserEntity user;
