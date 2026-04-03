@@ -853,12 +853,12 @@ const SessionScreen = () => {
                             {item.pages} pgs
                           </Text>
                         </View>
-                        {item.categoryName && (
+                        {item.categories && item.categories.length > 0 && (
                           <Text
                             className="text-[13px]"
                             style={{ color: colors.textSecondary }}
                           >
-                            • {item.categoryName}
+                            • {item.categories[0].name}
                           </Text>
                         )}
                       </View>

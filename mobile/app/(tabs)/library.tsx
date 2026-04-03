@@ -99,7 +99,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
               </View>
 
               {/* Category tag — top-right, over the image */}
-              {book.categoryName && (
+              {book.categories && book.categories.length > 0 && (
                 <View 
                   className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]"
                   style={{ opacity: pressed ? 0.8 : 1 }}
@@ -108,7 +108,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
                     className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
                     numberOfLines={1}
                   >
-                    {book.categoryName}
+                    {book.categories[0].name}
                   </Text>
                 </View>
               )}
@@ -325,7 +325,7 @@ export default function LibraryScreen() {
     debouncedQuery.length > 0 ? (searchResults ?? []) : (allBooks ?? []);
 
   const filteredBooks = selectedCategory
-    ? rawBooks.filter((b) => b.categoryId === selectedCategory)
+    ? rawBooks.filter((b) => b.categories?.some(c => c.id === selectedCategory))
     : rawBooks;
 
   const safeCategories: CategoryDTO[] = Array.isArray(categories) ? categories : [];

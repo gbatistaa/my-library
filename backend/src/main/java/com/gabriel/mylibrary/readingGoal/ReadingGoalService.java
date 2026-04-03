@@ -124,8 +124,8 @@ public class ReadingGoalService {
 
     // Diversity
     long uniqueAuthors = bookRepository.countDistinctAuthorsByUserId(userId);
-    long uniqueGenres = bookRepository.countDistinctGenresByUserId(userId);
-    List<Object[]> genreStats = bookRepository.countBooksByGenre(userId);
+    long uniqueGenres = bookRepository.countDistinctCategoriesByUserId(userId);
+    List<Object[]> genreStats = bookRepository.countBooksByCategory(userId);
     String topGenre = genreStats.isEmpty() ? "Nenhum" : (String) genreStats.get(0)[0];
 
     // Micro-victories

@@ -128,7 +128,7 @@ public class AchievementEvaluator {
   }
 
   private long countUniqueGenres(UUID userId) {
-    return bookRepository.countDistinctGenresByUserId(userId);
+    return bookRepository.countDistinctCategoriesByUserId(userId);
   }
 
   private long countUniqueAuthors(UUID userId) {

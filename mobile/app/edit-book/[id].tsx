@@ -568,7 +568,7 @@ export default function EditBookScreen() {
               >
                 <Feather name="plus-circle" size={13} color="#10b981" />
                 <Text className="text-[12px] font-semibold text-[#10b981]">
-                  Add "{categoryInput.trim()}" as new category
+                  Add &quot;{categoryInput.trim()}&quot; as new category
                 </Text>
               </Pressable>
             )}
