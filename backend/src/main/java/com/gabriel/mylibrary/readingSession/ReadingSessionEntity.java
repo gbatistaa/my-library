@@ -21,10 +21,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ReadingSessionEntity extends BaseEntity {
 
-  @Column(nullable = false)
+  @Column(name = "pages_read", nullable = false)
   private Integer pagesRead;
 
-  @Column(nullable = false)
+  @Column(name = "duration_seconds", nullable = false)
   private Long durationSeconds;
 
   @ManyToOne(fetch = FetchType.LAZY)
