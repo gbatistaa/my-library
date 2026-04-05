@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 interface AuthInputProps extends TextInputProps {
@@ -35,23 +36,32 @@ export function AuthInput({
       ? colors.primary
       : (colors.border ?? "#334155");
 
+  const animatedBorderStyle = useAnimatedStyle(() => ({
+    borderColor: withTiming(borderColor, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [borderColor]);
+
   return (
     <View className="mb-4">
       <Text className="mb-1.5 font-semibold text-ink-secondary dark:text-ink-dark-secondary text-xs uppercase tracking-widest">
         {label}
       </Text>
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          borderRadius: 12,
-          borderWidth: focused ? 1.5 : 1,
-          borderColor,
-          backgroundColor: colors.surface ?? "#1E293B",
-          paddingHorizontal: 16,
-          height: 52,
-        }}
+      <Animated.View
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            borderRadius: 12,
+            borderWidth: focused ? 1.5 : 1,
+            backgroundColor: colors.surface ?? "#1E293B",
+            paddingHorizontal: 16,
+            height: 52,
+          },
+          animatedBorderStyle,
+        ]}
       >
         <Feather
           name={icon}
@@ -92,7 +102,7 @@ export function AuthInput({
             />
           </TouchableOpacity>
         )}
-      </View>
+      </Animated.View>
 
       {error ? (
         <Text style={{ color: "#F43F5E", fontSize: 12, marginTop: 4 }}>

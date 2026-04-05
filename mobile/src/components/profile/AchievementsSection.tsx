@@ -67,7 +67,7 @@ function Badge({ achievement, isLight }: BadgeProps) {
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 2,
-          backgroundColor: earned ? styles.bg : isLight ? "#f0f3ff" : "#1E293B",
+          backgroundColor: earned ? styles.bg : isLight ? "#ede9fe" : "#1E293B",
           borderColor: earned ? styles.border : isLight ? "#e2e8f0" : "#334155",
           ...(earned && {
             shadowColor: "#000",

@@ -25,7 +25,7 @@ function StatCard({
   label,
 }: StatCardProps) {
   return (
-    <View className="flex-1 min-w-[45%] bg-[#f8f9fa] dark:bg-[#1E293B] rounded-xl p-5 gap-3">
+    <View className="flex-1 min-w-[45%] bg-[#ede9fe] dark:bg-[#1E293B] rounded-xl p-5 gap-3">
       {/* Icon circle */}
       <View
         style={{ backgroundColor: iconBg }}

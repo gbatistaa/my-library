@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -117,40 +118,82 @@ const SessionHistoryScreen = () => {
             <View
               style={{
                 flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
+                alignItems: "center",
               }}
             >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "600",
-                    color: colors.text,
-                    marginBottom: 8,
-                  }}
-                >
-                  {item.bookTitle ?? "Unknown Book"}
-                </Text>
-                <View style={{ flexDirection: "row", gap: 16 }}>
-                  <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                    <Feather name="clock" size={14} />{" "}
-                    {Math.ceil(item.durationSeconds / 60)} min
-                  </Text>
-                  <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
-                    <Feather name="book-open" size={14} /> {item.pagesRead} pages
-                  </Text>
-                </View>
-              </View>
-              <Text
+              {/* Thumbnail */}
+              <View
                 style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                  fontWeight: "500",
+                  width: 52,
+                  height: 70,
+                  borderRadius: 10,
+                  backgroundColor: colors.surfaceContainerHigh,
+                  marginRight: 15,
+                  overflow: "hidden",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                {formatDate(item.createdAt)}
-              </Text>
+                {item.bookCoverUrl ? (
+                  <Image
+                    source={{ uri: item.bookCoverUrl }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Feather name="book" size={22} color={colors.textSecondary} />
+                )}
+              </View>
+
+              <View style={{ flex: 1, height: 70, justifyContent: "space-between" }}>
+                {/* Top Row: Title and Date */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: colors.text,
+                      flex: 1,
+                      marginRight: 10,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {item.bookTitle ?? "Unknown Book"}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: colors.textSecondary,
+                      fontWeight: "600",
+                    }}
+                  >
+                    {formatDate(item.createdAt)}
+                  </Text>
+                </View>
+
+                {/* Bottom Row: Duration and Pages */}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 15 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <Feather name="clock" size={13} color={colors.primary} />
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "500" }}>
+                      {Math.ceil(item.durationSeconds / 60)} min
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                    <Feather name="book-open" size={13} color={colors.primary} />
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "500" }}>
+                      {item.pagesRead} pages
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           </View>
         )}

@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -289,10 +289,20 @@ export default function LibraryScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fabOpen, setFabOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const router = useRouter();
 
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const searchIconColor = mode === "dark" ? "#94A3B8" : "#494454";
+  const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const searchAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(searchFocused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [searchFocused, purple, inactiveBorder]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(searchQuery), 500);
@@ -378,7 +388,8 @@ export default function LibraryScreen() {
         {/* Search input */}
         <Animated.View
           entering={FadeIn.duration(400).delay(60)}
-          className="flex-row items-center gap-3 bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full px-4 py-3 mb-4 dark:border dark:border-[#334155]"
+          className="flex-row items-center gap-3 bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full px-4 py-3 mb-4"
+          style={[{ borderWidth: 1.5 }, searchAnimatedBorder]}
         >
           <Feather name="search" size={16} color={searchIconColor} />
           <TextInput
@@ -386,6 +397,8 @@ export default function LibraryScreen() {
             onChangeText={setSearchQuery}
             placeholder="Search books…"
             placeholderTextColor="#94A3B8"
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             className="flex-1 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
             returnKeyType="search"
             autoCapitalize="none"

@@ -75,8 +75,8 @@ function AchievementCard({
   const pct = Math.round(progress * 100);
 
   const cardClass = earned
-    ? "bg-white dark:bg-[#1E293B] dark:border dark:border-[#475569]/10"
-    : "bg-white/60 dark:bg-[#1E293B]/40 border border-[#cbc3d7]/10 dark:border-[#475569]/20 opacity-80";
+    ? "bg-[#ede9fe] dark:bg-[#1E293B] dark:border dark:border-[#475569]/10"
+    : "bg-[#ede9fe]/60 dark:bg-[#1E293B]/40 border border-[#cbc3d7]/10 dark:border-[#475569]/20 opacity-80";
 
   const iconBgClass = getIconBgClass(achievement.category, earned);
 

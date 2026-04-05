@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { StatusBar } from "expo-status-bar";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, useAnimatedStyle, withTiming, Easing as ReanimatedEasing } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 
@@ -36,6 +36,8 @@ import { LogoutButton } from "@/src/components/profile/LogoutButton";
 import { ThemePreferences } from "@/src/components/profile/ThemePreferences";
 import type { DeviceSessionDTO, UserDTO } from "@/src/types/auth";
 
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+
 // ─── Edit Profile Modal ──────────────────────────────────────────────────────
 
 function EditProfileModal({
@@ -49,11 +51,14 @@ function EditProfileModal({
   onClose: () => void;
   onSave: (updated: UserDTO) => void;
 }) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState(user.name ?? "");
   const [username, setUsername] = useState(user.username ?? "");
   const [saving, setSaving] = useState(false);
+
+  const [nameFocused, setNameFocused] = useState(false);
+  const [usernameFocused, setUsernameFocused] = useState(false);
 
   const SHEET_HEIGHT = 500;
   const slideAnim = useRef(new RNAnimated.Value(SHEET_HEIGHT)).current;
@@ -110,11 +115,27 @@ function EditProfileModal({
     }
   };
 
+  const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = colors.border;
+
+  const nameAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(nameFocused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+    }),
+  }), [nameFocused, purple, inactiveBorder]);
+
+  const userAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(usernameFocused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+    }),
+  }), [usernameFocused, purple, inactiveBorder]);
+
   const inputStyle = {
     height: 52,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: colors.border,
     backgroundColor: colors.surface,
     paddingHorizontal: 16,
     fontSize: 15,
@@ -201,12 +222,14 @@ function EditProfileModal({
         >
           Full Name
         </Text>
-        <TextInput
+        <AnimatedTextInput
           value={name}
           onChangeText={setName}
-          style={inputStyle}
+          style={[inputStyle, nameAnimatedBorder]}
           placeholderTextColor={colors.textSecondary}
           placeholder="Your full name"
+          onFocus={() => setNameFocused(true)}
+          onBlur={() => setNameFocused(false)}
         />
 
         {/* Username */}
@@ -223,13 +246,15 @@ function EditProfileModal({
         >
           Username
         </Text>
-        <TextInput
+        <AnimatedTextInput
           value={username}
           onChangeText={setUsername}
-          style={inputStyle}
+          style={[inputStyle, userAnimatedBorder]}
           placeholderTextColor={colors.textSecondary}
           placeholder="Your username"
           autoCapitalize="none"
+          onFocus={() => setUsernameFocused(true)}
+          onBlur={() => setUsernameFocused(false)}
         />
 
         {/* Non-editable fields */}

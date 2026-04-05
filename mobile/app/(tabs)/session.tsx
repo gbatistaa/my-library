@@ -632,14 +632,22 @@ const SessionScreen = () => {
                 >
                   {/* Thumbnail */}
                   <View
-                    className="justify-center items-center mr-3 rounded-md w-12 h-16"
+                    className="justify-center items-center mr-3 rounded-md w-12 h-16 overflow-hidden"
                     style={{ backgroundColor: colors.surfaceContainerHigh }}
                   >
-                    <Feather
-                      name="book-open"
-                      size={18}
-                      color={colors.textSecondary}
-                    />
+                    {session.bookCoverUrl ? (
+                      <Image
+                        source={{ uri: session.bookCoverUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Feather
+                        name="book-open"
+                        size={18}
+                        color={colors.textSecondary}
+                      />
+                    )}
                   </View>
 
                   {/* Info */}

@@ -24,6 +24,7 @@ import ColorPicker, {
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, Stack } from "expo-router";
 
@@ -51,6 +52,8 @@ const PRESET_COLORS = [
 
 const HEX_REGEX = /^#[0-9A-Fa-f]{6}$/;
 
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+
 /* ─── Shared input sub-components ─── */
 
 function FormInput({
@@ -71,13 +74,21 @@ function FormInput({
 } & TextInputProps) {
   const [focused, setFocused] = useState(false);
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const animatedBorderStyle = useAnimatedStyle(() => ({
+    borderColor: withTiming(focused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [focused, purple, inactiveBorder]);
 
   return (
     <View className="mb-5">
       <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-slate-400 uppercase tracking-widest">
         {label}
       </Text>
-      <TextInput
+      <AnimatedTextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -85,14 +96,10 @@ function FormInput({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
-        style={{
-          borderWidth: 1.5,
-          borderColor: focused
-            ? purple
-            : mode === "dark"
-              ? "rgba(255,255,255,0.08)"
-              : "rgba(107, 56, 212, 0.08)",
-        }}
+        style={[
+          { borderWidth: 1.5 },
+          animatedBorderStyle,
+        ]}
         {...props}
       />
     </View>
@@ -201,6 +208,21 @@ export default function AddCategoryScreen() {
 
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const descAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(descFocused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [descFocused, purple, inactiveBorder]);
+
+  const hexAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(hexFocused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [hexFocused, purple, inactiveBorder]);
 
   const handlePickerChange = useCallback((colors: ColorFormatsObject) => {
     const upper = colors.hex.slice(0, 7).toUpperCase();
@@ -311,7 +333,7 @@ export default function AddCategoryScreen() {
             <Text className="mb-2 font-bold text-[#494454] text-[10px] dark:text-slate-400 uppercase tracking-widest">
               Description
             </Text>
-            <TextInput
+            <AnimatedTextInput
               value={description}
               onChangeText={setDescription}
               placeholder="Briefly describe the focus of this category..."
@@ -323,15 +345,10 @@ export default function AddCategoryScreen() {
               textAlignVertical="top"
               maxLength={255}
               className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
-              style={{
-                height: 100,
-                borderWidth: 1.5,
-                borderColor: descFocused
-                  ? purple
-                  : mode === "dark"
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(107, 56, 212, 0.08)",
-              }}
+              style={[
+                { height: 100, borderWidth: 1.5 },
+                descAnimatedBorder,
+              ]}
             />
           </View>
 
@@ -455,7 +472,7 @@ export default function AddCategoryScreen() {
                 </Pressable>
 
                 <View className="flex-1">
-                  <TextInput
+                  <AnimatedTextInput
                     value={customHex}
                     onChangeText={handleCustomHex}
                     placeholder="#3B82F6"
@@ -466,14 +483,10 @@ export default function AddCategoryScreen() {
                     autoCapitalize="characters"
                     autoCorrect={false}
                     className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-3 rounded-xl font-mono text-[#111c2d] text-[15px] dark:text-white"
-                    style={{
-                      borderWidth: 1.5,
-                      borderColor: hexFocused
-                        ? purple
-                        : mode === "dark"
-                          ? "rgba(255,255,255,0.08)"
-                          : "rgba(107,56,212,0.08)",
-                    }}
+                    style={[
+                      { borderWidth: 1.5 },
+                      hexAnimatedBorder,
+                    ]}
                   />
                 </View>
 

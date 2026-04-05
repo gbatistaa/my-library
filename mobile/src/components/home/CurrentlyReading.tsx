@@ -37,7 +37,7 @@ function BookCard({ book }: { book: BookDTO }) {
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row gap-4 bg-white dark:bg-[#1E293B] active:opacity-90 p-4 rounded-xl w-[300px] active:scale-[0.98]"
+      className="flex-row gap-4 bg-[#ede9fe] dark:bg-[#1E293B] active:opacity-90 p-4 rounded-xl w-[300px] active:scale-[0.98]"
     >
       {/* Cover with page badge overlay */}
       <View className="relative">

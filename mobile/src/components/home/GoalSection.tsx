@@ -73,7 +73,7 @@ export function GoalSection({ progress }: Props) {
   return (
     <Animated.View entering={FadeIn.duration(300).delay(150)}>
       {/* Card wrapper */}
-      <View className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm dark:border dark:border-[#334155] overflow-hidden relative">
+      <View className="bg-[#ede9fe] dark:bg-[#1E293B] rounded-2xl p-6 shadow-sm dark:border dark:border-[#334155] overflow-hidden relative">
         {/* Top row: label + on-track badge */}
         <View className="flex-row justify-between items-start">
           <View>

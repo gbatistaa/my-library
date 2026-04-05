@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useRouter, useLocalSearchParams, Stack } from "expo-router";
 
@@ -31,6 +32,8 @@ import { getAllBooks } from "@/src/services/bookService";
 import { showApiError } from "@/src/services/apiError";
 import { persistLibraryImage } from "@/src/utils/media";
 import type { BookDTO } from "@/src/types/book";
+
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 function TextInputFocusable({
   value,
@@ -51,9 +54,17 @@ function TextInputFocusable({
 } & TextInputProps) {
   const [focused, setFocused] = useState(false);
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const animatedBorderStyle = useAnimatedStyle(() => ({
+    borderColor: withTiming(focused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [focused, purple, inactiveBorder]);
 
   return (
-    <TextInput
+    <AnimatedTextInput
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
@@ -62,14 +73,8 @@ function TextInputFocusable({
       onBlur={() => setFocused(false)}
       className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
       style={[
-        {
-          borderWidth: 1.5,
-          borderColor: focused
-            ? purple
-            : mode === "dark"
-              ? "rgba(255,255,255,0.08)"
-              : "rgba(107, 56, 212, 0.08)",
-        },
+        { borderWidth: 1.5 },
+        animatedBorderStyle,
         style,
       ]}
       {...props}

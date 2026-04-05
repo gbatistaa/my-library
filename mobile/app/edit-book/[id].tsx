@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
+import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 
@@ -31,6 +32,8 @@ function randomHexColor(): string {
     .padStart(6, "0");
   return `#${hex.toUpperCase()}`;
 }
+
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 const STATUS_OPTIONS: { value: "TO_READ" | "READING" | "COMPLETED" | "DROPPED"; label: string }[] = [
   { value: "TO_READ", label: "To Read" },
@@ -59,13 +62,21 @@ function FormInput({
 } & TextInputProps) {
   const [focused, setFocused] = useState(false);
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const animatedBorderStyle = useAnimatedStyle(() => ({
+    borderColor: withTiming(focused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [focused, purple, inactiveBorder]);
 
   return (
     <View className="mb-5">
       <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
         {label}
       </Text>
-      <TextInput
+      <AnimatedTextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -73,14 +84,10 @@ function FormInput({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
-        style={{
-          borderWidth: 1.5,
-          borderColor: focused
-            ? purple
-            : mode === "dark"
-              ? "rgba(255,255,255,0.08)"
-              : "rgba(107, 56, 212, 0.08)",
-        }}
+        style={[
+          { borderWidth: 1.5 },
+          animatedBorderStyle,
+        ]}
         {...props}
       />
     </View>
@@ -106,9 +113,17 @@ function TextInputFocusable({
 } & TextInputProps) {
   const [focused, setFocused] = useState(false);
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const animatedBorderStyle = useAnimatedStyle(() => ({
+    borderColor: withTiming(focused ? purple : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [focused, purple, inactiveBorder]);
 
   return (
-    <TextInput
+    <AnimatedTextInput
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
@@ -117,14 +132,8 @@ function TextInputFocusable({
       onBlur={() => setFocused(false)}
       className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
       style={[
-        {
-          borderWidth: 1.5,
-          borderColor: focused
-            ? purple
-            : mode === "dark"
-              ? "rgba(255,255,255,0.08)"
-              : "rgba(107, 56, 212, 0.08)",
-        },
+        { borderWidth: 1.5 },
+        animatedBorderStyle,
         style,
       ]}
       {...props}
@@ -336,6 +345,14 @@ export default function EditBookScreen() {
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
   const displayCover = localCoverUri ?? existingCoverUrl;
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+
+  const categoryAnimatedBorder = useAnimatedStyle(() => ({
+    borderColor: withTiming(isInputFocused ? iconColor : inactiveBorder, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    }),
+  }), [isInputFocused, iconColor, inactiveBorder]);
 
   return (
     <View className="flex-1 bg-white dark:bg-[#0F172A]">
@@ -526,7 +543,7 @@ export default function EditBookScreen() {
               </Pressable>
             )}
 
-            <TextInput
+            <AnimatedTextInput
               value={categoryInput}
               onChangeText={(t) => {
                 setCategoryInput(t);
@@ -544,14 +561,10 @@ export default function EditBookScreen() {
               placeholderTextColor={placeholderColor}
               autoCapitalize="words"
               className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
-              style={{
-                borderWidth: 1.5,
-                borderColor: isInputFocused
-                  ? iconColor
-                  : mode === "dark"
-                    ? "rgba(255,255,255,0.08)"
-                    : "rgba(107, 56, 212, 0.08)",
-              }}
+              style={[
+                { borderWidth: 1.5 },
+                categoryAnimatedBorder,
+              ]}
             />
 
             {showSuggestions && filteredCategories.length > 0 && (
