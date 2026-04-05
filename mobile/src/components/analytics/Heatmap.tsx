@@ -1,96 +1,237 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { useAppTheme } from '@/src/hooks/useAppTheme';
+import React from "react";
+import { View, Text, ScrollView } from "react-native";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
+
+interface HeatmapDay {
+  date: string;
+  pagesRead: number;
+  sessionCount: number;
+}
 
 interface HeatmapProps {
-  data: { date: string; pagesRead: number; sessionCount: number }[];
+  data: HeatmapDay[];
 }
+
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const DAY_LABELS: (string | null)[] = [
+  null,
+  "Mon",
+  null,
+  "Wed",
+  null,
+  "Fri",
+  null,
+];
+
+const CELL_SIZE = 13;
+const CELL_GAP = 3;
+const CELL_STRIDE = CELL_SIZE + CELL_GAP;
 
 export function Heatmap({ data }: HeatmapProps) {
   const { colors } = useAppTheme();
 
-  // Helper to parse dates reliably across timezones
   const parseDateLocal = (dateStr: string) => {
-    if (dateStr === 'PAD') return new Date(0);
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const [year, month, day] = dateStr.split("-").map(Number);
     return new Date(year, month - 1, day);
   };
 
-  // Sort data by date safely
-  const sortedData = [...data].sort((a, b) => parseDateLocal(a.date).getTime() - parseDateLocal(b.date).getTime());
+  const sortedData = [...data].sort(
+    (a, b) =>
+      parseDateLocal(a.date).getTime() - parseDateLocal(b.date).getTime(),
+  );
 
-  // Group into weeks
-  const weeks: { date: string; pagesRead: number; sessionCount: number }[][] = [];
-  let currentWeek: { date: string; pagesRead: number; sessionCount: number }[] = [];
+  const weeks: HeatmapDay[][] = [];
+  let currentWeek: HeatmapDay[] = [];
 
   if (sortedData.length > 0) {
-      // pad start of the first week if not sunday
-      const firstDate = parseDateLocal(sortedData[0].date);
-      let dayOfWeek = firstDate.getDay();
-      for(let i = 0; i < dayOfWeek; i++) {
-          currentWeek.push({ date: 'PAD', pagesRead: 0, sessionCount: 0 });
+    const firstDate = parseDateLocal(sortedData[0].date);
+    const startDow = firstDate.getDay();
+    for (let i = 0; i < startDow; i++) {
+      currentWeek.push({ date: "PAD", pagesRead: 0, sessionCount: 0 });
+    }
+    for (const day of sortedData) {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
       }
-
-      sortedData.forEach(day => {
-        currentWeek.push(day);
-        if (currentWeek.length === 7) {
-            weeks.push(currentWeek);
-            currentWeek = [];
-        }
-      });
-      if (currentWeek.length > 0) {
-          while (currentWeek.length < 7) {
-              currentWeek.push({ date: 'PAD', pagesRead: 0, sessionCount: 0 });
-          }
-          weeks.push(currentWeek);
+    }
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push({ date: "PAD", pagesRead: 0, sessionCount: 0 });
       }
+      weeks.push(currentWeek);
+    }
   }
 
-  const getColor = (value: number) => {
-    if (value === 0) return colors.surface;
-    if (value < 10) return colors.primary + '40'; // 25% opacity
-    if (value < 30) return colors.primary + '80'; // 50% opacity
-    if (value < 60) return colors.primary + 'C0'; // 75% opacity
-    return colors.primary; // 100% opacity
+  const getMonthLabel = (
+    week: HeatmapDay[],
+    colIndex: number,
+  ): string | null => {
+    for (const day of week) {
+      if (day.date !== "PAD") {
+        const d = parseDateLocal(day.date);
+        if (d.getDate() === 1) return MONTH_NAMES[d.getMonth()];
+      }
+    }
+    if (colIndex === 0) {
+      for (const day of week) {
+        if (day.date !== "PAD")
+          return MONTH_NAMES[parseDateLocal(day.date).getMonth()];
+      }
+    }
+    return null;
   };
 
-  return (
-    <View style={{ backgroundColor: colors.surface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: colors.border }}>
-      <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 16 }}>Activity Heatmap</Text>
+  // Cell colors are data-driven — must stay as inline style
+  const getColor = (pages: number) => {
+    if (pages === 0) return colors.surface;
+    if (pages < 10) return colors.primary + "40";
+    if (pages < 30) return colors.primary + "80";
+    if (pages < 60) return colors.primary + "C0";
+    return colors.primary;
+  };
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ flexDirection: 'row' }}>
-          {weeks.map((week, colIndex) => (
-            <View key={colIndex} style={{ marginRight: 4 }}>
-              {week.map((day, rowIndex) => {
-                 return (
-                    <View
-                      key={`${colIndex}-${rowIndex}`}
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: 4,
-                        backgroundColor: day.date === 'PAD' ? 'transparent' : getColor(day.pagesRead),
-                        marginBottom: 4,
-                        borderWidth: (day.pagesRead === 0 && day.date !== 'PAD') ? 1 : 0,
-                        borderColor: colors.border
-                      }}
-                    />
-                 )
-              })}
+  const activeDays = data.filter((d) => d.pagesRead > 0).length;
+  const year = data.find((d) => d.date !== "PAD")
+    ? parseDateLocal(data.find((d) => d.date !== "PAD")!.date).getFullYear()
+    : new Date().getFullYear();
+
+  const DAY_LABEL_COL_WIDTH = 28;
+  const MONTH_ROW_HEIGHT = 16;
+
+  return (
+    <View className="bg-white dark:bg-[#1E293B] p-4 border border-[#E2E8F0] dark:border-[#334155] rounded-2xl">
+      {/* Header */}
+      <View className="mb-3">
+        <Text className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-base">
+          Activity Heatmap
+        </Text>
+        <Text className="mt-0.5 text-[#494454] dark:text-[#94A3B8] text-xs">
+          {activeDays} {activeDays === 1 ? "day" : "days"} with reading activity
+          in {year}
+        </Text>
+      </View>
+
+      {/* Grid */}
+      <View className="flex-row">
+        {/* Fixed day-of-week labels */}
+        <View
+          style={{
+            width: DAY_LABEL_COL_WIDTH,
+            marginTop: MONTH_ROW_HEIGHT + CELL_GAP,
+          }}
+        >
+          {DAY_LABELS.map((label, i) => (
+            <View
+              key={i}
+              style={{
+                height: CELL_SIZE,
+                marginBottom: CELL_GAP,
+                justifyContent: "center",
+              }}
+            >
+              {label && (
+                <Text className="font-medium text-[#494454] text-[9px] dark:text-[#94A3B8]">
+                  {label}
+                </Text>
+              )}
             </View>
           ))}
         </View>
-      </ScrollView>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 12 }}>
-         <Text style={{ fontSize: 10, color: colors.textSecondary, marginRight: 8 }}>Less</Text>
-         <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, marginRight: 4 }} />
-         <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.primary + '40', marginRight: 4 }} />
-         <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.primary + '80', marginRight: 4 }} />
-         <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.primary + 'C0', marginRight: 4 }} />
-         <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.primary, marginRight: 8 }} />
-         <Text style={{ fontSize: 10, color: colors.textSecondary }}>More</Text>
+        {/* Scrollable month labels + week columns */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View>
+            {/* Month labels */}
+            <View
+              className="flex-row"
+              style={{ height: MONTH_ROW_HEIGHT, marginBottom: CELL_GAP }}
+            >
+              {weeks.map((week, colIndex) => {
+                const label = getMonthLabel(week, colIndex);
+                return (
+                  <View
+                    key={colIndex}
+                    style={{ width: CELL_STRIDE, justifyContent: "flex-end" }}
+                  >
+                    {label && (
+                      <Text className="font-semibold text-[#494454] text-[9px] dark:text-[#94A3B8]">
+                        {label}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Week columns */}
+            <View className="flex-row">
+              {weeks.map((week, colIndex) => (
+                <View key={colIndex} style={{ marginRight: CELL_GAP }}>
+                  {week.map((day, rowIndex) => (
+                    <View
+                      key={`${colIndex}-${rowIndex}`}
+                      style={{
+                        width: CELL_SIZE,
+                        height: CELL_SIZE,
+                        borderRadius: 3,
+                        marginBottom: CELL_GAP,
+                        backgroundColor:
+                          day.date === "PAD"
+                            ? "transparent"
+                            : getColor(day.pagesRead),
+                        borderWidth:
+                          day.date !== "PAD" && day.pagesRead === 0 ? 1 : 0,
+                        borderColor: colors.border,
+                      }}
+                    />
+                  ))}
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Intensity legend */}
+      <View className="flex-row justify-end items-center mt-[10px]">
+        <Text className="mr-[6px] text-[#494454] text-[9px] dark:text-[#94A3B8]">
+          Less
+        </Text>
+        {[
+          { bg: colors.surface, bordered: true },
+          { bg: colors.primary + "40" },
+          { bg: colors.primary + "80" },
+          { bg: colors.primary + "C0" },
+          { bg: colors.primary },
+        ].map((s, i) => (
+          <View
+            key={i}
+            className={`w-[10px] h-[10px] rounded-[2px] ${i < 4 ? "mr-[3px]" : "mr-[6px]"}`}
+            style={{
+              backgroundColor: s.bg,
+              borderWidth: s.bordered ? 1 : 0,
+              borderColor: colors.border,
+            }}
+          />
+        ))}
+        <Text className="text-[#494454] text-[9px] dark:text-[#94A3B8]">
+          More
+        </Text>
       </View>
     </View>
   );

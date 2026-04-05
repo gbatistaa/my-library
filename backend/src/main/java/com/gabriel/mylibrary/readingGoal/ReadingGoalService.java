@@ -33,8 +33,8 @@ public class ReadingGoalService {
   private static final String MSG_ON_TRACK = "Caminho certo! %d páginas hoje mantêm você na meta. Boa leitura!";
   private static final String MSG_PROJECTED_REACHED = "Meta já atingida!";
   private static final String MSG_NO_READS_YET = "Comece a ler para gerar uma projeção";
-  private static final DateTimeFormatter PROJECTED_DATE_FORMAT =
-      DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
+  private static final DateTimeFormatter PROJECTED_DATE_FORMAT = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy",
+      new Locale("pt", "BR"));
 
   private final ReadingGoalRepository readingGoalRepository;
   private final BookRepository bookRepository;
@@ -100,7 +100,8 @@ public class ReadingGoalService {
         endOfYear);
     int pagesRead = readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(userId, startOfYearTime,
         endOfYearTime);
-    long totalSeconds = readingSessionRepository.sumDurationByUserIdAndCreatedAtBetween(userId, startOfYearTime, endOfYearTime);
+    long totalSeconds = readingSessionRepository.sumDurationByUserIdAndCreatedAtBetween(userId, startOfYearTime,
+        endOfYearTime);
     long minutesRead = totalSeconds / 60;
 
     int daysInYear = Year.of(year).length();
@@ -142,8 +143,10 @@ public class ReadingGoalService {
     StreakDTO streakData = streakService.getStreak(userId);
 
     // Diversity (filtered to goal year)
-    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserIdAndFinishDateBetween(userId, startOfYear, endOfYear);
-    long uniqueGenres = bookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear, endOfYear);
+    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserIdAndFinishDateBetween(userId, startOfYear,
+        endOfYear);
+    long uniqueGenres = bookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear,
+        endOfYear);
     List<Object[]> genreStats = bookRepository.countBooksByCategory(userId);
     String topGenre = genreStats.isEmpty() ? "Nenhum" : (String) genreStats.get(0)[0];
 
@@ -153,8 +156,10 @@ public class ReadingGoalService {
 
     // Minutes goal tracking
     boolean minutesGoalMet = goal.getTargetMinutes() != null && minutesRead >= goal.getTargetMinutes();
-    int remainingMinutes = goal.getTargetMinutes() != null ? (int) Math.max(0, goal.getTargetMinutes() - minutesRead) : 0;
-    int dailyMinutesGoal = goal.getTargetMinutes() != null ? (int) Math.ceil((double) remainingMinutes / daysRemaining) : 0;
+    int remainingMinutes = goal.getTargetMinutes() != null ? (int) Math.max(0, goal.getTargetMinutes() - minutesRead)
+        : 0;
+    int dailyMinutesGoal = goal.getTargetMinutes() != null ? (int) Math.ceil((double) remainingMinutes / daysRemaining)
+        : 0;
 
     // Micro-victories
     int remainingPages = goal.getTargetPages() != null ? Math.max(0, goal.getTargetPages() - pagesRead) : 0;
