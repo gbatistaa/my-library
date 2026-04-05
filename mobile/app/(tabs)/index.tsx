@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import {
 } from "@/src/services/profileService";
 import { getCurrentlyReading } from "@/src/services/bookService";
 
+import { router } from "expo-router";
 import { CurrentlyReading } from "@/src/components/home/CurrentlyReading";
 import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
@@ -216,7 +217,23 @@ export default function HomeScreen() {
             ) : (
               <QuickStats dna={dna} streak={streak} />
             )}
+            <TouchableOpacity
+              onPress={() => router.push('/analytics')}
+              style={{
+                marginTop: 16,
+                backgroundColor: colors.primary,
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 8
+              }}>
+              <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>View Complete Reading Analysis</Text>
+              <Text style={{ color: '#fff', fontSize: 16 }}>→</Text>
+            </TouchableOpacity>
           </View>
+
 
           {/* ── Reading Goal ─────────────────────────── */}
           <View>
