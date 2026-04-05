@@ -399,6 +399,7 @@ export function AnalyticsCharts({
             endOpacity={0.1}
             color={pagesColor}
             thickness={3}
+            hideDataPoints
             disableScroll
             hideRules={false}
             rulesType="solid"
@@ -502,14 +503,19 @@ export function AnalyticsCharts({
           <LineChart
             curved={isSmooth}
             isAnimated
+            areaChart
             data={velocityData}
             width={chartAvailableWidth}
             initialSpacing={20}
             endSpacing={20}
             spacing={lineSpacingVelocity}
+            startFillColor={velocityColor}
+            startOpacity={0.8}
+            endFillColor={velocityColor}
+            endOpacity={0.1}
             color={velocityColor}
             thickness={3}
-            dataPointsColor={velocityColor}
+            hideDataPoints
             disableScroll
             hideRules={false}
             rulesType="solid"
