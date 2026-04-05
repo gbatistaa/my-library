@@ -16,8 +16,9 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { fetchReadingSessionHistory } from "@/src/services/readingSessionService";
 
 const SessionHistoryScreen = () => {
-  const { colors } = useAppTheme();
+  const { mode } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const isDark = mode === "dark";
 
   const {
     data,
@@ -59,33 +60,18 @@ const SessionHistoryScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
       <View
-        style={{
-          paddingTop: insets.top + 16,
-          paddingHorizontal: 20,
-          paddingBottom: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: colors.surface,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-        }}
+        style={{ paddingTop: insets.top + 16 }}
+        className="flex-row items-center px-5 pb-4 bg-white dark:bg-[#1E293B] border-b border-[#E2E8F0] dark:border-[#334155]"
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ width: 40, height: 40, justifyContent: "center" }}
+          className="w-10 h-10 justify-center"
         >
-          <Feather name="arrow-left" size={24} color={colors.text} />
+          <Feather name="arrow-left" size={24} color={isDark ? "#F8FAFC" : "#111c2d"} />
         </TouchableOpacity>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "700",
-            color: colors.text,
-            marginLeft: 8,
-          }}
-        >
+        <Text className="text-[18px] font-bold text-[#111c2d] dark:text-[#F8FAFC] ml-2">
           Reading History
         </Text>
       </View>
@@ -94,101 +80,58 @@ const SessionHistoryScreen = () => {
         contentContainerStyle={{
           padding: 20,
           paddingBottom: insets.bottom + 20,
-          gap: 16,
         }}
         data={sessions}
         keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <View className="h-4" />}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={colors.primary}
+            tintColor={isDark ? "#A78BFA" : "#6b38d4"}
           />
         }
         renderItem={({ item }) => (
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              padding: 16,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
+          <View className="bg-white dark:bg-[#1E293B] p-4 rounded-2xl border border-[#E2E8F0] dark:border-[#334155]">
+            <View className="flex-row items-center">
               {/* Thumbnail */}
-              <View
-                style={{
-                  width: 52,
-                  height: 70,
-                  borderRadius: 10,
-                  backgroundColor: colors.surfaceContainerHigh,
-                  marginRight: 15,
-                  overflow: "hidden",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View className="w-[52px] h-[70px] rounded-[10px] bg-[#f0f3ff] dark:bg-white/5 mr-[15px] overflow-hidden justify-center items-center">
                 {item.bookCoverUrl ? (
                   <Image
                     source={{ uri: item.bookCoverUrl }}
-                    style={{ width: "100%", height: "100%" }}
+                    className="w-full h-full"
                     resizeMode="cover"
                   />
                 ) : (
-                  <Feather name="book" size={22} color={colors.textSecondary} />
+                  <Feather name="book" size={22} color={isDark ? "#94A3B8" : "#494454"} />
                 )}
               </View>
 
-              <View style={{ flex: 1, height: 70, justifyContent: "space-between" }}>
+              <View className="flex-1 h-[70px] justify-between">
                 {/* Top Row: Title and Date */}
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
+                <View className="flex-row justify-between items-center w-full">
                   <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: "700",
-                      color: colors.text,
-                      flex: 1,
-                      marginRight: 10,
-                    }}
+                    className="text-[16px] font-bold text-[#111c2d] dark:text-[#F8FAFC] flex-1 mr-2.5"
                     numberOfLines={1}
                   >
                     {item.bookTitle ?? "Unknown Book"}
                   </Text>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: colors.textSecondary,
-                      fontWeight: "600",
-                    }}
-                  >
+                  <Text className="text-[11px] text-[#494454] dark:text-[#94A3B8] font-bold">
                     {formatDate(item.createdAt)}
                   </Text>
                 </View>
 
                 {/* Bottom Row: Duration and Pages */}
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 15 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <Feather name="clock" size={13} color={colors.primary} />
-                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "500" }}>
+                <View className="flex-row items-center gap-3.5">
+                  <View className="flex-row items-center gap-1.5">
+                    <Feather name="clock" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
+                    <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
                       {Math.ceil(item.durationSeconds / 60)} min
                     </Text>
                   </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                    <Feather name="book-open" size={13} color={colors.primary} />
-                    <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "500" }}>
+                  <View className="flex-row items-center gap-1.5">
+                    <Feather name="book-open" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
+                    <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
                       {item.pagesRead} pages
                     </Text>
                   </View>
@@ -199,15 +142,9 @@ const SessionHistoryScreen = () => {
         )}
         ListEmptyComponent={() =>
           !isLoading ? (
-            <View style={{ padding: 40, alignItems: "center" }}>
-              <Feather name="book" size={48} color={colors.border} />
-              <Text
-                style={{
-                  marginTop: 16,
-                  color: colors.textSecondary,
-                  fontSize: 16,
-                }}
-              >
+            <View className="py-10 items-center">
+              <Feather name="book" size={48} color={isDark ? "#334155" : "#E2E8F0"} />
+              <Text className="mt-4 text-[#494454] dark:text-[#94A3B8] text-base font-medium">
                 No sessions recorded yet.
               </Text>
             </View>
@@ -215,10 +152,7 @@ const SessionHistoryScreen = () => {
         }
         ListFooterComponent={() =>
           isFetchingNextPage ? (
-            <ActivityIndicator
-              style={{ marginVertical: 20 }}
-              color={colors.primary}
-            />
+            <ActivityIndicator className="my-5" color={isDark ? "#A78BFA" : "#6b38d4"} />
           ) : null
         }
         onEndReached={() => {
