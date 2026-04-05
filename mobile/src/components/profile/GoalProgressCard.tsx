@@ -18,8 +18,6 @@ function CircleProgress({
   color: string;
 }) {
   const pct = max > 0 ? Math.min(value / max, 1) : 0;
-  const circumference = 2 * Math.PI * 36;
-  const strokeDashoffset = circumference * (1 - pct);
 
   return (
     <View
@@ -107,25 +105,15 @@ export function GoalProgressCard({ progress }: Props) {
     );
   }
 
-  const accent = progress.onTrack ? "#10B981" : "#F59E0B";
+  const statusColor = progress.onTrack ? "#10B981" : "#F59E0B";
   const booksRead = progress.booksRead;
   const target = progress.goal.targetBooks;
+  const accent = colors.tertiary;
 
   return (
     <Animated.View
       entering={FadeInDown.duration(400).delay(50)}
-      style={{
-        borderRadius: 20,
-        backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: accent + "30",
-        padding: 20,
-        shadowColor: accent,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
-        elevation: 4,
-      }}
+      className="bg-[#ede9fe] dark:bg-[#1E293B] rounded-2xl p-5 mb-3 dark:border dark:border-[#334155] shadow-sm shadow-black/10"
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
         {/* Circular progress */}
@@ -154,16 +142,16 @@ export function GoalProgressCard({ progress }: Props) {
               paddingHorizontal: 10,
               paddingVertical: 5,
               borderRadius: 10,
-              backgroundColor: accent + "15",
+              backgroundColor: statusColor + "15",
               alignSelf: "flex-start",
             }}
           >
             <Feather
               name={progress.onTrack ? "check-circle" : "clock"}
               size={12}
-              color={accent}
+              color={statusColor}
             />
-            <Text style={{ fontSize: 12, fontWeight: "700", color: accent }}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: statusColor }}>
               {progress.onTrack ? "On Track" : "Behind Pace"}
             </Text>
           </View>

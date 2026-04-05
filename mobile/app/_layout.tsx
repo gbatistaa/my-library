@@ -107,6 +107,13 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="create-goal"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
               name="saga/[id]"
               options={{ headerShown: false }}
             />

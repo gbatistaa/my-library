@@ -32,6 +32,9 @@ public class ReadingGoalEntity extends BaseEntity {
   @Column(name = "target_genres")
   private Integer targetGenres;
 
+  @Column(name = "target_minutes")
+  private Integer targetMinutes;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private GoalVisibility visibility = GoalVisibility.PRIVATE;

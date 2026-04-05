@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.mylibrary.books.dtos.BookAuthorDTO;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
@@ -91,6 +93,9 @@ public class BookService {
 
     if (newBook.getStatus() == BookStatus.COMPLETED) {
       newBook.setPagesRead(newBook.getPages());
+      if (newBook.getFinishDate() == null) {
+        newBook.setFinishDate(java.time.LocalDate.now());
+      }
     }
 
     if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
@@ -150,6 +155,9 @@ public class BookService {
 
     if (book.getStatus() == BookStatus.COMPLETED) {
       book.setPagesRead(book.getPages());
+      if (book.getFinishDate() == null) {
+        book.setFinishDate(java.time.LocalDate.now());
+      }
     }
 
     BookDTO result = bookMapper.toDto(bookRepository.save(book));
@@ -175,6 +183,13 @@ public class BookService {
     BookDTO result = bookMapper.toDto(bookRepository.save(book));
     achievementEvaluator.evaluate(userId);
     return result;
+  }
+
+  @Transactional(readOnly = true)
+  public List<BookAuthorDTO> getAuthors(UUID userId) {
+    return bookRepository.countBooksByAuthor(userId).stream()
+        .map(row -> new BookAuthorDTO((String) row[0], (Long) row[1]))
+        .toList();
   }
 
   @Transactional

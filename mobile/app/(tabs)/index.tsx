@@ -13,6 +13,7 @@ import {
   getAchievements,
   getReadingDna,
   getGoalProgress,
+  listReadingGoals,
 } from "@/src/services/profileService";
 import { getCurrentlyReading } from "@/src/services/bookService";
 
@@ -84,7 +85,13 @@ export default function HomeScreen() {
     retry: 1,
   });
 
-  const { data: goalProgress, isLoading: loadingGoal } = useQuery({
+  const { data: allGoals, isLoading: loadingGoals } = useQuery({
+    queryKey: ["reading-goals"],
+    queryFn: listReadingGoals,
+    retry: 1,
+  });
+
+  const { data: goalProgress, isLoading: loadingGoalProgress } = useQuery({
     queryKey: ["goalProgress", currentYear],
     queryFn: () => getGoalProgress(currentYear),
     retry: 1,
@@ -97,6 +104,7 @@ export default function HomeScreen() {
       queryClient.invalidateQueries({ queryKey: ["streak"] }),
       queryClient.invalidateQueries({ queryKey: ["dna"] }),
       queryClient.invalidateQueries({ queryKey: ["achievements"] }),
+      queryClient.invalidateQueries({ queryKey: ["reading-goals"] }),
       queryClient.invalidateQueries({ queryKey: ["goalProgress"] }),
     ]);
     setRefreshing(false);
@@ -230,10 +238,13 @@ export default function HomeScreen() {
 
           {/* ── Reading Goal ─────────────────────────── */}
           <View>
-            {loadingGoal ? (
-              <Skeleton height={160} />
+            {loadingGoals || loadingGoalProgress ? (
+              <Skeleton height={200} />
             ) : (
-              <GoalSection progress={goalProgress} />
+              <GoalSection
+                goals={allGoals ?? []}
+                currentYearProgress={goalProgress}
+              />
             )}
           </View>
 

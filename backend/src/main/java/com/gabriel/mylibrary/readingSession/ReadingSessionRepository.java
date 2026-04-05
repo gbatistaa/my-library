@@ -34,6 +34,11 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
   @Query("SELECT COALESCE(SUM(rs.durationSeconds), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   long sumAllDurationByUserId(@Param("userId") UUID userId);
 
+  @Query("SELECT COALESCE(SUM(rs.durationSeconds), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId AND rs.createdAt BETWEEN :start AND :end")
+  long sumDurationByUserIdAndCreatedAtBetween(@Param("userId") UUID userId,
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
+
   @Query("SELECT COALESCE(AVG(rs.pagesRead), 0) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId")
   double avgPagesPerSessionByUserId(@Param("userId") UUID userId);
 

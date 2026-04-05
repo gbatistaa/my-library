@@ -2,6 +2,8 @@ package com.gabriel.mylibrary.books;
 
 import java.util.UUID;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gabriel.mylibrary.books.dtos.BookAuthorDTO;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
 import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
@@ -34,6 +37,12 @@ import lombok.RequiredArgsConstructor;
 public class BookController {
 
   private final BookService bookService;
+
+  @GetMapping(value = "/authors", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<BookAuthorDTO>> getAuthors(
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookService.getAuthors(user.getId()));
+  }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<BookDTO>> findAll(

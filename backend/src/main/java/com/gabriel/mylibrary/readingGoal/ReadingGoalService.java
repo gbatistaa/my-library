@@ -100,6 +100,8 @@ public class ReadingGoalService {
         endOfYear);
     int pagesRead = readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(userId, startOfYearTime,
         endOfYearTime);
+    long totalSeconds = readingSessionRepository.sumDurationByUserIdAndCreatedAtBetween(userId, startOfYearTime, endOfYearTime);
+    long minutesRead = totalSeconds / 60;
 
     int daysInYear = Year.of(year).length();
     LocalDate today = LocalDate.now();
@@ -149,6 +151,11 @@ public class ReadingGoalService {
     boolean authorsGoalMet = goal.getTargetAuthors() != null && uniqueAuthors >= goal.getTargetAuthors();
     boolean genresGoalMet = goal.getTargetGenres() != null && uniqueGenres >= goal.getTargetGenres();
 
+    // Minutes goal tracking
+    boolean minutesGoalMet = goal.getTargetMinutes() != null && minutesRead >= goal.getTargetMinutes();
+    int remainingMinutes = goal.getTargetMinutes() != null ? (int) Math.max(0, goal.getTargetMinutes() - minutesRead) : 0;
+    int dailyMinutesGoal = goal.getTargetMinutes() != null ? (int) Math.ceil((double) remainingMinutes / daysRemaining) : 0;
+
     // Micro-victories
     int remainingPages = goal.getTargetPages() != null ? Math.max(0, goal.getTargetPages() - pagesRead) : 0;
     int dailyPagesGoal = goal.getTargetPages() != null ? (int) Math.ceil((double) remainingPages / daysRemaining) : 0;
@@ -175,6 +182,10 @@ public class ReadingGoalService {
         .targetGenres(goal.getTargetGenres())
         .authorsGoalMet(authorsGoalMet)
         .genresGoalMet(genresGoalMet)
+        .minutesRead(minutesRead)
+        .targetMinutes(goal.getTargetMinutes())
+        .minutesGoalMet(minutesGoalMet)
+        .dailyMinutesGoal(dailyMinutesGoal)
         .dailyPagesGoal(dailyPagesGoal)
         .dailyInsight(insight)
         .build();

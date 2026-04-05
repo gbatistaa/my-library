@@ -52,6 +52,7 @@ export interface ReadingGoalDTO {
   year: number;
   targetBooks: number;
   targetPages: number | null;
+  targetMinutes: number | null;
   targetAuthors: number | null;
   targetGenres: number | null;
   visibility: 'PUBLIC' | 'PRIVATE';
@@ -71,6 +72,22 @@ export interface ReadingGoalProgressDTO {
   uniqueAuthors: number;
   uniqueGenres: number;
   topGenre: string;
+  // Authors/genres goal tracking
+  targetAuthors: number | null;
+  targetGenres: number | null;
+  authorsGoalMet: boolean;
+  genresGoalMet: boolean;
+  // Minutes goal tracking
+  minutesRead: number;
+  targetMinutes: number | null;
+  minutesGoalMet: boolean;
+  dailyMinutesGoal: number;
+  // Micro-victories
   dailyPagesGoal: number;
   dailyInsight: string;
+}
+
+export interface BookAuthorDTO {
+  name: string;
+  bookCount: number;
 }

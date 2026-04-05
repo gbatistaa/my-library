@@ -23,9 +23,9 @@ function getCategoryColors(category: string, isLight: boolean) {
          };
       case "GOALS":
          return {
-            bg: isLight ? "rgba(236, 72, 153, 0.15)" : "rgba(244, 114, 182, 0.2)",
-            border: isLight ? "rgba(236, 72, 153, 0.4)" : "rgba(244, 114, 182, 0.5)",
-            text: isLight ? "#EC4899" : "#f472b6"
+            bg: isLight ? "rgba(79, 70, 229, 0.15)" : "rgba(129, 140, 248, 0.2)",
+            border: isLight ? "rgba(79, 70, 229, 0.4)" : "rgba(129, 140, 248, 0.5)",
+            text: isLight ? "#4F46E5" : "#818CF8"
          };
       case "VOLUME":
       default:

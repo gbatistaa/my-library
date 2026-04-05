@@ -3,7 +3,9 @@ import type {
   StreakDTO,
   AchievementDTO,
   ReadingDnaDTO,
+  ReadingGoalDTO,
   ReadingGoalProgressDTO,
+  BookAuthorDTO,
 } from "@/src/types/profile";
 import type { DeviceSessionDTO, UserDTO } from "@/src/types/auth";
 
@@ -39,6 +41,47 @@ export async function getGoalProgress(
     return data;
   } catch {
     return null;
+  }
+}
+
+// ─── Reading Goal CRUD ────────────────────────────────────────────────────────
+
+export async function listReadingGoals(): Promise<ReadingGoalDTO[]> {
+  try {
+    const { data } = await api.get<ReadingGoalDTO[]>("/reading-goals");
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export interface CreateGoalPayload {
+  year: number;
+  targetBooks: number;
+  targetPages?: number;
+  targetMinutes?: number;
+  targetAuthors?: number;
+  targetGenres?: number;
+  visibility: "PUBLIC" | "PRIVATE";
+}
+
+export async function createReadingGoal(
+  payload: CreateGoalPayload,
+): Promise<ReadingGoalDTO> {
+  const { data } = await api.post<ReadingGoalDTO>("/reading-goals", payload);
+  return data;
+}
+
+export async function deleteReadingGoal(id: string): Promise<void> {
+  await api.delete(`/reading-goals/${id}`);
+}
+
+export async function getBookAuthors(): Promise<BookAuthorDTO[]> {
+  try {
+    const { data } = await api.get<BookAuthorDTO[]>("/books/authors");
+    return data ?? [];
+  } catch {
+    return [];
   }
 }
 

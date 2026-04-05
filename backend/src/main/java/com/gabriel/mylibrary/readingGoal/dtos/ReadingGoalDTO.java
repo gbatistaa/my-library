@@ -15,5 +15,6 @@ public class ReadingGoalDTO {
   private Integer targetPages;
   private Integer targetAuthors;
   private Integer targetGenres;
+  private Integer targetMinutes;
   private GoalVisibility visibility;
 }

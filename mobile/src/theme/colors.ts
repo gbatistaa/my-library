@@ -36,9 +36,9 @@ export const colors = {
     secondary: "#855300",
     secondaryContainer: "#fea619",
     secondaryFixed: "#ffddb8",
-    tertiary: "#b10e6b",
-    tertiaryContainer: "#d23284",
-    tertiaryFixed: "#ffd9e4",
+    tertiary: "#4f46e5",
+    tertiaryContainer: "#6366f1",
+    tertiaryFixed: "#e0e7ff",
 
     // Icon tints
     violet100: "#ede9fe",
@@ -86,9 +86,9 @@ export const colors = {
     secondary: "#F59E0B",
     secondaryContainer: "#fea619",
     secondaryFixed: "#1e293b",
-    tertiary: "#ffb0cd",
-    tertiaryContainer: "#d23284",
-    tertiaryFixed: "#ffd9e4",
+    tertiary: "#818cf8",
+    tertiaryContainer: "#6366f1",
+    tertiaryFixed: "#e0e7ff",
 
     // Icon tints (dark mode variants)
     violet100: "rgba(167, 139, 250, 0.2)",

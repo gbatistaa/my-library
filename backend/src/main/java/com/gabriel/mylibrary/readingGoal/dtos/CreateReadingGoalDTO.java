@@ -29,5 +29,8 @@ public class CreateReadingGoalDTO {
   @Min(value = 1, message = "Target genres must be at least 1")
   private Integer targetGenres;
 
+  @Min(value = 1, message = "Target minutes must be at least 1")
+  private Integer targetMinutes;
+
   private GoalVisibility visibility;
 }

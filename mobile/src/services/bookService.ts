@@ -76,6 +76,7 @@ export interface UpdateBookPayload {
   rating?: number;
   notes?: string;
   coverUrl?: string;
+  status?: BookStatus;
 }
 
 export async function updateBook(id: string, payload: UpdateBookPayload): Promise<BookDTO> {

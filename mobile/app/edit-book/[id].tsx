@@ -329,11 +329,15 @@ export default function EditBookScreen() {
         rating: status === "COMPLETED" ? (rating ?? undefined) : undefined,
         notes: notes.trim() || undefined,
         coverUrl: finalCoverUrl,
+        status,
       });
 
       await queryClient.invalidateQueries({ queryKey: ["book", id] });
       await queryClient.invalidateQueries({ queryKey: ["books"] });
       await queryClient.invalidateQueries({ queryKey: ["currentlyReading"] });
+      await queryClient.invalidateQueries({ queryKey: ["currentlyReadingSelection"] });
+      await queryClient.invalidateQueries({ queryKey: ["dna"] });
+      await queryClient.invalidateQueries({ queryKey: ["goalProgress"] });
       router.back();
     } catch (err: unknown) {
       showApiError("Failed to update book", err);
