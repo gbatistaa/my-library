@@ -8,6 +8,8 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO;
+import java.time.LocalDate;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -46,4 +48,19 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
   double avgDurationPerSessionByUserId(@Param("userId") UUID userId);
 
   long countByUserId(UUID userId);
+
+  @Query("SELECT new com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO(" +
+         "CAST(rs.createdAt AS date), " +
+         "SUM(CAST(rs.pagesRead AS long)), " +
+         "SUM(rs.durationSeconds), " +
+         "COUNT(rs)) " +
+         "FROM ReadingSessionEntity rs " +
+         "WHERE rs.user.id = :userId AND rs.createdAt BETWEEN :start AND :end " +
+         "GROUP BY CAST(rs.createdAt AS date) " +
+         "ORDER BY CAST(rs.createdAt AS date)")
+  List<DailySessionAggDTO> findDailyAggregationByUserIdAndCreatedAtBetween(
+      @Param("userId") UUID userId,
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
+
 }
