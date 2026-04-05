@@ -60,7 +60,6 @@ function MetricBar({
 
 function EmptyGoal() {
   const { colors } = useAppTheme();
-  const router = useRouter();
 
   return (
     <View className="flex-row items-center gap-3.5 py-2">
@@ -75,21 +74,9 @@ function EmptyGoal() {
           No goal for {CURRENT_YEAR} yet
         </Text>
         <Text className="text-[13px] text-[#494454] dark:text-[#94A3B8] leading-[17px]">
-          Set a target to track your progress this year.
+          Click &apos;New Goal&apos; to track your progress this year.
         </Text>
       </View>
-      <Pressable
-        onPress={() => router.push("/create-goal")}
-        className="py-2 px-3.5 rounded-lg border-[1.5px] active:opacity-70"
-        style={{ borderColor: colors.tertiary }}
-      >
-        <Text
-          className="text-[13px] font-semibold"
-          style={{ color: colors.tertiary }}
-        >
-          Set
-        </Text>
-      </Pressable>
     </View>
   );
 }
@@ -314,7 +301,7 @@ export function GoalSection({ goals, currentYearProgress }: Props) {
           className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-lg active:opacity-70"
           style={{
             backgroundColor: colors.tertiary + "15",
-            borderWidth: 1,
+            borderWidth: 1.5,
             borderColor: colors.tertiary + "40",
           }}
         >

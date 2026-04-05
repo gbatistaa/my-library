@@ -27,7 +27,7 @@ function BookCoverPlaceholder() {
 }
 
 function BookCard({ book }: { book: BookDTO }) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const router = useRouter();
 
   const handlePress = () => {
@@ -82,13 +82,14 @@ function BookCard({ book }: { book: BookDTO }) {
 
         <Pressable
           onPress={handlePress}
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.primary + "DD" : colors.primary,
-          })}
-          className="flex-row justify-center items-center self-start gap-1.5 active:opacity-90 px-4 py-2.5 rounded-lg"
+          className="flex-row justify-center items-center self-start gap-1.5 px-4 py-2.5 rounded-xl border-[1.5px] border-[#6b38d4]/30 dark:border-[#A78BFA]/30 bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 active:bg-[#6b38d4]/20 dark:active:bg-[#A78BFA]/20 active:scale-[0.97] transition-all duration-200"
         >
-          <Text className="font-bold text-[14px] text-white">Continue</Text>
-          <Feather name="arrow-right" size={14} color="white" />
+          <Text className="font-bold text-[14px] text-[#6b38d4] dark:text-[#A78BFA]">Continue</Text>
+          <Feather 
+            name="arrow-right" 
+            size={14} 
+            color={mode === "dark" ? "#A78BFA" : "#6b38d4"} 
+          />
         </Pressable>
       </View>
     </Pressable>
