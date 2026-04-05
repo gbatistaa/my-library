@@ -28,4 +28,6 @@ public class UpdateUserDTO {
   private String password;
 
   private LocalDate birthDate;
+
+  private String profilePicPath;
 }

@@ -25,8 +25,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "700",
-          marginTop: -2,
+          fontWeight: "600",
         },
       }}
     >
@@ -35,7 +34,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -44,7 +43,7 @@ export default function TabLayout() {
         options={{
           title: "Library",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "library" : "library-outline"} size={23} color={color} />
+            <Ionicons name={focused ? "library" : "library-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -53,7 +52,7 @@ export default function TabLayout() {
         options={{
           title: "Session",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "time" : "time-outline"} size={26} color={color} />
+            <Ionicons name={focused ? "time" : "time-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -62,7 +61,7 @@ export default function TabLayout() {
         options={{
           title: "Awards",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "trophy" : "trophy-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "trophy" : "trophy-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -71,7 +70,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
           ),
         }}
       />

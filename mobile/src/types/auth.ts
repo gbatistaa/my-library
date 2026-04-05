@@ -8,6 +8,7 @@ export interface UserDTO {
   email: string;
   birthDate: string; // "yyyy-MM-dd"
   createdAt: string; // ISO LocalDateTime "yyyy-MM-ddTHH:mm:ss"
+  profilePicPath: string | null;
 }
 
 /** Returned by POST /auth/login and /auth/register */

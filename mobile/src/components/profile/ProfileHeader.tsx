@@ -2,7 +2,8 @@ import { View, Text } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
-import { colors as themeColors } from "@/src/theme/colors";
+import { useProfilePicture } from "@/src/hooks/useProfilePicture";
+import { Avatar } from "@/src/components/common/Avatar";
 import type { UserDTO } from "@/src/types/auth";
 
 interface Props {
@@ -20,7 +21,8 @@ const ARCHETYPE_COLORS: Record<string, string> = {
 
 export function ProfileHeader({ user, archetype }: Props) {
   const { colors } = useAppTheme();
-  const initials = (user.username ?? "??").slice(0, 2).toUpperCase();
+  const openProfilePicPicker = useProfilePicture();
+
   const accentColor =
     archetype && ARCHETYPE_COLORS[archetype]
       ? ARCHETYPE_COLORS[archetype]
@@ -39,25 +41,13 @@ export function ProfileHeader({ user, archetype }: Props) {
           backgroundColor: accentColor + "30",
         }}
       >
-        <View
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: 48,
-            backgroundColor: accentColor,
-            alignItems: "center",
-            justifyContent: "center",
-            shadowColor: accentColor,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.45,
-            shadowRadius: 20,
-            elevation: 12,
-          }}
-        >
-          <Text style={{ fontSize: 34, fontWeight: "800", color: "#fff" }}>
-            {initials}
-          </Text>
-        </View>
+        <Avatar
+          user={user}
+          size={96}
+          editable
+          onPress={openProfilePicPicker}
+          accentColor={accentColor}
+        />
       </View>
 
       {/* Username */}

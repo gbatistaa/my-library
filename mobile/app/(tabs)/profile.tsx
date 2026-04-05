@@ -9,21 +9,25 @@ import {
   ActivityIndicator,
   StyleSheet,
   Pressable,
+  ImageBackground,
   Animated as RNAnimated,
   Easing,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn, FadeInDown, useAnimatedStyle, withTiming, Easing as ReanimatedEasing } from "react-native-reanimated";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 
 import { userAtom } from "@/src/store/auth";
 import { useRouter } from "expo-router";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { useProfilePicture } from "@/src/hooks/useProfilePicture";
+import { Avatar } from "@/src/components/common/Avatar";
 import {
   getMyDevices,
   revokeDevice,
@@ -205,7 +209,7 @@ function EditProfileModal({
             Edit Profile
           </Text>
           <TouchableOpacity onPress={onClose}>
-            <Feather name="x" size={22} color={colors.textSecondary} />
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -270,7 +274,7 @@ function EditProfileModal({
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Feather name="lock" size={14} color={colors.textSecondary} />
+            <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
             <Text style={{ fontSize: 13, color: colors.textSecondary }}>
               Email and password can only be changed via settings
             </Text>
@@ -408,15 +412,15 @@ function ConfirmRevokeModal({
               onPress={onClose}
               className="justify-center items-center bg-[#f0f3ff] dark:bg-[#334155] rounded-full w-8 h-8"
             >
-              <Feather name="x" size={15} color={closeIconColor} />
+              <Ionicons name="close" size={15} color={closeIconColor} />
             </TouchableOpacity>
           </View>
 
           <View className="px-5 pt-4 pb-5">
             {/* Warning card */}
             <View className="flex-row items-start gap-3 bg-[#f59e0b]/10 dark:bg-[#f59e0b]/[0.08] mb-5 p-4 border border-[#f59e0b]/40 dark:border-[#f59e0b]/20 rounded-xl">
-              <Feather
-                name="alert-triangle"
+              <Ionicons
+                name="warning"
                 size={18}
                 color="#f59e0b"
                 style={{ marginTop: 1 }}
@@ -490,8 +494,8 @@ function DeviceCard({
     device.deviceName.toLowerCase().includes("iphone") ||
     device.deviceName.toLowerCase().includes("ios") ||
     device.deviceName.toLowerCase().includes("android")
-      ? "smartphone"
-      : "monitor";
+      ? "phone-portrait"
+      : "desktop";
 
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
 
@@ -506,7 +510,7 @@ function DeviceCard({
     >
       {/* Device icon circle */}
       <View className="justify-center items-center bg-[#e9ddff] dark:bg-[#334155] rounded-full w-12 h-12 shrink-0">
-        <Feather name={icon} size={20} color={iconColor} />
+        <Ionicons name={icon} size={20} color={iconColor} />
       </View>
 
       {/* Info */}
@@ -539,7 +543,7 @@ function DeviceCard({
           hitSlop={8}
           activeOpacity={0.7}
         >
-          <Feather name="trash-2" size={16} color="#ef4444" />
+          <Ionicons name="trash" size={16} color="#ef4444" />
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -553,7 +557,7 @@ function InfoRow({
   label,
   value,
 }: {
-  icon: React.ComponentProps<typeof Feather>["name"];
+  icon: React.ComponentProps<typeof Ionicons>["name"];
   label: string;
   value: string;
 }) {
@@ -580,7 +584,7 @@ function InfoRow({
           justifyContent: "center",
         }}
       >
-        <Feather name={icon} size={16} color={colors.primary} />
+        <Ionicons name={icon} size={16} color={colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
         <Text
@@ -613,11 +617,12 @@ function InfoRow({
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
-  const { colors, mode } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [atomUser, setUser] = useAtom(userAtom);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const openProfilePicPicker = useProfilePicture();
   const [refreshing, setRefreshing] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<{
@@ -715,10 +720,10 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 10,
+          paddingTop: insets.top,
           paddingBottom: 48,
         }}
         showsVerticalScrollIndicator={false}
@@ -730,79 +735,131 @@ export default function ProfileScreen() {
           />
         }
       >
-        {/* ── Header Avatar ───────────────────────────────────── */}
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={{ alignItems: "center", paddingTop: 20, paddingBottom: 28 }}
-        >
-          <View
-            style={{
-              padding: 3,
-              borderRadius: 52,
-              backgroundColor: colors.primary + "28",
-            }}
-          >
+        {/* ── Hero Header ─────────────────────────────────────── */}
+        <Animated.View entering={FadeIn.duration(400)}>
+          {user.profilePicPath ? (
+            <ImageBackground
+              source={{ uri: user.profilePicPath }}
+              style={{ width: "100%", height: 220 }}
+              resizeMode="cover"
+              blurRadius={15}
+            >
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.72)"]}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  paddingBottom: 20,
+                }}
+              >
+                <Avatar
+                  user={user}
+                  size={88}
+                  editable
+                  onPress={openProfilePicPicker}
+                  accentColor={colors.primary}
+                />
+                <Text
+                  style={{
+                    marginTop: 10,
+                    fontSize: 20,
+                    fontWeight: "800",
+                    color: "#fff",
+                    letterSpacing: -0.4,
+                  }}
+                >
+                  {user.name ?? user.username}
+                </Text>
+                <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                  @{user.username}
+                </Text>
+              </LinearGradient>
+            </ImageBackground>
+          ) : (
             <View
               style={{
-                width: 96,
-                height: 96,
-                borderRadius: 48,
+                width: "100%",
+                height: 220,
                 backgroundColor: colors.primary,
                 alignItems: "center",
-                justifyContent: "center",
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.4,
-                shadowRadius: 20,
-                elevation: 12,
+                justifyContent: "flex-end",
+                paddingBottom: 20,
+                overflow: "hidden",
               }}
             >
-              <Text style={{ fontSize: 34, fontWeight: "800", color: "#fff" }}>
+              {/* Large background initials */}
+              <Text
+                style={{
+                  position: "absolute",
+                  fontSize: 140,
+                  fontWeight: "900",
+                  color: "rgba(255,255,255,0.08)",
+                  letterSpacing: -4,
+                  top: -8,
+                }}
+                numberOfLines={1}
+              >
                 {initials}
               </Text>
+              <LinearGradient
+                colors={["transparent", colors.primary]}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 80,
+                }}
+              />
+              <Avatar
+                user={user}
+                size={88}
+                editable
+                onPress={openProfilePicPicker}
+                accentColor="#fff"
+              />
+              <Text
+                style={{
+                  marginTop: 10,
+                  fontSize: 20,
+                  fontWeight: "800",
+                  color: "#fff",
+                  letterSpacing: -0.4,
+                }}
+              >
+                {user.name ?? user.username}
+              </Text>
+              <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                @{user.username}
+              </Text>
             </View>
-          </View>
+          )}
 
-          <Text
-            style={{
-              marginTop: 16,
-              fontSize: 22,
-              fontWeight: "800",
-              color: colors.text,
-              letterSpacing: -0.4,
-            }}
-          >
-            {user.name ?? user.username}
-          </Text>
-          <Text
-            style={{ fontSize: 14, color: colors.textSecondary, marginTop: 3 }}
-          >
-            @{user.username}
-          </Text>
-
-          {/* Edit button */}
-          <TouchableOpacity
-            onPress={() => setEditVisible(true)}
-            style={{
-              marginTop: 14,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 12,
-              backgroundColor: colors.primary + "14",
-              borderWidth: 1,
-              borderColor: colors.primary + "30",
-            }}
-          >
-            <Feather name="edit-2" size={14} color={colors.primary} />
-            <Text
-              style={{ fontSize: 13, fontWeight: "700", color: colors.primary }}
+          {/* Edit Profile button — below the hero */}
+          <View style={{ alignItems: "center", paddingTop: 16, paddingBottom: 8 }}>
+            <TouchableOpacity
+              onPress={() => setEditVisible(true)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 12,
+                backgroundColor: colors.primary + "14",
+                borderWidth: 1,
+                borderColor: colors.primary + "30",
+              }}
             >
-              Edit Profile
-            </Text>
-          </TouchableOpacity>
+              <Ionicons name="create" size={14} color={colors.primary} />
+              <Text
+                style={{ fontSize: 13, fontWeight: "700", color: colors.primary }}
+              >
+                Edit Profile
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <View style={{ paddingHorizontal: 20, gap: 24 }}>
@@ -832,8 +889,8 @@ export default function ProfileScreen() {
             >
               Account Information
             </Text>
-            <InfoRow icon="user" label="Full Name" value={user.name ?? "—"} />
-            <InfoRow icon="at-sign" label="Username" value={user.username} />
+            <InfoRow icon="person" label="Full Name" value={user.name ?? "—"} />
+            <InfoRow icon="at" label="Username" value={user.username} />
             <InfoRow icon="mail" label="Email" value={user.email} />
             <InfoRow
               icon="calendar"
@@ -842,7 +899,7 @@ export default function ProfileScreen() {
             />
             <View style={{ borderBottomWidth: 0 }}>
               <InfoRow
-                icon="clock"
+                icon="time"
                 label="Member Since"
                 value={user.createdAt ? formatDate(user.createdAt) : "—"}
               />

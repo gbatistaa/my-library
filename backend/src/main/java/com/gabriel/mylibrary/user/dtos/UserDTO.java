@@ -18,4 +18,5 @@ public class UserDTO {
   private String email;
   private LocalDate birthDate;
   private LocalDateTime createdAt;
+  private String profilePicPath;
 }

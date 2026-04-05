@@ -8,6 +8,7 @@ import Animated, { FadeIn } from "react-native-reanimated";
 
 import { userAtom } from "@/src/store/auth";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
+import { useProfilePicture } from "@/src/hooks/useProfilePicture";
 import {
   getStreak,
   getAchievements,
@@ -21,6 +22,7 @@ import { CurrentlyReading } from "@/src/components/home/CurrentlyReading";
 import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
 import { AchievementsRow } from "@/src/components/home/AchievementsRow";
+import { Avatar } from "@/src/components/common/Avatar";
 
 function Skeleton({ height = 120 }: { height?: number }) {
   const { colors } = useAppTheme();
@@ -43,15 +45,6 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function getInitials(name?: string, username?: string): string {
-  if (name?.trim()) {
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return parts[0][0].toUpperCase();
-  }
-  if (username?.trim()) return username[0].toUpperCase();
-  return "R";
-}
 
 export default function HomeScreen() {
   const { colors, mode } = useAppTheme();
@@ -110,9 +103,9 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
+  const openProfilePicPicker = useProfilePicture();
   const currentStreak = streak?.currentStreak ?? 0;
   const greeting = getGreeting();
-  const initials = getInitials(user?.name, user?.username);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -144,27 +137,16 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            {/* Avatar circle */}
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: colors.surfaceContainerHigh,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: "700",
-                  color: colors.primary,
-                }}
-              >
-                {initials}
-              </Text>
-            </View>
+            {/* Avatar */}
+            {user && (
+              <Avatar
+                user={user}
+                size={40}
+                editable
+                onPress={openProfilePicPicker}
+                accentColor={colors.primary}
+              />
+            )}
 
             <View>
               <Text

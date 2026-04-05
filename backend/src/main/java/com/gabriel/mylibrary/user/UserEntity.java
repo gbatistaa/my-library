@@ -44,6 +44,9 @@ public class UserEntity extends BaseEntity {
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
+  @Column(name = "profile_pic_path")
+  private String profilePicPath;
+
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<RefreshTokenEntity> refreshTokens = new ArrayList<>();
 

@@ -105,6 +105,7 @@ export async function revokeDevice(sessionId: string): Promise<void> {
 export async function updateProfile(updates: {
   name?: string;
   username?: string;
+  profilePicPath?: string | null;
 }): Promise<UserDTO> {
   const { data } = await api.patch<UserDTO>("/users/me", updates);
   return data;
