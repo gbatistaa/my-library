@@ -45,6 +45,12 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   @Query("SELECT COUNT(DISTINCT b.author) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
   long countDistinctAuthorsByUserId(@Param("userId") UUID userId);
 
+  @Query("SELECT COUNT(DISTINCT b.author) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED' AND b.finishDate BETWEEN :start AND :end")
+  long countDistinctAuthorsByUserIdAndFinishDateBetween(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
+  @Query("SELECT COUNT(DISTINCT c) FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.status = 'COMPLETED' AND b.finishDate BETWEEN :start AND :end")
+  long countDistinctCategoriesByUserIdAndFinishDateBetween(@Param("userId") UUID userId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
   @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM SagaEntity s WHERE s.user.id = :userId AND NOT EXISTS (SELECT b FROM BookEntity b WHERE b.saga = s AND b.status != 'COMPLETED')")
   boolean hasCompletedSaga(@Param("userId") UUID userId);
 

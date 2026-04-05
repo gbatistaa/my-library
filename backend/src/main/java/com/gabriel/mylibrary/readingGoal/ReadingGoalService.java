@@ -20,11 +20,21 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ReadingGoalService {
+
+  private static final String MSG_GOAL_REACHED = "Parabéns! Você já atingiu sua meta anual. Tudo o que você ler agora é um bônus!";
+  private static final String MSG_ON_FIRE = "Você está voando! Streak de %d dias e no ritmo da meta. Imbatível!";
+  private static final String MSG_BEHIND = "Atenção! Você está atrás do ritmo. Leia %d páginas hoje para recuperar!";
+  private static final String MSG_ON_TRACK = "Caminho certo! %d páginas hoje mantêm você na meta. Boa leitura!";
+  private static final String MSG_PROJECTED_REACHED = "Meta já atingida!";
+  private static final String MSG_NO_READS_YET = "Comece a ler para gerar uma projeção";
+  private static final DateTimeFormatter PROJECTED_DATE_FORMAT =
+      DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy", new Locale("pt", "BR"));
 
   private final ReadingGoalRepository readingGoalRepository;
   private final BookRepository bookRepository;
@@ -53,10 +63,17 @@ public class ReadingGoalService {
 
   @Transactional(readOnly = true)
   public List<ReadingGoalDTO> listAll(UUID userId) {
-    return readingGoalRepository.findAll().stream() // Not ideal, should be findByUserId
-        .filter(goal -> goal.getUser().getId().equals(userId))
+    return readingGoalRepository.findAllByUserId(userId).stream()
         .map(mapper::toDto)
         .toList();
+  }
+
+  @Transactional
+  public void delete(UUID id, UUID userId) {
+    ReadingGoalEntity entity = readingGoalRepository.findById(id)
+        .filter(goal -> goal.getUser().getId().equals(userId))
+        .orElseThrow(() -> new ResourceNotFoundException("Reading goal not found with id: " + id));
+    readingGoalRepository.delete(entity);
   }
 
   @Transactional
@@ -110,23 +127,27 @@ public class ReadingGoalService {
     // Projected finish date
     String projectedFinishDate;
     if (booksRead >= goal.getTargetBooks()) {
-      projectedFinishDate = "🏆 Meta já atingida!";
+      projectedFinishDate = MSG_PROJECTED_REACHED;
     } else if (currentPace <= 0) {
-      projectedFinishDate = "Comece a ler para gerar uma projeção";
+      projectedFinishDate = MSG_NO_READS_YET;
     } else {
       int weeksRemaining = (int) Math.ceil((goal.getTargetBooks() - booksRead) / currentPace);
       LocalDate projected = today.plusWeeks(weeksRemaining);
-      projectedFinishDate = projected.format(DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy"));
+      projectedFinishDate = projected.format(PROJECTED_DATE_FORMAT);
     }
 
     // Streak
     StreakDTO streakData = streakService.getStreak(userId);
 
-    // Diversity
-    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserId(userId);
-    long uniqueGenres = bookRepository.countDistinctCategoriesByUserId(userId);
+    // Diversity (filtered to goal year)
+    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserIdAndFinishDateBetween(userId, startOfYear, endOfYear);
+    long uniqueGenres = bookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear, endOfYear);
     List<Object[]> genreStats = bookRepository.countBooksByCategory(userId);
     String topGenre = genreStats.isEmpty() ? "Nenhum" : (String) genreStats.get(0)[0];
+
+    // Authors/genres goal tracking
+    boolean authorsGoalMet = goal.getTargetAuthors() != null && uniqueAuthors >= goal.getTargetAuthors();
+    boolean genresGoalMet = goal.getTargetGenres() != null && uniqueGenres >= goal.getTargetGenres();
 
     // Micro-victories
     int remainingPages = goal.getTargetPages() != null ? Math.max(0, goal.getTargetPages() - pagesRead) : 0;
@@ -150,6 +171,10 @@ public class ReadingGoalService {
         .uniqueAuthors((int) uniqueAuthors)
         .uniqueGenres((int) uniqueGenres)
         .topGenre(topGenre)
+        .targetAuthors(goal.getTargetAuthors())
+        .targetGenres(goal.getTargetGenres())
+        .authorsGoalMet(authorsGoalMet)
+        .genresGoalMet(genresGoalMet)
         .dailyPagesGoal(dailyPagesGoal)
         .dailyInsight(insight)
         .build();
@@ -157,14 +182,14 @@ public class ReadingGoalService {
 
   private String generateInsight(int booksRead, int target, boolean onTrack, int dailyPages, int streak) {
     if (booksRead >= target) {
-      return "🏆 Parabéns! Você já atingiu sua meta anual. Tudo o que você ler agora é um bônus!";
+      return MSG_GOAL_REACHED;
     }
     if (streak >= 7 && onTrack) {
-      return "🔥 Você está voando! Streak de " + streak + " dias e no ritmo da meta. Imbatível!";
+      return String.format(MSG_ON_FIRE, streak);
     }
     if (!onTrack) {
-      return "⚠️ Atenção! Você está atrás do ritmo. Leia " + dailyPages + " páginas hoje para recuperar!";
+      return String.format(MSG_BEHIND, dailyPages);
     }
-    return "📖 Caminho certo! " + dailyPages + " páginas hoje mantêm você na meta. Boa leitura!";
+    return String.format(MSG_ON_TRACK, dailyPages);
   }
 }

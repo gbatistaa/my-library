@@ -27,10 +27,16 @@ public class ReadingGoalProgressDTO {
   private int bestStreak;
   private String streakInsight;
 
-  // Diversity
+  // Diversity (filtered to goal year)
   private int uniqueAuthors;
   private int uniqueGenres;
   private String topGenre;
+
+  // Authors/genres goal tracking
+  private Integer targetAuthors;
+  private Integer targetGenres;
+  private boolean authorsGoalMet;
+  private boolean genresGoalMet;
 
   // Micro-victories
   private int dailyPagesGoal;

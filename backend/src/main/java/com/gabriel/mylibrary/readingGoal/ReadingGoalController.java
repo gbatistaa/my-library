@@ -56,4 +56,12 @@ public class ReadingGoalController {
       @Valid @RequestBody UpdateReadingGoalDTO dto) {
     return ResponseEntity.ok(readingGoalService.update(id, user.getId(), dto));
   }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(
+      @AuthenticationPrincipal UserEntity user,
+      @PathVariable UUID id) {
+    readingGoalService.delete(id, user.getId());
+    return ResponseEntity.noContent().build();
+  }
 }
