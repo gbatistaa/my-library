@@ -7,7 +7,6 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  StyleSheet,
   Pressable,
   ImageBackground,
   Animated as RNAnimated,
@@ -19,7 +18,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { StatusBar } from "expo-status-bar";
-import Animated, { FadeIn, FadeInDown, useAnimatedStyle, withTiming, Easing as ReanimatedEasing } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  withTiming,
+  Easing as ReanimatedEasing,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 
@@ -122,59 +127,43 @@ function EditProfileModal({
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
   const inactiveBorder = colors.border;
 
-  const nameAnimatedBorder = useAnimatedStyle(() => ({
-    borderColor: withTiming(nameFocused ? purple : inactiveBorder, {
-      duration: 200,
-      easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+  const nameAnimatedBorder = useAnimatedStyle(
+    () => ({
+      borderColor: withTiming(nameFocused ? purple : inactiveBorder, {
+        duration: 200,
+        easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+      }),
     }),
-  }), [nameFocused, purple, inactiveBorder]);
+    [nameFocused, purple, inactiveBorder],
+  );
 
-  const userAnimatedBorder = useAnimatedStyle(() => ({
-    borderColor: withTiming(usernameFocused ? purple : inactiveBorder, {
-      duration: 200,
-      easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+  const userAnimatedBorder = useAnimatedStyle(
+    () => ({
+      borderColor: withTiming(usernameFocused ? purple : inactiveBorder, {
+        duration: 200,
+        easing: ReanimatedEasing.out(ReanimatedEasing.ease),
+      }),
     }),
-  }), [usernameFocused, purple, inactiveBorder]);
-
-  const inputStyle = {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: "500" as const,
-  };
+    [usernameFocused, purple, inactiveBorder],
+  );
 
   return (
     <View
-      style={{ ...StyleSheet.absoluteFillObject, zIndex: 999 }}
+      className="z-[999] absolute inset-0"
       pointerEvents={visible ? "auto" : "none"}
     >
       {/* Backdrop with FADE */}
       <RNAnimated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          opacity: overlayAnim,
-        }}
+        className="absolute inset-0 bg-black/50"
+        style={{ opacity: overlayAnim }}
       >
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <Pressable className="flex-1" onPress={onClose} />
       </RNAnimated.View>
 
       {/* Sheet with SLIDE (using Transform) */}
       <RNAnimated.View
+        className="right-0 bottom-0 left-0 absolute bg-[#f8f9ff] dark:bg-[#0f172a] px-6 pt-5 rounded-t-[28px]"
         style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: colors.background,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          paddingTop: 20,
-          paddingHorizontal: 24,
           paddingBottom: insets.bottom + 20,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -10 },
@@ -185,27 +174,11 @@ function EditProfileModal({
         }}
       >
         {/* Handle / Pill */}
-        <View
-          style={{
-            width: 40,
-            height: 5,
-            borderRadius: 2.5,
-            backgroundColor: colors.border,
-            alignSelf: "center",
-            marginBottom: 20,
-          }}
-        />
+        <View className="self-center bg-slate-200 dark:bg-slate-800 mb-5 rounded-full w-10 h-1.5" />
 
         {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 24,
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: "800", color: colors.text }}>
+        <View className="flex-row justify-between items-center mb-6">
+          <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-xl">
             Edit Profile
           </Text>
           <TouchableOpacity onPress={onClose}>
@@ -214,22 +187,14 @@ function EditProfileModal({
         </View>
 
         {/* Name */}
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: "700",
-            color: colors.textSecondary,
-            textTransform: "uppercase",
-            letterSpacing: 0.8,
-            marginBottom: 8,
-          }}
-        >
+        <Text className="mb-2 font-bold text-[10px] text-slate-500 uppercase tracking-[1px]">
           Full Name
         </Text>
         <AnimatedTextInput
           value={name}
           onChangeText={setName}
-          style={[inputStyle, nameAnimatedBorder]}
+          className="bg-white dark:bg-slate-900 px-4 border-[1.5px] rounded-xl h-[52px] font-medium text-[15px] text-slate-900 dark:text-slate-50"
+          style={[nameAnimatedBorder]}
           placeholderTextColor={colors.textSecondary}
           placeholder="Your full name"
           onFocus={() => setNameFocused(true)}
@@ -237,23 +202,14 @@ function EditProfileModal({
         />
 
         {/* Username */}
-        <Text
-          style={{
-            fontSize: 12,
-            fontWeight: "700",
-            color: colors.textSecondary,
-            textTransform: "uppercase",
-            letterSpacing: 0.8,
-            marginBottom: 8,
-            marginTop: 16,
-          }}
-        >
+        <Text className="mt-4 mb-2 font-bold text-[10px] text-slate-500 uppercase tracking-[1px]">
           Username
         </Text>
         <AnimatedTextInput
           value={username}
           onChangeText={setUsername}
-          style={[inputStyle, userAnimatedBorder]}
+          className="bg-white dark:bg-slate-900 px-4 border-[1.5px] rounded-xl h-[52px] font-medium text-[15px] text-slate-900 dark:text-slate-50"
+          style={[userAnimatedBorder]}
           placeholderTextColor={colors.textSecondary}
           placeholder="Your username"
           autoCapitalize="none"
@@ -262,37 +218,20 @@ function EditProfileModal({
         />
 
         {/* Non-editable fields */}
-        <View
-          style={{
-            marginTop: 20,
-            gap: 10,
-            padding: 14,
-            borderRadius: 14,
-            backgroundColor: colors.surface,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
-            <Text style={{ fontSize: 13, color: colors.textSecondary }}>
-              Email and password can only be changed via settings
-            </Text>
-          </View>
+        <View className="flex-row items-center gap-2 bg-slate-100 dark:bg-slate-900/50 mt-5 p-3.5 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <Ionicons name="lock-closed" size={14} color={colors.textSecondary} />
+          <Text className="flex-1 text-[13px] text-slate-500">
+            Email and password can only be changed via settings
+          </Text>
         </View>
 
         {/* Save */}
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
+          className="justify-center items-center bg-[#6b38d4] dark:bg-[#7c4dff] shadow-lg mt-6 rounded-xl h-[52px]"
           style={{
-            marginTop: 24,
-            height: 52,
-            borderRadius: 14,
-            backgroundColor: colors.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            shadowColor: colors.primary,
+            shadowColor: mode === "dark" ? "#7c4dff" : "#6b38d4",
             shadowOffset: { width: 0, height: 6 },
             shadowOpacity: 0.35,
             shadowRadius: 12,
@@ -302,9 +241,7 @@ function EditProfileModal({
           {saving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={{ fontSize: 16, fontWeight: "700", color: "#fff" }}>
-              Save Changes
-            </Text>
+            <Text className="font-bold text-white text-base">Save Changes</Text>
           )}
         </TouchableOpacity>
       </RNAnimated.View>
@@ -367,28 +304,20 @@ function ConfirmRevokeModal({
 
   return (
     <View
-      style={{ ...StyleSheet.absoluteFillObject, zIndex: 1000 }}
+      className="z-[1000] absolute inset-0"
       pointerEvents={visible ? "auto" : "none"}
     >
       {/* Backdrop */}
       <RNAnimated.View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          backgroundColor: "rgba(0,0,0,0.55)",
-          opacity: fadeAnim,
-        }}
+        className="absolute inset-0 bg-black/55"
+        style={{ opacity: fadeAnim }}
       >
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <Pressable className="flex-1" onPress={onClose} />
       </RNAnimated.View>
 
       {/* Centered card */}
       <View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingHorizontal: 24,
-        }}
+        className="absolute inset-0 justify-center items-center px-6"
         pointerEvents="box-none"
       >
         <RNAnimated.View
@@ -418,7 +347,7 @@ function ConfirmRevokeModal({
 
           <View className="px-5 pt-4 pb-5">
             {/* Warning card */}
-            <View className="flex-row items-start gap-3 bg-[#f59e0b]/10 dark:bg-[#f59e0b]/[0.08] mb-5 p-4 border border-[#f59e0b]/40 dark:border-[#f59e0b]/20 rounded-xl">
+            <View className="flex-row items-start gap-3 bg-amber-500/10 dark:bg-amber-500/10 mb-5 p-4 border border-amber-500/40 dark:border-amber-500/20 rounded-xl">
               <Ionicons
                 name="warning"
                 size={18}
@@ -426,11 +355,11 @@ function ConfirmRevokeModal({
                 style={{ marginTop: 1 }}
               />
               <View className="flex-1">
-                <Text className="text-[#494454] text-[13px] dark:text-[#94A3B8] leading-[18px]">
+                <Text className="text-[13px] text-slate-600 dark:text-slate-400 leading-[18px]">
                   You will need to sign in again on:
                 </Text>
                 <Text
-                  className="mt-1 font-bold text-[#111c2d] text-[14px] dark:text-[#F8FAFC]"
+                  className="mt-1 font-bold text-[14px] text-slate-900 dark:text-slate-50"
                   numberOfLines={1}
                 >
                   {device?.name}
@@ -443,23 +372,17 @@ function ConfirmRevokeModal({
               <Pressable
                 onPress={onClose}
                 disabled={revoking}
-                className="flex-1 justify-center items-center bg-[#f0f3ff] dark:bg-[#334155] active:opacity-60 rounded-xl h-11"
+                className="flex-1 justify-center items-center bg-slate-100 dark:bg-slate-800 active:opacity-60 rounded-xl h-11"
               >
-                <Text className="font-bold text-[#494454] dark:text-[#94A3B8] text-sm">
+                <Text className="font-bold text-slate-600 dark:text-slate-400 text-sm">
                   Cancel
                 </Text>
               </Pressable>
               <Pressable
                 onPress={onConfirm}
                 disabled={revoking}
-                className="flex-1 justify-center items-center bg-[#ef4444] active:opacity-80 rounded-xl h-11"
-                style={{
-                  shadowColor: "#ef4444",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 4,
-                }}
+                className="flex-1 justify-center items-center bg-red-500 active:opacity-80 shadow-sm rounded-xl h-11"
+                style={{ shadowColor: "#ef4444" }}
               >
                 {revoking ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -491,7 +414,7 @@ function DeviceCard({
   const { mode } = useAppTheme();
   const isCurrentDevice = device.deviceId === currentDeviceId;
   const icon =
-    device.deviceName.toLowerCase().includes("iphone") ||
+    device.deviceName.toLowerCase().includes("phone") ||
     device.deviceName.toLowerCase().includes("ios") ||
     device.deviceName.toLowerCase().includes("android")
       ? "phone-portrait"
@@ -504,24 +427,24 @@ function DeviceCard({
       entering={FadeInDown.duration(300)}
       className={`flex-row items-center gap-3 p-4 rounded-xl ${
         isCurrentDevice
-          ? "bg-[#e9ddff]/40 dark:bg-[#A78BFA]/[0.06] border border-[#6b38d4]/20 dark:border-[#A78BFA]/20"
-          : "bg-white dark:bg-[#1E293B] dark:border dark:border-[#334155]"
+          ? "bg-[#6b38d4]/10 dark:bg-[#7c4dff]/10 border border-[#6b38d4]/20 dark:border-[#7c4dff]/20"
+          : "bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800"
       }`}
     >
       {/* Device icon circle */}
-      <View className="justify-center items-center bg-[#e9ddff] dark:bg-[#334155] rounded-full w-12 h-12 shrink-0">
+      <View className="justify-center items-center bg-slate-100 dark:bg-slate-800 rounded-full w-12 h-12 shrink-0">
         <Ionicons name={icon} size={20} color={iconColor} />
       </View>
 
       {/* Info */}
       <View className="flex-1 min-w-0">
         <Text
-          className="font-bold text-[#111c2d] text-[15px] dark:text-[#F8FAFC]"
+          className="font-bold text-[15px] text-slate-900 dark:text-slate-50"
           numberOfLines={1}
         >
           {device.deviceName}
         </Text>
-        <Text className="mt-0.5 text-[#494454] text-[11px] dark:text-[#94A3B8]">
+        <Text className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
           Last active: {device.deviceId.slice(0, 8)}…
         </Text>
       </View>
@@ -531,7 +454,7 @@ function DeviceCard({
         {isCurrentDevice && (
           <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 border border-emerald-500/20 rounded-full">
             <Text className="font-bold text-[10px] text-emerald-600 dark:text-emerald-400">
-              This device
+              Current
             </Text>
           </View>
         )}
@@ -539,9 +462,8 @@ function DeviceCard({
           onPress={() =>
             onRevokePress(device.id, device.deviceName, device.deviceId)
           }
-          className="justify-center items-center bg-[#ef4444]/10 dark:bg-[#ef4444]/[0.15] active:opacity-60 rounded-full w-9 h-9"
+          className="justify-center items-center bg-red-500/10 dark:bg-red-500/15 active:opacity-60 rounded-full w-9 h-9"
           hitSlop={8}
-          activeOpacity={0.7}
         >
           <Ionicons name="trash" size={16} color="#ef4444" />
         </TouchableOpacity>
@@ -563,48 +485,24 @@ function InfoRow({
 }) {
   const { colors, mode } = useAppTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        paddingVertical: 10,
-      }}
-    >
+    <View className="flex-row items-center gap-3 py-2.5">
       <View
+        className="justify-center items-center rounded-xl w-10 h-10"
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
           backgroundColor:
             mode === "light"
               ? colors.surfaceContainerLow
               : colors.surfaceContainerHigh,
-          alignItems: "center",
-          justifyContent: "center",
         }}
       >
         <Ionicons name={icon} size={16} color={colors.primary} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: "600",
-            color: mode === "light" ? colors.outline : colors.textSecondary,
-            textTransform: "uppercase",
-            letterSpacing: 1,
-          }}
-        >
+      <View className="flex-1">
+        <Text className="font-bold text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-[1px]">
           {label}
         </Text>
         <Text
-          style={{
-            fontSize: 15,
-            fontWeight: "500",
-            color: colors.text,
-            marginTop: 1,
-          }}
+          className="mt-0.5 font-medium text-[15px] text-slate-900 dark:text-slate-100"
           numberOfLines={1}
         >
           {value}
@@ -617,7 +515,7 @@ function InfoRow({
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [atomUser, setUser] = useAtom(userAtom);
   const router = useRouter();
@@ -632,7 +530,7 @@ export default function ProfileScreen() {
   } | null>(null);
   const [revoking, setRevoking] = useState(false);
 
-  // Always fetch fresh user data — do not rely on potentially stale Jotai atom
+  // Always fetch fresh user data
   const { data: freshUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: fetchCurrentUser,
@@ -640,7 +538,6 @@ export default function ProfileScreen() {
     staleTime: 60_000,
   });
 
-  // Sync fresh user data back to the atom so other screens benefit
   const user = freshUser ?? atomUser;
 
   const { data: devices, isLoading: loadingDevices } = useQuery({
@@ -676,14 +573,12 @@ export default function ProfileScreen() {
     setRevoking(true);
     try {
       if (revokeTarget.deviceId === currentDeviceId) {
-        // If revoking current device, perform a full logout
         await logout();
         setUser(null);
         setRevokeTarget(null);
         router.replace("/(auth)/login");
         return;
       }
-
       await revokeDevice(revokeTarget.id);
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       setRevokeTarget(null);
@@ -719,7 +614,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View className="flex-1 bg-[#f8f9ff] dark:bg-[#0f172a]">
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{
@@ -740,18 +635,13 @@ export default function ProfileScreen() {
           {user.profilePicPath ? (
             <ImageBackground
               source={{ uri: user.profilePicPath }}
-              style={{ width: "100%", height: 220 }}
+              className="w-full h-[220px]"
               resizeMode="cover"
               blurRadius={15}
             >
               <LinearGradient
                 colors={["transparent", "rgba(0,0,0,0.72)"]}
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  paddingBottom: 20,
-                }}
+                className="flex-1 justify-end items-center pb-5"
               >
                 <Avatar
                   user={user}
@@ -760,133 +650,66 @@ export default function ProfileScreen() {
                   onPress={openProfilePicPicker}
                   accentColor={colors.primary}
                 />
-                <Text
-                  style={{
-                    marginTop: 10,
-                    fontSize: 20,
-                    fontWeight: "800",
-                    color: "#fff",
-                    letterSpacing: -0.4,
-                  }}
-                >
+                <Text className="mt-2.5 font-extrabold text-white text-xl tracking-[-0.4px]">
                   {user.name ?? user.username}
                 </Text>
-                <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                <Text className="mt-0.5 text-[13px] text-white/70">
                   @{user.username}
                 </Text>
               </LinearGradient>
             </ImageBackground>
           ) : (
-            <View
-              style={{
-                width: "100%",
-                height: 220,
-                backgroundColor: colors.primary,
-                alignItems: "center",
-                justifyContent: "flex-end",
-                paddingBottom: 20,
-                overflow: "hidden",
-              }}
-            >
-              {/* Large background initials */}
-              <Text
-                style={{
-                  position: "absolute",
-                  fontSize: 140,
-                  fontWeight: "900",
-                  color: "rgba(255,255,255,0.08)",
-                  letterSpacing: -4,
-                  top: -8,
-                }}
-                numberOfLines={1}
-              >
+            <View className="justify-end items-center bg-[#6b38d4] pb-5 w-full h-[220px] overflow-hidden">
+              <Text className="-top-2 absolute font-black text-[140px] text-white/5 tracking-[-4px]">
                 {initials}
               </Text>
               <LinearGradient
-                colors={["transparent", colors.primary]}
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 80,
-                }}
+                colors={["transparent", "rgba(0,0,0,0.4)"]}
+                className="absolute inset-0"
               />
-              <Avatar
-                user={user}
-                size={88}
-                editable
-                onPress={openProfilePicPicker}
-                accentColor="#fff"
-              />
-              <Text
-                style={{
-                  marginTop: 10,
-                  fontSize: 20,
-                  fontWeight: "800",
-                  color: "#fff",
-                  letterSpacing: -0.4,
-                }}
-              >
-                {user.name ?? user.username}
-              </Text>
-              <Text style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-                @{user.username}
-              </Text>
+              <View className="items-center pb-5">
+                <Avatar
+                  user={user}
+                  size={88}
+                  editable
+                  onPress={openProfilePicPicker}
+                  accentColor="#fff"
+                />
+                <Text className="mt-2.5 font-extrabold text-white text-xl tracking-[-0.4px]">
+                  {user.name ?? user.username}
+                </Text>
+                <Text className="mt-0.5 text-[13px] text-white/70">
+                  @{user.username}
+                </Text>
+              </View>
             </View>
           )}
 
-          {/* Edit Profile button — below the hero */}
-          <View style={{ alignItems: "center", paddingTop: 16, paddingBottom: 8 }}>
+          {/* Edit Profile button */}
+          <View className="items-center pt-4 pb-2">
             <TouchableOpacity
               onPress={() => setEditVisible(true)}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 12,
-                backgroundColor: colors.primary + "14",
-                borderWidth: 1,
-                borderColor: colors.primary + "30",
-              }}
+              className="flex-row items-center gap-1.5 bg-[#6b38d4]/10 dark:bg-[#7c4dff]/10 px-5 py-2.5 border border-[#6b38d4]/20 dark:border-[#7c4dff]/20 rounded-xl"
             >
-              <Ionicons name="create" size={14} color={colors.primary} />
-              <Text
-                style={{ fontSize: 13, fontWeight: "700", color: colors.primary }}
-              >
+              <Ionicons
+                name="create"
+                size={14}
+                color={mode === "dark" ? "#A78BFA" : "#6b38d4"}
+              />
+              <Text className="font-bold text-[#6b38d4] text-[13px] dark:text-[#A78BFA]">
                 Edit Profile
               </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
 
-        <View style={{ paddingHorizontal: 20, gap: 24 }}>
+        <View className="gap-6 mt-2 px-5">
           {/* ── User Info Card ─────────────────────────────────── */}
           <Animated.View
             entering={FadeInDown.duration(400).delay(50)}
-            style={{
-              borderRadius: 20,
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: colors.border,
-              padding: 20,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 12,
-              elevation: 2,
-            }}
+            className="bg-white dark:bg-[#1E293B] shadow-sm p-5 border border-slate-200 dark:border-slate-800 rounded-[24px]"
           >
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "800",
-                color: colors.text,
-                marginBottom: 4,
-              }}
-            >
+            <Text className="mb-1 font-extrabold text-[15px] text-slate-900 dark:text-slate-50">
               Account Information
             </Text>
             <InfoRow icon="person" label="Full Name" value={user.name ?? "—"} />
@@ -897,13 +720,11 @@ export default function ProfileScreen() {
               label="Birthday"
               value={formatDate(user.birthDate)}
             />
-            <View style={{ borderBottomWidth: 0 }}>
-              <InfoRow
-                icon="time"
-                label="Member Since"
-                value={user.createdAt ? formatDate(user.createdAt) : "—"}
-              />
-            </View>
+            <InfoRow
+              icon="time"
+              label="Member Since"
+              value={user.createdAt ? formatDate(user.createdAt) : "—"}
+            />
           </Animated.View>
 
           {/* ── Theme Preferences ──────────────────────────────── */}
@@ -912,61 +733,25 @@ export default function ProfileScreen() {
           {/* ── Connected Devices ──────────────────────────────── */}
           <Animated.View
             entering={FadeInDown.duration(400).delay(100)}
-            style={{ marginTop: 24 }}
+            className="mt-4"
           >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 14,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: "800",
-                  color: colors.text,
-                  letterSpacing: -0.3,
-                }}
-              >
+            <View className="flex-row justify-between items-center mb-3.5">
+              <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-lg tracking-[-0.3px]">
                 📱 Connected Devices
               </Text>
-              {Array.isArray(devices) ? (
-                <View
-                  style={{
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                    borderRadius: 10,
-                    backgroundColor: colors.primary + "18",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: "700",
-                      color: colors.primary,
-                    }}
-                  >
+              {Array.isArray(devices) && (
+                <View className="bg-[#6b38d4]/10 dark:bg-[#7c4dff]/20 px-2.5 py-1 rounded-lg">
+                  <Text className="font-bold text-[#6b38d4] dark:text-[#A78BFA] text-xs">
                     {devices.length}
                   </Text>
                 </View>
-              ) : null}
+              )}
             </View>
 
             {loadingDevices ? (
-              <View
-                style={{
-                  height: 80,
-                  borderRadius: 16,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  opacity: 0.5,
-                }}
-              />
+              <View className="bg-white dark:bg-[#1E293B] opacity-50 border border-slate-200 dark:border-slate-800 rounded-2xl h-20" />
             ) : (
-              <View style={{ gap: 10 }}>
+              <View className="gap-3">
                 {Array.isArray(devices) &&
                   devices.map((d) => (
                     <DeviceCard
@@ -976,27 +761,13 @@ export default function ProfileScreen() {
                       onRevokePress={openRevokeModal}
                     />
                   ))}
-                {!Array.isArray(devices) || devices.length === 0 ? (
-                  <View
-                    style={{
-                      padding: 20,
-                      borderRadius: 16,
-                      backgroundColor: colors.surface,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                      }}
-                    >
+                {(!Array.isArray(devices) || devices.length === 0) && (
+                  <View className="items-center bg-white dark:bg-[#1E293B] p-5 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                    <Text className="text-slate-500 text-sm">
                       No connected devices found
                     </Text>
                   </View>
-                ) : null}
+                )}
               </View>
             )}
           </Animated.View>
