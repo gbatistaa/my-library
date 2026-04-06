@@ -15,7 +15,11 @@ import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
-import { getSagaById, getSagaBooks, deleteSaga } from "@/src/services/sagaService";
+import {
+  getSagaById,
+  getSagaBooks,
+  deleteSaga,
+} from "@/src/services/sagaService";
 import { showApiError } from "@/src/services/apiError";
 import type { BookDTO } from "@/src/types/book";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
@@ -24,7 +28,7 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 function LoadingState() {
   return (
-    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center">
+    <View className="flex-1 justify-center items-center bg-white dark:bg-slate-950">
       <ActivityIndicator size="large" color="#7c4dff" />
     </View>
   );
@@ -32,20 +36,23 @@ function LoadingState() {
 
 function ErrorState({ onBack }: { onBack: () => void }) {
   return (
-    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center px-8">
-      <View className="bg-red-50 dark:bg-red-900/10 p-6 rounded-[32px] items-center border border-red-100 dark:border-red-900/20">
+    <View className="flex-1 justify-center items-center bg-white dark:bg-slate-950 px-8">
+      <View className="items-center bg-red-50 dark:bg-red-900/10 p-6 border border-red-100 dark:border-red-900/20 rounded-[32px]">
         <Feather name="alert-circle" size={48} color="#ef4444" />
-        <Text className="text-slate-950 dark:text-slate-50 text-xl font-bold mt-4 text-center">
+        <Text className="mt-4 font-bold text-slate-950 dark:text-slate-50 text-xl text-center">
           Saga not found
         </Text>
-        <Text className="text-slate-500 dark:text-slate-400 text-sm mt-2 text-center leading-5">
-          We couldn&apos;t load the details for this saga. It might have been deleted.
+        <Text className="mt-2 text-slate-500 dark:text-slate-400 text-sm text-center leading-5">
+          We couldn&apos;t load the details for this saga. It might have been
+          deleted.
         </Text>
         <Pressable
           onPress={onBack}
-          className="mt-6 bg-slate-900 dark:bg-slate-50 rounded-2xl px-8 py-3.5 shadow-lg active:scale-95"
+          className="bg-slate-900 dark:bg-slate-50 shadow-lg mt-6 px-8 py-3.5 rounded-2xl active:scale-95"
         >
-          <Text className="text-white dark:text-slate-950 font-bold">Go Back</Text>
+          <Text className="font-bold text-white dark:text-slate-950">
+            Go Back
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -60,13 +67,13 @@ function BookMiniCard({ book, delay }: { book: BookDTO; delay: number }) {
       className="mr-5"
       style={{ width: 100 }}
     >
-      <Pressable 
+      <Pressable
         onPress={() => router.push(`/book/${book.id}`)}
         className="active:opacity-80"
       >
         {/* Cover */}
         <View
-          className="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+          className="bg-slate-100 dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden"
           style={{ width: 100, height: 145 }}
         >
           {book.coverUrl ? (
@@ -76,7 +83,7 @@ function BookMiniCard({ book, delay }: { book: BookDTO; delay: number }) {
               resizeMode="cover"
             />
           ) : (
-            <View className="flex-1 items-center justify-center">
+            <View className="flex-1 justify-center items-center">
               <Feather name="book" size={24} color="#94A3B8" />
             </View>
           )}
@@ -84,7 +91,7 @@ function BookMiniCard({ book, delay }: { book: BookDTO; delay: number }) {
 
         {/* Title */}
         <Text
-          className="text-slate-900 dark:text-slate-100 text-[11px] font-bold mt-2.5 text-center leading-[15px]"
+          className="mt-2.5 font-bold text-[11px] text-slate-900 dark:text-slate-100 text-center leading-[15px]"
           numberOfLines={2}
         >
           {book.title}
@@ -137,7 +144,7 @@ export default function SagaDetailsScreen() {
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: () => removeSaga() },
-      ]
+      ],
     );
   }
 
@@ -148,12 +155,12 @@ export default function SagaDetailsScreen() {
 
   return (
     <>
-      <StatusBar style={mode === 'dark' ? "light" : "dark"} />
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="flex-1 bg-white dark:bg-slate-950">
         {/* Background Accent Gradient overlay */}
-        <View className="absolute top-0 left-0 right-0 h-64 bg-violet-600/5 dark:bg-violet-500/5" />
+        <View className="top-0 right-0 left-0 absolute bg-violet-600/5 dark:bg-violet-500/5 h-64" />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -161,12 +168,12 @@ export default function SagaDetailsScreen() {
         >
           {/* ─── Top App Bar ─── */}
           <View
-            className="flex-row items-center justify-between px-6 pb-4"
+            className="flex-row justify-between items-center px-6 pb-4"
             style={{ paddingTop: insets.top + 8 }}
           >
             <Pressable
               onPress={() => router.back()}
-              className="w-10 h-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm active:scale-90"
+              className="justify-center items-center bg-slate-50 dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 rounded-full w-10 h-10 active:scale-90"
               hitSlop={8}
             >
               <Feather name="arrow-left" size={20} color={colors.text} />
@@ -174,16 +181,16 @@ export default function SagaDetailsScreen() {
 
             <View className="flex-1 mx-4">
               <Text
-                className="text-slate-900 dark:text-slate-50 font-black text-center text-lg tracking-tight"
+                className="font-black text-slate-900 dark:text-slate-50 text-2xl text-center tracking-tight"
                 numberOfLines={1}
               >
-                Saga Details
+                {saga.name}
               </Text>
             </View>
 
             <Pressable
               onPress={() => router.push(`/edit-saga/${id}`)}
-              className="w-10 h-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm active:scale-90"
+              className="justify-center items-center bg-slate-50 dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 rounded-full w-10 h-10 active:scale-90"
               hitSlop={8}
             >
               <Feather name="edit-3" size={18} color={colors.text} />
@@ -193,11 +200,11 @@ export default function SagaDetailsScreen() {
           {/* ─── Cover Image ─── */}
           <Animated.View
             entering={FadeIn.duration(600)}
-            className="self-center mt-6 rounded-[40px] overflow-hidden shadow-2xl"
+            className="self-center shadow-2xl mt-6 rounded-[40px] overflow-hidden"
             style={{
               width: coverWidth,
               aspectRatio: 2 / 3,
-              shadowColor: mode === 'dark' ? "#000" : "#6b38d4",
+              shadowColor: mode === "dark" ? "#000" : "#6b38d4",
               elevation: 25,
             }}
           >
@@ -208,11 +215,16 @@ export default function SagaDetailsScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-full h-full bg-slate-200 dark:bg-slate-900 items-center justify-center">
-                <Text className="text-5xl font-bold text-slate-400 dark:text-slate-700">
+              <View className="justify-center items-center bg-slate-200 dark:bg-slate-900 w-full h-full">
+                <Text className="font-bold text-slate-400 dark:text-slate-700 text-5xl">
                   {saga.name.charAt(0).toUpperCase()}
                 </Text>
-                <Feather name="layers" size={40} color={mode === 'dark' ? "#334155" : "#CBD5E1"} style={{ marginTop: 10 }} />
+                <Feather
+                  name="layers"
+                  size={40}
+                  color={mode === "dark" ? "#334155" : "#CBD5E1"}
+                  style={{ marginTop: 10 }}
+                />
               </View>
             )}
           </Animated.View>
@@ -221,16 +233,17 @@ export default function SagaDetailsScreen() {
             {/* ─── Title + Meta ─── */}
             <Animated.View
               entering={FadeInDown.duration(400).delay(100)}
-              className="mt-10 items-center"
+              className="items-center mt-10"
             >
-              <Text className="text-4xl font-black text-slate-950 dark:text-slate-50 text-center tracking-tight leading-tight">
+              <Text className="font-black text-slate-950 dark:text-slate-50 text-4xl text-center leading-tight tracking-tight">
                 {saga.name}
               </Text>
 
               <View className="flex-row items-center gap-2 mt-4">
-                <View className="bg-violet-100 dark:bg-violet-950/40 rounded-full px-4 py-1.5 border border-violet-200 dark:border-violet-900/30">
-                  <Text className="text-violet-600 dark:text-violet-400 text-[10px] font-black uppercase tracking-[2px]">
-                    {saga.bookCount ?? 0} {saga.bookCount === 1 ? "Volume" : "Volumes"}
+                <View className="bg-violet-100 dark:bg-violet-950/40 px-4 py-1.5 border border-violet-200 dark:border-violet-900/30 rounded-full">
+                  <Text className="font-black text-[10px] text-violet-600 dark:text-violet-400 uppercase tracking-[2px]">
+                    {saga.bookCount ?? 0}{" "}
+                    {saga.bookCount === 1 ? "Volume" : "Volumes"}
                   </Text>
                 </View>
               </View>
@@ -240,15 +253,21 @@ export default function SagaDetailsScreen() {
             {saga.description && (
               <Animated.View
                 entering={FadeInDown.duration(400).delay(200)}
-                className="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 rounded-[32px] p-6 mt-8 shadow-sm"
+                className="bg-slate-50 dark:bg-slate-900/50 shadow-sm mt-8 p-6 border border-slate-100 dark:border-slate-800/60 rounded-[32px]"
               >
                 <View className="flex-row items-center gap-2.5 mb-4">
-                  <View className="bg-violet-100 dark:bg-violet-500/20 w-8 h-8 rounded-xl items-center justify-center">
-                    <Feather name="file-text" size={16} color={mode === 'dark' ? "#A78BFA" : "#6d28d9"} />
+                  <View className="justify-center items-center bg-violet-100 dark:bg-violet-500/20 rounded-xl w-8 h-8">
+                    <Feather
+                      name="file-text"
+                      size={16}
+                      color={mode === "dark" ? "#A78BFA" : "#6d28d9"}
+                    />
                   </View>
-                  <Text className="text-sm font-black text-slate-800 dark:text-slate-100">About this Saga</Text>
+                  <Text className="font-black text-slate-800 dark:text-slate-100 text-sm">
+                    About this Saga
+                  </Text>
                 </View>
-                <Text className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                <Text className="font-medium text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed">
                   {saga.description}
                 </Text>
               </Animated.View>
@@ -260,13 +279,13 @@ export default function SagaDetailsScreen() {
                 entering={FadeInDown.duration(400).delay(300)}
                 className="mt-10"
               >
-                <View className="flex-row items-center justify-between mb-5 px-1">
+                <View className="flex-row justify-between items-center mb-5 px-1">
                   <View className="flex-row items-center gap-2.5">
-                    <Text className="text-xs uppercase font-black text-slate-400 dark:text-slate-500 tracking-[3px]">
+                    <Text className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-[3px]">
                       Collection
                     </Text>
                   </View>
-                  <Text className="text-xs font-bold text-slate-400 dark:text-slate-600">
+                  <Text className="font-bold text-slate-400 dark:text-slate-600 text-xs">
                     {books.length} Books
                   </Text>
                 </View>
@@ -287,12 +306,12 @@ export default function SagaDetailsScreen() {
           {/* ─── Delete Button ─── */}
           <Animated.View
             entering={FadeInDown.duration(400).delay(400)}
-            className="px-6 mt-10"
+            className="mt-10 px-6"
           >
             <Pressable
               onPress={handleDelete}
               disabled={isDeleting}
-              className="w-full h-15 rounded-3xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/20 flex-row items-center justify-center gap-3 active:bg-red-100 disabled:opacity-60"
+              className="flex-row justify-center items-center gap-3 bg-red-50 active:bg-red-100 dark:bg-red-950/10 disabled:opacity-60 border border-red-100 dark:border-red-900/20 rounded-3xl w-full h-15"
               style={{ height: 60 }}
             >
               {isDeleting ? (
@@ -300,7 +319,9 @@ export default function SagaDetailsScreen() {
               ) : (
                 <Feather name="trash-2" size={18} color="#ef4444" />
               )}
-              <Text className="text-red-600 font-bold text-base">Remove from Library</Text>
+              <Text className="font-bold text-red-600 text-base">
+                Remove from Library
+              </Text>
             </Pressable>
           </Animated.View>
         </ScrollView>
