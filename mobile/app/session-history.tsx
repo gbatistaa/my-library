@@ -10,12 +10,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { fetchReadingSessionHistory } from "@/src/services/readingSessionService";
 
 const SessionHistoryScreen = () => {
+  const router = useRouter();
   const { mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const isDark = mode === "dark";

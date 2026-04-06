@@ -44,7 +44,14 @@ function SummaryCard({
   return (
     <Animated.View
       entering={FadeInDown.duration(350).delay(delay)}
-      className="flex-1 gap-2 bg-white dark:bg-slate-900 p-3.5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm"
+      className="flex-1 gap-2 bg-white dark:bg-slate-900 p-3.5 border border-slate-200 dark:border-slate-800/50 rounded-2xl"
+      style={{
+        shadowColor: "rgba(0,0,0,0.1)",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
+        elevation: 1,
+      }}
     >
       <View
         className="justify-center items-center rounded-full w-9 h-9"
@@ -133,9 +140,9 @@ function getDynamicChartSubtitle(period: string): string {
 }
 
 export default function AnalyticsScreen() {
+  const router = useRouter();
   const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [intervalType, setIntervalType] = useState<"ROLLING" | "CURRENT">(
     "ROLLING",
   );
@@ -252,7 +259,18 @@ export default function AnalyticsScreen() {
                 <TouchableOpacity
                   key={type}
                   onPress={() => handleTypeChange(type)}
-                  className={`flex-1 py-2.5 items-center rounded-lg ${isActive ? "bg-white dark:bg-slate-900 shadow-sm" : ""}`}
+                  className={`flex-1 py-2.5 items-center rounded-lg ${isActive ? "bg-white dark:bg-slate-900" : ""}`}
+                  style={
+                    isActive
+                      ? {
+                          shadowColor: "rgba(0,0,0,0.15)",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 4,
+                          elevation: 2,
+                        }
+                      : {}
+                  }
                 >
                   <Text
                     className={`text-xs ${

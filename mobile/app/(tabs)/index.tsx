@@ -18,7 +18,7 @@ import {
 } from "@/src/services/profileService";
 import { getCurrentlyReading } from "@/src/services/bookService";
 
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { CurrentlyReading } from "@/src/components/home/CurrentlyReading";
 import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
@@ -48,6 +48,7 @@ function getGreeting(): string {
 
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const user = useAtomValue(userAtom);
