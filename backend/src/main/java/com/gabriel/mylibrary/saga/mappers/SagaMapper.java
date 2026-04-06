@@ -17,7 +17,7 @@ public interface SagaMapper {
 
   SagaEntity toEntity(CreateSagaDTO createSagaDTO);
 
-  @Mapping(target = "bookCount", expression = "java(sagaEntity.getBooks().size())")
+  @Mapping(target = "bookCount", ignore = true)
   SagaDTO toDto(SagaEntity sagaEntity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

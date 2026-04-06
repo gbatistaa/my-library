@@ -19,6 +19,11 @@ public interface BookMapper {
 
   BookCategoryDTO toCategoryDto(CategoryEntity category);
 
+  @Mapping(source = "categories", target = "categories")
+  com.gabriel.mylibrary.books.dtos.BookSummaryDTO toSummaryDto(BookEntity bookEntity);
+
+  com.gabriel.mylibrary.books.dtos.BookSummaryDTO.CategorySummaryDTO toCategorySummaryDto(CategoryEntity category);
+
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "categories", ignore = true)
   void updateEntityFromDto(UpdateBookDTO updateBookDTO, @MappingTarget BookEntity bookEntity);

@@ -12,8 +12,7 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
-import com.gabriel.mylibrary.user.dtos.UserDTO;
-import com.gabriel.mylibrary.user.mappers.UserMapper;
+import com.gabriel.mylibrary.user.projections.UserSummary;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,13 +26,11 @@ public class AuthController {
   private final AuthService authService;
   private final UserRepository userRepository;
 
-  private final UserMapper userMapper;
-
   @GetMapping("/me")
-  public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal UserEntity user) {
-    UserEntity fullUser = userRepository.findById(user.getId())
+  public ResponseEntity<UserSummary> getMe(@AuthenticationPrincipal UserEntity user) {
+    return userRepository.findSummaryById(user.getId())
+        .map(ResponseEntity::ok)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    return ResponseEntity.ok(userMapper.toDTO(fullUser));
   }
 
   @PostMapping("/register")

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gabriel.mylibrary.books.dtos.BookDTO;
+import com.gabriel.mylibrary.books.projections.BookSummary;
 import com.gabriel.mylibrary.saga.dtos.CreateSagaDTO;
 import com.gabriel.mylibrary.saga.dtos.SagaDTO;
 import com.gabriel.mylibrary.saga.dtos.UpdateSagaDTO;
@@ -43,7 +43,7 @@ public class SagaController {
   }
 
   @GetMapping("/{id}/books")
-  public ResponseEntity<List<BookDTO>> getBooks(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
+  public ResponseEntity<List<BookSummary>> getBooks(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
     return ResponseEntity.ok(sagaService.getBooks(id, user.getId()));
   }
 

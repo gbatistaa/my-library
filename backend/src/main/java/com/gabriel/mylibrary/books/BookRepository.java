@@ -1,5 +1,7 @@
 package com.gabriel.mylibrary.books;
 
+import com.gabriel.mylibrary.books.projections.BookReadingProjection;
+import com.gabriel.mylibrary.books.projections.BookSummary;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +30,12 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   @EntityGraph(attributePaths = { "categories" })
   Page<BookEntity> findAllByUserIdAndTitleContainingIgnoreCase(UUID userId, String title, Pageable pageable);
 
+  @Query("SELECT b FROM BookEntity b WHERE b.user.id = :userId")
+  Page<BookSummary> findSummariesByUserId(@Param("userId") UUID userId, Pageable pageable);
+
+  @Query("SELECT b FROM BookEntity b WHERE b.user.id = :userId AND LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+  Page<BookSummary> findSummariesByUserIdAndTitle(@Param("userId") UUID userId, @Param("title") String title, Pageable pageable);
+
   int countByUserIdAndStatusAndFinishDateBetween(UUID userId, BookStatus status, LocalDate startDate,
       LocalDate endDate);
 
@@ -35,6 +43,8 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   long countByUserIdAndStatus(UUID userId, BookStatus status);
 
   List<BookEntity> findAllByUserIdAndStatus(UUID userId, BookStatus status);
+
+  List<BookReadingProjection> findProjectedByUserIdAndStatus(UUID userId, BookStatus status);
 
   @Query("SELECT b FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED'")
   List<BookEntity> findAllCompletedByUserId(@Param("userId") UUID userId);
@@ -61,6 +71,9 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID>, JpaSpec
   // Stats / Analytics queries
   @Query("SELECT c.name, COUNT(b) FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY c.name ORDER BY COUNT(b) DESC")
   List<Object[]> countBooksByCategory(@Param("userId") UUID userId);
+
+  @Query("SELECT c.name FROM BookEntity b JOIN b.categories c WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY c.name ORDER BY COUNT(b) DESC LIMIT 1")
+  Optional<String> findTopCategoryByUserId(@Param("userId") UUID userId);
 
   @Query("SELECT b.author, COUNT(b) FROM BookEntity b WHERE b.user.id = :userId AND b.status = 'COMPLETED' GROUP BY b.author ORDER BY COUNT(b) DESC")
   List<Object[]> countBooksByAuthor(@Param("userId") UUID userId);

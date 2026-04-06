@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.books.BookRepository;
-import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.mappers.BookMapper;
+import com.gabriel.mylibrary.books.projections.BookSummary;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -20,7 +20,9 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +36,18 @@ public class SagaService {
 
   @Transactional(readOnly = true)
   public List<SagaDTO> findAllByUserId(UUID userId) {
-    return sagaRepository.findAllByUserId(userId)
-        .stream()
-        .map(sagaMapper::toDto)
+    Map<UUID, Integer> bookCounts = sagaRepository.countBooksBySagaIdForUser(userId).stream()
+        .collect(Collectors.toMap(
+            row -> (UUID) row[0],
+            row -> ((Long) row[1]).intValue()
+        ));
+
+    return sagaRepository.findAllByUserId(userId).stream()
+        .map(entity -> {
+          SagaDTO dto = sagaMapper.toDto(entity);
+          dto.setBookCount(bookCounts.getOrDefault(entity.getId(), 0));
+          return dto;
+        })
         .toList();
   }
 
@@ -48,13 +59,13 @@ public class SagaService {
   }
 
   @Transactional(readOnly = true)
-  public List<BookDTO> getBooks(UUID sagaId, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+  public List<BookSummary> getBooks(UUID sagaId, UUID userId) throws ResourceNotFoundException {
+    SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
 
-    return saga.getBooks().stream()
-        .map(bookMapper::toDto)
-        .toList();
+    return sagaEntity.getBooks().stream()
+        .map(bookMapper::toSummaryDto)
+        .collect(Collectors.toList());
   }
 
   @Transactional
@@ -63,67 +74,63 @@ public class SagaService {
       throw new ResourceConflictException("Saga with this name already exists: " + dto.getName());
     }
 
-    SagaEntity saga = sagaMapper.toEntity(dto);
-    saga.setUser(entityManager.getReference(UserEntity.class, userId));
+    SagaEntity sagaEntity = sagaMapper.toEntity(dto);
+    sagaEntity.setUser(entityManager.getReference(UserEntity.class, userId));
 
-    return sagaMapper.toDto(sagaRepository.save(saga));
+    return sagaMapper.toDto(sagaRepository.save(sagaEntity));
   }
 
   @Transactional
   public SagaDTO update(UUID id, UpdateSagaDTO dto, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(id, userId)
+    SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
 
-    sagaMapper.updateEntityFromDto(dto, saga);
+    sagaMapper.updateEntityFromDto(dto, sagaEntity);
 
-    return sagaMapper.toDto(sagaRepository.save(saga));
+    return sagaMapper.toDto(sagaRepository.save(sagaEntity));
   }
 
   @Transactional
   public SagaDTO addBookToSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+    SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
 
     BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
 
-    saga.addBook(book);
+    sagaEntity.addBook(book);
 
-    return sagaMapper.toDto(saga);
+    return sagaMapper.toDto(sagaEntity);
   }
 
   @Transactional
   public void removeBookFromSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
+    SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
 
     BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
 
-    saga.removeBook(book);
+    sagaEntity.removeBook(book);
   }
 
   @Transactional(readOnly = true)
   public double getProgress(UUID sagaId, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(sagaId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+    if (sagaRepository.findByIdAndUserId(sagaId, userId).isEmpty()) {
+      throw new ResourceNotFoundException("Saga not found with id: " + sagaId);
+    }
 
-    int totalBooks = saga.getBooks().size();
-    int completedBooks = (int) saga.getBooks().stream()
-        .filter(book -> book.getStatus() == BookStatus.COMPLETED)
-        .count();
+    long totalBooks = sagaRepository.countBooksBySagaId(sagaId);
+    long completedBooks = sagaRepository.countBooksBySagaIdAndStatus(sagaId, BookStatus.COMPLETED);
 
-    double progress = totalBooks == 0 ? 0 : (double) completedBooks / totalBooks * 100;
-
-    return progress;
+    return totalBooks == 0 ? 0 : (double) completedBooks / totalBooks * 100;
   }
 
   @Transactional
   public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
-    SagaEntity saga = sagaRepository.findByIdAndUserId(id, userId)
+    SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
 
-    sagaRepository.delete(saga);
+    sagaRepository.delete(sagaEntity);
   }
-
 }

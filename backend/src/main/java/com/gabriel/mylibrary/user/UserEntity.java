@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gabriel.mylibrary.auth.tokens.RefreshTokenEntity;
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.categories.CategoryEntity;
@@ -37,6 +38,7 @@ public class UserEntity extends BaseEntity {
   @Column(nullable = false, unique = true)
   private String email;
 
+  @JsonIgnore
   @Size(min = 8, max = 255)
   @Column(nullable = false)
   private String password;

@@ -34,7 +34,7 @@ public class ReadingGoalService {
   private static final String MSG_PROJECTED_REACHED = "Meta já atingida!";
   private static final String MSG_NO_READS_YET = "Comece a ler para gerar uma projeção";
   private static final DateTimeFormatter PROJECTED_DATE_FORMAT = DateTimeFormatter.ofPattern("dd 'de' MMMM 'de' yyyy",
-      new Locale("pt", "BR"));
+      Locale.of("pt", "BR"));
 
   private final ReadingGoalRepository readingGoalRepository;
   private final BookRepository bookRepository;
@@ -70,16 +70,14 @@ public class ReadingGoalService {
 
   @Transactional
   public void delete(UUID id, UUID userId) {
-    ReadingGoalEntity entity = readingGoalRepository.findById(id)
-        .filter(goal -> goal.getUser().getId().equals(userId))
+    ReadingGoalEntity entity = readingGoalRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Reading goal not found with id: " + id));
     readingGoalRepository.delete(entity);
   }
 
   @Transactional
   public ReadingGoalDTO update(UUID id, UUID userId, UpdateReadingGoalDTO dto) {
-    ReadingGoalEntity entity = readingGoalRepository.findById(id)
-        .filter(goal -> goal.getUser().getId().equals(userId))
+    ReadingGoalEntity entity = readingGoalRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Reading goal not found with id: " + id));
 
     mapper.updateEntityFromDto(dto, entity);
@@ -147,8 +145,7 @@ public class ReadingGoalService {
         endOfYear);
     long uniqueGenres = bookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear,
         endOfYear);
-    List<Object[]> genreStats = bookRepository.countBooksByCategory(userId);
-    String topGenre = genreStats.isEmpty() ? "Nenhum" : (String) genreStats.get(0)[0];
+    String topGenre = bookRepository.findTopCategoryByUserId(userId).orElse("Nenhum");
 
     // Authors/genres goal tracking
     boolean authorsGoalMet = goal.getTargetAuthors() != null && uniqueAuthors >= goal.getTargetAuthors();

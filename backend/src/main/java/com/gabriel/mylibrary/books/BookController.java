@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gabriel.mylibrary.books.projections.BookSummary;
 import com.gabriel.mylibrary.books.dtos.BookAuthorDTO;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
@@ -45,7 +46,7 @@ public class BookController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Page<BookDTO>> findAll(
+  public ResponseEntity<Page<BookSummary>> findAll(
       @AuthenticationPrincipal UserEntity user,
       @RequestParam(required = false) BookStatus status,
       @RequestParam(required = false) Integer minRating,
@@ -61,7 +62,7 @@ public class BookController {
   }
 
   @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Page<BookDTO>> findByTitle(
+  public ResponseEntity<Page<BookSummary>> findByTitle(
       @RequestParam String title,
       @AuthenticationPrincipal UserEntity user,
       @PageableDefault(size = 10, sort = "title") Pageable pageable) {

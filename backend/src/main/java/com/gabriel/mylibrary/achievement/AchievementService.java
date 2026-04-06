@@ -23,18 +23,20 @@ public class AchievementService {
 
   @Transactional(readOnly = true)
   public List<AchievementDTO> getAllWithProgress(UUID userId) {
-    Set<AchievementDefinition> earned = achievementRepository.findAllByUserId(userId).stream()
+    List<UserAchievementEntity> userAchievements = achievementRepository.findAllByUserId(userId);
+    Set<AchievementDefinition> earned = userAchievements.stream()
         .map(UserAchievementEntity::getCode)
         .collect(Collectors.toSet());
-
-    Map<AchievementDefinition, java.time.LocalDate> earnedDates = achievementRepository.findAllByUserId(userId).stream()
+    Map<AchievementDefinition, java.time.LocalDate> earnedDates = userAchievements.stream()
         .collect(Collectors.toMap(UserAchievementEntity::getCode, UserAchievementEntity::getEarnedAt));
+
+    AchievementContext ctx = buildContext(userId, earned);
 
     return Arrays.stream(AchievementDefinition.values())
         .map(def -> {
           boolean isEarned = earned.contains(def);
-          double progress = isEarned ? 1.0 : calculateProgress(def, userId);
-          String progressLabel = isEarned ? "Conquistada!" : generateProgressLabel(def, userId);
+          double progress = isEarned ? 1.0 : calculateProgress(def, ctx);
+          String progressLabel = isEarned ? "Conquistada!" : generateProgressLabel(def, ctx);
 
           return AchievementDTO.builder()
               .code(def.name())
@@ -48,6 +50,31 @@ public class AchievementService {
               .build();
         })
         .toList();
+  }
+
+  private record AchievementContext(
+      long completedBooks,
+      int totalPages,
+      int currentStreak,
+      long distinctCategories,
+      long distinctAuthors
+  ) {}
+
+  private AchievementContext buildContext(UUID userId, Set<AchievementDefinition> earned) {
+    // Only fetch what's needed for unearned achievements
+    boolean needsBooks = !earned.containsAll(Set.of(AchievementDefinition.FIRST_BOOK, AchievementDefinition.BOOKWORM, AchievementDefinition.CENTURION));
+    boolean needsPages = !earned.contains(AchievementDefinition.PAGE_TURNER);
+    boolean needsStreak = !earned.containsAll(Set.of(AchievementDefinition.IRON_READER, AchievementDefinition.HABIT_FORMED));
+    boolean needsCategories = !earned.contains(AchievementDefinition.GENRE_EXPLORER);
+    boolean needsAuthors = !earned.contains(AchievementDefinition.NEW_VOICE);
+
+    return new AchievementContext(
+        needsBooks ? bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED) : 0,
+        needsPages ? readingSessionRepository.sumAllPagesReadByUserId(userId) : 0,
+        needsStreak ? streakRepository.findByUserId(userId).map(StreakEntity::getCurrentStreak).orElse(0) : 0,
+        needsCategories ? bookRepository.countDistinctCategoriesByUserId(userId) : 0,
+        needsAuthors ? bookRepository.countDistinctAuthorsByUserId(userId) : 0
+    );
   }
 
   @Transactional(readOnly = true)
@@ -66,46 +93,30 @@ public class AchievementService {
         .toList();
   }
 
-  private double calculateProgress(AchievementDefinition def, UUID userId) {
+  private double calculateProgress(AchievementDefinition def, AchievementContext ctx) {
     double current = switch (def) {
-      case FIRST_BOOK, BOOKWORM, CENTURION ->
-        (double) bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
-      case PAGE_TURNER ->
-        (double) readingSessionRepository.sumAllPagesReadByUserId(userId);
-      case IRON_READER, HABIT_FORMED ->
-        (double) streakRepository.findByUserId(userId).map(StreakEntity::getCurrentStreak).orElse(0);
-      case GENRE_EXPLORER ->
-        (double) bookRepository.countDistinctCategoriesByUserId(userId);
-      case NEW_VOICE ->
-        (double) bookRepository.countDistinctAuthorsByUserId(userId);
+      case FIRST_BOOK, BOOKWORM, CENTURION -> (double) ctx.completedBooks();
+      case PAGE_TURNER -> (double) ctx.totalPages();
+      case IRON_READER, HABIT_FORMED -> (double) ctx.currentStreak();
+      case GENRE_EXPLORER -> (double) ctx.distinctCategories();
+      case NEW_VOICE -> (double) ctx.distinctAuthors();
       default -> 0.0;
     };
-
     return Math.min(1.0, current / def.getThreshold());
   }
 
-  private String generateProgressLabel(AchievementDefinition def, UUID userId) {
+  private String generateProgressLabel(AchievementDefinition def, AchievementContext ctx) {
     return switch (def) {
-      case FIRST_BOOK, BOOKWORM, CENTURION -> {
-        long count = bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
-        yield count + " de " + def.getThreshold() + " livros";
-      }
-      case PAGE_TURNER -> {
-        int pages = readingSessionRepository.sumAllPagesReadByUserId(userId);
-        yield pages + " de " + def.getThreshold() + " páginas";
-      }
-      case IRON_READER, HABIT_FORMED -> {
-        int streak = streakRepository.findByUserId(userId).map(StreakEntity::getCurrentStreak).orElse(0);
-        yield streak + " de " + def.getThreshold() + " dias";
-      }
-      case GENRE_EXPLORER -> {
-        long genres = bookRepository.countDistinctCategoriesByUserId(userId);
-        yield genres + " de " + def.getThreshold() + " categorias";
-      }
-      case NEW_VOICE -> {
-        long authors = bookRepository.countDistinctAuthorsByUserId(userId);
-        yield authors + " de " + def.getThreshold() + " autores";
-      }
+      case FIRST_BOOK, BOOKWORM, CENTURION ->
+          ctx.completedBooks() + " de " + def.getThreshold() + " livros";
+      case PAGE_TURNER ->
+          ctx.totalPages() + " de " + def.getThreshold() + " páginas";
+      case IRON_READER, HABIT_FORMED ->
+          ctx.currentStreak() + " de " + def.getThreshold() + " dias";
+      case GENRE_EXPLORER ->
+          ctx.distinctCategories() + " de " + def.getThreshold() + " categorias";
+      case NEW_VOICE ->
+          ctx.distinctAuthors() + " de " + def.getThreshold() + " autores";
       default -> "Em progresso";
     };
   }

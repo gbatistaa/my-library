@@ -5,17 +5,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO;
-import java.time.LocalDate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEntity, UUID> {
   List<ReadingSessionEntity> findAllByUserId(UUID userId);
 
+  @EntityGraph(attributePaths = {"book"})
   @Query("SELECT rs FROM ReadingSessionEntity rs WHERE rs.user.id = :userId ORDER BY rs.createdAt DESC")
   org.springframework.data.domain.Page<ReadingSessionEntity> findAllByUserIdOrderByCreatedAtDesc(
       @Param("userId") UUID userId,
@@ -48,6 +49,11 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
   double avgDurationPerSessionByUserId(@Param("userId") UUID userId);
 
   long countByUserId(UUID userId);
+
+  @Query("SELECT COUNT(DISTINCT CAST(rs.createdAt AS date)) FROM ReadingSessionEntity rs WHERE rs.user.id = :userId AND rs.createdAt BETWEEN :start AND :end")
+  long countDistinctReadingDaysByUserIdAndCreatedAtBetween(@Param("userId") UUID userId,
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
 
   @Query("SELECT new com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO(" +
       "CAST(rs.createdAt AS date), " +

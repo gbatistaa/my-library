@@ -28,7 +28,7 @@ export async function searchBooks(title: string): Promise<BookDTO[]> {
 
 export async function getAllBooks(params?: { genre?: string }): Promise<BookDTO[]> {
   const { data } = await api.get<{ content: BookDTO[] }>("/books", {
-    params: { ...params, page: 0, size: 100 },
+    params: { ...params, page: 0, size: 20 },
   });
   return data?.content ?? [];
 }
@@ -51,7 +51,7 @@ export async function getCurrentlyReadingBooks(): Promise<{
   content: BookDTO[];
 }> {
   const { data } = await api.get<{ content: BookDTO[] }>("/books", {
-    params: { status: "READING", page: 0, size: 100 }, // Get all for selection
+    params: { status: "READING", page: 0, size: 20 },
   });
   return data ?? { content: [] };
 }

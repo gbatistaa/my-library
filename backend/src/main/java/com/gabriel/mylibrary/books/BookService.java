@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.mylibrary.books.projections.BookSummary;
 import com.gabriel.mylibrary.books.dtos.BookAuthorDTO;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
 import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
@@ -37,17 +38,20 @@ public class BookService {
   private final AchievementEvaluator achievementEvaluator;
 
   @Transactional(readOnly = true)
-  public Page<BookDTO> findAll(UUID userId, Pageable pageable) {
-    return bookRepository.findAllByUserId(userId, pageable)
-        .map(bookMapper::toDto);
+  public Page<BookSummary> findAll(UUID userId, Pageable pageable) {
+    return bookRepository.findSummariesByUserId(userId, pageable);
   }
 
   @Transactional(readOnly = true)
-  public Page<BookDTO> findWithFilters(UUID userId, BookStatus status, Integer minRating,
+  public Page<BookSummary> findWithFilters(UUID userId, BookStatus status, Integer minRating,
       UUID categoryId, String author, Integer year, Pageable pageable) {
+    // For complex filters with Specifications, we fetch entities and map to summary projection/dto
+    // Mapping to an interface projection from an entity is not directly supported by MapStruct easily for Page.map
+    // So we'll use a DTO or just map to the existing DTO and let the controller handle it?
+    // Actually, to follow the projection rule, I'll create a BookSummaryDTO record.
     return bookRepository
         .findAll(BookSpecification.withFilters(userId, status, minRating, categoryId, author, year), pageable)
-        .map(bookMapper::toDto);
+        .map(bookMapper::toSummaryDto);
   }
 
   @Transactional(readOnly = true)
@@ -58,12 +62,11 @@ public class BookService {
   }
 
   @Transactional(readOnly = true)
-  public Page<BookDTO> findByTitle(String title, UUID userId, Pageable pageable) {
+  public Page<BookSummary> findByTitle(String title, UUID userId, Pageable pageable) {
     if (title == null || title.isBlank()) {
       return findAll(userId, pageable);
     }
-    return bookRepository.findAllByUserIdAndTitleContainingIgnoreCase(userId, title, pageable)
-        .map(bookMapper::toDto);
+    return bookRepository.findSummariesByUserIdAndTitle(userId, title, pageable);
   }
 
   @Transactional

@@ -11,6 +11,8 @@ import java.util.UUID;
 public interface ReadingGoalRepository extends JpaRepository<ReadingGoalEntity, UUID> {
   Optional<ReadingGoalEntity> findByUserIdAndYear(UUID userId, Integer year);
 
+  Optional<ReadingGoalEntity> findByIdAndUserId(UUID id, UUID userId);
+
   boolean existsByUserIdAndYear(UUID userId, Integer year);
 
   List<ReadingGoalEntity> findAllByUserId(UUID userId);

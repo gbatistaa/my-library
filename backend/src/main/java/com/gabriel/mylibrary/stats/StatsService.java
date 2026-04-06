@@ -3,7 +3,6 @@ package com.gabriel.mylibrary.stats;
 import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.books.BookRepository;
 import com.gabriel.mylibrary.common.enums.BookStatus;
-import com.gabriel.mylibrary.readingSession.ReadingSessionEntity;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import com.gabriel.mylibrary.stats.dtos.*;
 import com.gabriel.mylibrary.streak.StreakEntity;
@@ -80,12 +79,6 @@ public class StatsService {
     LocalDateTime startOfYear = LocalDate.of(year, 1, 1).atStartOfDay();
     LocalDateTime endOfYear = LocalDate.of(year, 12, 31).atTime(23, 59, 59);
 
-    List<ReadingSessionEntity> sessions = readingSessionRepository.findAllByUserId(userId).stream()
-        .filter(s -> s.getCreatedAt() != null
-            && !s.getCreatedAt().isBefore(startOfYear)
-            && !s.getCreatedAt().isAfter(endOfYear))
-        .toList();
-
     Map<LocalDate, HeatmapDTO.DayActivityDTO> dayMap = new LinkedHashMap<>();
     LocalDate date = LocalDate.of(year, 1, 1);
     LocalDate end = LocalDate.of(year, 12, 31);
@@ -94,14 +87,14 @@ public class StatsService {
       date = date.plusDays(1);
     }
 
-    for (ReadingSessionEntity session : sessions) {
-      LocalDate sessionDate = session.getCreatedAt().toLocalDate();
-      HeatmapDTO.DayActivityDTO day = dayMap.get(sessionDate);
-      if (day != null) {
-        day.setPagesRead(day.getPagesRead() + session.getPagesRead());
-        day.setSessionCount(day.getSessionCount() + 1);
-      }
-    }
+    readingSessionRepository.findDailyAggregationByUserIdAndCreatedAtBetween(userId, startOfYear, endOfYear)
+        .forEach(agg -> {
+          HeatmapDTO.DayActivityDTO day = dayMap.get(agg.getSessionDate());
+          if (day != null) {
+            day.setPagesRead((int) agg.getTotalPages());
+            day.setSessionCount((int) agg.getSessionCount());
+          }
+        });
 
     return HeatmapDTO.builder()
         .year(year)
@@ -131,8 +124,8 @@ public class StatsService {
         .mapToInt(VelocityDTO.WeeklyPagesDTO::getPagesRead).average().orElse(0);
     double trend = previousWeeklyAvg == 0 ? 0 : ((currentWeeklyAvg - previousWeeklyAvg) / previousWeeklyAvg) * 100;
 
-    // Active book projections
-    List<BookEntity> readingBooks = bookRepository.findAllByUserIdAndStatus(userId, BookStatus.READING);
+    // Active book projections — use lightweight projection (id, title, pages, createdAt only)
+    var readingBooks = bookRepository.findProjectedByUserIdAndStatus(userId, BookStatus.READING);
     double avgPagesPerDay = Math.max(1, readingSessionRepository.avgPagesPerSessionByUserId(userId));
 
     List<VelocityDTO.BookProjectionDTO> projections = readingBooks.stream()
@@ -173,16 +166,9 @@ public class StatsService {
     // Pages equivalent (Lord of the Rings = ~1178 pages)
     String pagesEquiv = "equivalente a ler Senhor dos Anéis " + String.format("%.1f", pagesRead / 1178.0) + " vezes";
 
-    // Reading days from heatmap
-    List<ReadingSessionEntity> yearSessions = readingSessionRepository.findAllByUserId(userId).stream()
-        .filter(s -> s.getCreatedAt() != null && !s.getCreatedAt().isBefore(startTime)
-            && !s.getCreatedAt().isAfter(endTime))
-        .toList();
-    long readingDays = yearSessions.stream()
-        .map(s -> s.getCreatedAt().toLocalDate())
-        .distinct()
-        .count();
-    long totalMinutes = yearSessions.stream().mapToLong(ReadingSessionEntity::getDurationSeconds).sum();
+    // Reading days and minutes — aggregate at DB level
+    long readingDays = readingSessionRepository.countDistinctReadingDaysByUserIdAndCreatedAtBetween(userId, startTime, endTime);
+    long totalMinutes = readingSessionRepository.sumDurationByUserIdAndCreatedAtBetween(userId, startTime, endTime);
 
     // Fastest book
     String fastestBook = completedBooks.stream()
@@ -208,15 +194,13 @@ public class StatsService {
     List<Object[]> genreRatings = bookRepository.avgRatingByCategory(userId);
     String mostRereadable = genreRatings.isEmpty() ? "N/A" : (String) genreRatings.get(0)[0];
 
-    // Best reading day
-    Map<LocalDate, Integer> dailyPages = new HashMap<>();
-    for (ReadingSessionEntity session : yearSessions) {
-      LocalDate day = session.getCreatedAt().toLocalDate();
-      dailyPages.merge(day, session.getPagesRead(), Integer::sum);
-    }
-    Map.Entry<LocalDate, Integer> bestDay = dailyPages.entrySet().stream()
-        .max(Map.Entry.comparingByValue())
+    // Best reading day — use already-aggregated daily data
+    var dailyAgg = readingSessionRepository.findDailyAggregationByUserIdAndCreatedAtBetween(userId, startTime, endTime);
+    var bestDayAgg = dailyAgg.stream()
+        .max(Comparator.comparingLong(com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO::getTotalPages))
         .orElse(null);
+    LocalDate bestDay = bestDayAgg != null ? bestDayAgg.getSessionDate() : null;
+    int bestDayPages = bestDayAgg != null ? (int) bestDayAgg.getTotalPages() : 0;
 
     // Longest streak
     int longestStreak = streakRepository.findByUserId(userId)
@@ -254,8 +238,8 @@ public class StatsService {
         .longestBook(longestBook)
         .highestRatedBook(highestRated)
         .mostRereadableGenre(mostRereadable)
-        .bestReadingDay(bestDay != null ? bestDay.getKey() : null)
-        .bestDayPages(bestDay != null ? bestDay.getValue() : 0)
+        .bestReadingDay(bestDay)
+        .bestDayPages(bestDayPages)
         .longestStreak(longestStreak)
         .booksVsPreviousYear(booksVsPrevious)
         .growthInsight(growthInsight)
