@@ -49,6 +49,12 @@ public class UserEntity extends BaseEntity {
   @Column(name = "profile_pic_path")
   private String profilePicPath;
 
+  @Column(name = "total_experience", nullable = false, columnDefinition = "bigint default 0")
+  private Long totalExperience = 0L;
+
+  @Column(nullable = false, columnDefinition = "integer default 1")
+  private Integer level = 1;
+
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<RefreshTokenEntity> refreshTokens = new ArrayList<>();
 

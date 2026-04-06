@@ -14,6 +14,8 @@ import com.gabriel.mylibrary.readingSession.dtos.CreateReadingSessionDTO;
 import com.gabriel.mylibrary.readingSession.dtos.ReadingSessionDTO;
 import com.gabriel.mylibrary.readingSession.mappers.ReadingSessionMapper;
 import com.gabriel.mylibrary.achievement.AchievementEvaluator;
+import com.gabriel.mylibrary.gamification.ExperienceService;
+import com.gabriel.mylibrary.gamification.XpType;
 import com.gabriel.mylibrary.streak.StreakService;
 import com.gabriel.mylibrary.user.UserEntity;
 
@@ -29,6 +31,7 @@ public class ReadingSessionService {
   private final BookRepository bookRepository;
   private final EntityManager entityManager;
   private final StreakService streakService;
+  private final ExperienceService experienceService;
   private final AchievementEvaluator achievementEvaluator;
 
   @Transactional(readOnly = true)
@@ -71,8 +74,15 @@ public class ReadingSessionService {
 
     ReadingSessionDTO saved = readingSessionMapper.toDto(readingSessionRepository.save(session));
 
-    // Update streak engine & evaluate achievements
-    streakService.recordActivity(userId);
+    // XP rewards: pages read
+    experienceService.rewardActivity(userId, XpType.PAGES_READ, dto.getPagesRead());
+
+    // Update streak engine & award daily streak XP if new reading day
+    boolean newReadingDay = streakService.recordActivity(userId);
+    if (newReadingDay) {
+      experienceService.rewardActivity(userId, XpType.DAILY_STREAK, 0);
+    }
+
     achievementEvaluator.evaluate(userId);
 
     return saved;

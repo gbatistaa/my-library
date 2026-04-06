@@ -9,6 +9,8 @@ export interface UserDTO {
   birthDate: string; // "yyyy-MM-dd"
   createdAt: string; // ISO LocalDateTime "yyyy-MM-ddTHH:mm:ss"
   profilePicPath: string | null;
+  totalExperience: number;
+  level: number;
 }
 
 /** Returned by POST /auth/login and /auth/register */

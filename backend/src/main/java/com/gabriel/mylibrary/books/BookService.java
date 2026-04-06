@@ -22,6 +22,8 @@ import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.achievement.AchievementEvaluator;
+import com.gabriel.mylibrary.gamification.ExperienceService;
+import com.gabriel.mylibrary.gamification.XpType;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.EntityManager;
@@ -36,6 +38,7 @@ public class BookService {
   private final EntityManager entityManager;
   private final CategoryRepository categoryRepository;
   private final AchievementEvaluator achievementEvaluator;
+  private final ExperienceService experienceService;
 
   @Transactional(readOnly = true)
   public Page<BookSummary> findAll(UUID userId, Pageable pageable) {
@@ -113,6 +116,11 @@ public class BookService {
     newBook.setUser(userRef);
 
     BookDTO result = bookMapper.toDto(bookRepository.save(newBook));
+
+    if (newBook.getStatus() == BookStatus.COMPLETED) {
+      experienceService.rewardActivity(userId, XpType.BOOK_COMPLETED, 0);
+    }
+
     achievementEvaluator.evaluate(userId);
     return result;
   }
@@ -122,6 +130,8 @@ public class BookService {
       throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+
+    BookStatus previousStatus = book.getStatus();
 
     if (dto.getIsbn() != null && !dto.getIsbn().equals(book.getIsbn())) {
       if (bookRepository.existsByIsbnAndUserId(dto.getIsbn(), userId)) {
@@ -164,6 +174,11 @@ public class BookService {
     }
 
     BookDTO result = bookMapper.toDto(bookRepository.save(book));
+
+    if (book.getStatus() == BookStatus.COMPLETED && previousStatus != BookStatus.COMPLETED) {
+      experienceService.rewardActivity(userId, XpType.BOOK_COMPLETED, 0);
+    }
+
     achievementEvaluator.evaluate(userId);
     return result;
   }

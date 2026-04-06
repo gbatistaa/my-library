@@ -19,4 +19,6 @@ public class UserDTO {
   private LocalDate birthDate;
   private LocalDateTime createdAt;
   private String profilePicPath;
+  private Long totalExperience;
+  private Integer level;
 }

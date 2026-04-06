@@ -20,4 +20,8 @@ public interface UserProfileProjection {
   LocalDate getBirthDate();
 
   LocalDateTime getCreatedAt();
+
+  Long getTotalExperience();
+
+  Integer getLevel();
 }

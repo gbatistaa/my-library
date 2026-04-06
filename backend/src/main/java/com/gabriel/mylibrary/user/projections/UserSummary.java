@@ -18,4 +18,8 @@ public interface UserSummary {
   LocalDateTime getCreatedAt();
 
   String getProfilePicPath();
+
+  Long getTotalExperience();
+
+  Integer getLevel();
 }

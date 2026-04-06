@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -15,6 +15,7 @@ import {
   getReadingDna,
   getGoalProgress,
   listReadingGoals,
+  fetchCurrentUser,
 } from "@/src/services/profileService";
 import { getCurrentlyReading } from "@/src/services/bookService";
 
@@ -24,6 +25,8 @@ import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
 import { AchievementsRow } from "@/src/components/home/AchievementsRow";
 import { Avatar } from "@/src/components/common/Avatar";
+import { XpProgressRing, XpLabel } from "@/src/components/common/XpProgressRing";
+import { XpFloatingFeedback } from "@/src/components/common/XpFloatingFeedback";
 
 function Skeleton({ height = 120 }: { height?: number }) {
   const { colors } = useAppTheme();
@@ -52,9 +55,30 @@ export default function HomeScreen() {
   const { colors, mode } = useAppTheme();
   const insets = useSafeAreaInsets();
   const user = useAtomValue(userAtom);
+  const setUser = useSetAtom(userAtom);
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+  const [xpGain, setXpGain] = useState<number | null>(null);
+  const prevXpRef = useRef<number | null>(null);
   const currentYear = new Date().getFullYear();
+
+  // Refresh user profile to get latest XP/level on each visit
+  const { data: freshUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: fetchCurrentUser,
+    retry: 1,
+  });
+
+  // Sync fresh user data into atom and detect XP changes
+  useEffect(() => {
+    if (!freshUser) return;
+    const prevXp = prevXpRef.current;
+    if (prevXp !== null && freshUser.totalExperience > prevXp) {
+      setXpGain(freshUser.totalExperience - prevXp);
+    }
+    prevXpRef.current = freshUser.totalExperience;
+    setUser(freshUser);
+  }, [freshUser]);
 
   const { data: currentlyReading, isLoading: loadingBooks } = useQuery({
     queryKey: ["currentlyReading"],
@@ -95,6 +119,7 @@ export default function HomeScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] }),
       queryClient.invalidateQueries({ queryKey: ["currentlyReading"] }),
       queryClient.invalidateQueries({ queryKey: ["streak"] }),
       queryClient.invalidateQueries({ queryKey: ["dna"] }),
@@ -139,15 +164,31 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            {/* Avatar */}
+            {/* Avatar wrapped in XP ring */}
             {user && (
-              <Avatar
-                user={user}
-                size={40}
-                editable
-                onPress={openProfilePicPicker}
-                accentColor={colors.primary}
-              />
+              <View>
+                <XpProgressRing
+                  level={user.level ?? 1}
+                  totalXp={user.totalExperience ?? 0}
+                  size={52}
+                  strokeWidth={3}
+                >
+                  <Avatar
+                    user={user}
+                    size={40}
+                    editable
+                    onPress={openProfilePicPicker}
+                    accentColor={colors.primary}
+                  />
+                </XpProgressRing>
+                <XpLabel level={user.level ?? 1} />
+                {xpGain !== null && (
+                  <XpFloatingFeedback
+                    amount={xpGain}
+                    onComplete={() => setXpGain(null)}
+                  />
+                )}
+              </View>
             )}
 
             <View>

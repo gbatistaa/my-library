@@ -31,13 +31,17 @@ public class StreakService {
         insight);
   }
 
+  /**
+   * Records a reading activity for today.
+   * @return true if this is the first activity of the day (new reading day), false if already recorded today.
+   */
   @Transactional
-  public void recordActivity(UUID userId) {
+  public boolean recordActivity(UUID userId) {
     StreakEntity streak = getOrCreateStreak(userId);
     LocalDate today = LocalDate.now();
 
     if (today.equals(streak.getLastReadingDate())) {
-      return; // Already recorded today
+      return false;
     }
 
     if (streak.getLastReadingDate() == null) {
@@ -59,6 +63,7 @@ public class StreakService {
     streak.setTotalReadingDays(streak.getTotalReadingDays() + 1);
     streak.setLastReadingDate(today);
     streakRepository.save(streak);
+    return true;
   }
 
   private StreakEntity getOrCreateStreak(UUID userId) {
