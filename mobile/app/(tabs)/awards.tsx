@@ -71,17 +71,14 @@ const ACHIEVEMENT_XP_ROWS = [
 function XpLegendSection() {
   const { colors, mode } = useAppTheme();
   const [isOpen, setIsOpen] = useState(false);
-  
-  const borderColor =
-    mode === "dark" ? "rgba(167,139,250,0.15)" : "rgba(107,56,212,0.12)";
-  const bg =
-    mode === "dark" ? "rgba(30,41,59,0.6)" : "rgba(237,233,254,0.45)";
-  const headerColor = colors.primary;
-  const labelColor = mode === "dark" ? "#CBD5E1" : "#374151";
+  const isDark = mode === "dark";
+
+  const borderColor = isDark ? "rgba(167,139,250,0.15)" : "rgba(107,56,212,0.12)";
+  const bg = isDark ? "rgba(30,41,59,0.6)" : "rgba(237,233,254,0.45)";
 
   const contentAnimatedStyle = useAnimatedStyle(() => {
     return {
-      height: withTiming(isOpen ? 640 : 0, { duration: 300 }), // ~640 is enough for all rows
+      height: withTiming(isOpen ? 680 : 0, { duration: 350 }),
       opacity: withTiming(isOpen ? 1 : 0, { duration: 250 }),
       overflow: "hidden",
     };
@@ -90,10 +87,8 @@ function XpLegendSection() {
   return (
     <Animated.View
       entering={FadeInDown.duration(350)}
+      className="mb-8 border rounded-2xl"
       style={{
-        marginBottom: 24,
-        borderRadius: 16,
-        borderWidth: 1,
         borderColor,
         backgroundColor: bg,
       }}
@@ -102,60 +97,36 @@ function XpLegendSection() {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => setIsOpen(!isOpen)}
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-        }}
+        className="flex-row items-center justify-between px-4 py-4"
       >
         <Text
-          style={{
-            fontSize: 11,
-            fontWeight: "800",
-            color: headerColor,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-          }}
+          className="text-[11px] font-extrabold uppercase tracking-[2px]"
+          style={{ color: colors.primary }}
         >
           {"\u26A1"} How to earn XP
         </Text>
-        <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={headerColor} />
+        <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.primary} />
       </TouchableOpacity>
 
       {/* Collapsible Content */}
       <Animated.View style={contentAnimatedStyle}>
         {/* Divider */}
-        <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
+        <View className="mx-4 h-[1px]" style={{ backgroundColor: borderColor }} />
 
         {/* Activities */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <View className="px-4 pt-4 pb-2">
           <Text
-            style={{
-              fontSize: 10,
-              fontWeight: "700",
-              color: headerColor,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              marginBottom: 8,
-              opacity: 0.7,
-            }}
+            className="mb-2 text-[10px] font-bold uppercase tracking-[1.5px] opacity-70"
+            style={{ color: colors.primary }}
           >
             Activities
           </Text>
           {ACTIVITY_XP_ROWS.map((row) => (
-            <View
-              key={row.label}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 6,
-              }}
-            >
-              <Text style={{ fontSize: 13, color: labelColor }}>{row.label}</Text>
-              <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+            <View key={row.label} className="flex-row items-center justify-between py-1.5">
+              <Text className="text-[13px]" style={{ color: isDark ? "#CBD5E1" : "#374151" }}>
+                {row.label}
+              </Text>
+              <Text className="text-[13px] font-bold" style={{ color: colors.primary }}>
                 {row.xp}
               </Text>
             </View>
@@ -163,35 +134,22 @@ function XpLegendSection() {
         </View>
 
         {/* Divider */}
-        <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
+        <View className="mx-4 h-[1px]" style={{ backgroundColor: borderColor }} />
 
         {/* Achievements */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+        <View className="px-4 pt-4 pb-4">
           <Text
-            style={{
-              fontSize: 10,
-              fontWeight: "700",
-              color: headerColor,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              marginBottom: 8,
-              opacity: 0.7,
-            }}
+            className="mb-2 text-[10px] font-bold uppercase tracking-[1.5px] opacity-70"
+            style={{ color: colors.primary }}
           >
             Achievements
           </Text>
           {ACHIEVEMENT_XP_ROWS.map((row) => (
-            <View
-              key={row.name}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 6,
-              }}
-            >
-              <Text style={{ fontSize: 13, color: labelColor }}>{row.name}</Text>
-              <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+            <View key={row.name} className="flex-row items-center justify-between py-1.5">
+              <Text className="text-[13px]" style={{ color: isDark ? "#CBD5E1" : "#374151" }}>
+                {row.name}
+              </Text>
+              <Text className="text-[13px] font-bold" style={{ color: colors.primary }}>
                 +{row.xp} XP
               </Text>
             </View>
@@ -236,33 +194,37 @@ function AchievementCard({
   achievement: AchievementDTO;
   index: number;
 }) {
+  const { colors } = useAppTheme();
   const earned = achievement.earned;
   const progress = achievement.progress ?? 0;
   const pct = Math.round(progress * 100);
-
-  const cardClass = earned
-    ? "bg-[#ede9fe] dark:bg-slate-900 dark:border dark:border-slate-800"
-    : "bg-[#ede9fe]/60 dark:bg-slate-900/40 border border-[#cbc3d7]/10 dark:border-slate-800/20 opacity-80";
 
   const iconBgClass = getIconBgClass(achievement.category, earned);
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).delay(index * 40)}
-      className={`w-[48%] items-center p-5 rounded-xl ${cardClass}`}
+      className={`w-[48%] items-center p-5 rounded-2xl border ${
+        earned
+          ? "bg-[#6b38d4]/10 border-[#6b38d4]/20 dark:bg-slate-900 dark:border-slate-800"
+          : "bg-slate-100/50 border-slate-200/50 dark:bg-slate-900/40 dark:border-slate-800/20 opacity-80"
+      }`}
     >
       {/* Icon circle */}
       <View
-        className={`w-16 h-16 rounded-full items-center justify-center ${iconBgClass} ${!earned ? "opacity-60" : ""}`}
+        className={`w-16 h-16 rounded-full items-center justify-center ${iconBgClass} ${
+          !earned ? "opacity-60" : ""
+        }`}
       >
-        <Text className="text-[28px]">
+        <Text className="text-[30px]">
           {getAchievementEmoji(achievement)}
         </Text>
       </View>
 
       {/* Title */}
       <Text
-        className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-center mt-4"
+        className="font-bold text-center mt-5 text-[15px]"
+        style={{ color: colors.text }}
         numberOfLines={2}
       >
         {achievement.name}
@@ -270,23 +232,33 @@ function AchievementCard({
 
       {/* Description */}
       <Text
-        className="text-xs text-[#494454] dark:text-[#94A3B8] text-center leading-[18px] mt-1 mb-3"
+        className="text-[11px] text-center leading-[16px] mt-1.5 mb-4"
+        style={{ color: colors.textSecondary }}
         numberOfLines={3}
       >
         {achievement.description}
       </Text>
 
       {/* Progress bar */}
-      <View className="w-full h-1.5 rounded-full bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 overflow-hidden">
+      <View 
+        className="w-full h-1.5 rounded-full overflow-hidden"
+        style={{ backgroundColor: colors.surfaceContainerHigh }}
+      >
         <View
-          className="h-full rounded-full bg-[#6b38d4] dark:bg-[#A78BFA]"
-          style={{ width: earned ? "100%" : `${pct}%` }}
+          className="h-full rounded-full"
+          style={{ 
+            width: earned ? "100%" : `${pct}%`,
+            backgroundColor: colors.primary
+          }}
         />
       </View>
 
       {/* Progress label for unearned */}
       {!earned && (
-        <Text className="text-[10px] font-bold text-[#6b38d4] dark:text-[#A78BFA] mt-2">
+        <Text 
+          className="text-[10px] font-bold mt-2"
+          style={{ color: colors.primary }}
+        >
           {achievement.progressLabel || `${pct}%`}
         </Text>
       )}
@@ -301,20 +273,25 @@ function CategoryGroup({
   category: string;
   achievements: AchievementDTO[];
 }) {
+  const { colors } = useAppTheme();
+  
   return (
-    <View className="mb-12">
+    <View className="mb-10">
       {/* Category header: emoji + uppercase label */}
-      <View className="flex-row items-center gap-2 mb-6">
+      <View className="flex-row items-center gap-2 mb-5">
         <Text className="text-xl">
           {CATEGORY_EMOJIS[category] ?? "\u{1F3C6}"}
         </Text>
-        <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px]">
+        <Text 
+          className="text-[11px] font-bold uppercase tracking-[2px] opacity-60"
+          style={{ color: colors.text }}
+        >
           {CATEGORY_LABELS[category] ?? category}
         </Text>
       </View>
 
       {/* Achievement grid (2 columns) */}
-      <View className="flex-row flex-wrap justify-between gap-4">
+      <View className="flex-row flex-wrap justify-between gap-y-4">
         {achievements.map((a, i) => (
           <AchievementCard
             key={a.code}
@@ -328,13 +305,20 @@ function CategoryGroup({
 }
 
 function EmptyState() {
+  const { colors } = useAppTheme();
   return (
-    <View className="py-[60px] items-center">
-      <Text className="text-[40px] mb-4">{"\u{1F3C6}"}</Text>
-      <Text className="text-[17px] font-semibold text-[#111c2d] dark:text-[#F8FAFC] mb-1.5">
+    <View className="py-20 items-center">
+      <Text className="text-[48px] mb-4">{"\u{1F3C6}"}</Text>
+      <Text 
+        className="text-[18px] font-bold mb-2"
+        style={{ color: colors.text }}
+      >
         No achievements yet
       </Text>
-      <Text className="text-sm text-[#494454] dark:text-[#94A3B8] text-center leading-5 max-w-[260px]">
+      <Text 
+        className="text-sm text-center leading-[20px] max-w-[280px]"
+        style={{ color: colors.textSecondary }}
+      >
         Start reading to unlock your first badges. There are 16 to collect!
       </Text>
     </View>
@@ -346,6 +330,7 @@ export default function AchievementsScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+  const isDark = mode === "dark";
 
   const { data: achievements, isLoading } = useQuery({
     queryKey: ["achievements"],
@@ -369,8 +354,8 @@ export default function AchievementsScreen() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <View className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
+      <StatusBar style={isDark ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 10,
@@ -391,12 +376,21 @@ export default function AchievementsScreen() {
           entering={FadeIn.duration(400)}
           className="pt-3.5 pb-6 flex-row justify-between items-center"
         >
-          <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
+          <Text 
+            className="text-[28px] font-extrabold tracking-[-0.5px]"
+            style={{ color: colors.text }}
+          >
             Achievements
           </Text>
           {total > 0 && (
-            <View className="bg-[#6b38d4]/10 dark:bg-[#A78BFA]/10 px-4 py-1.5 rounded-full">
-              <Text className="text-sm font-bold text-[#6b38d4] dark:text-[#A78BFA]">
+            <View 
+              className="px-4 py-1.5 rounded-full"
+              style={{ backgroundColor: colors.surfaceContainerLow }}
+            >
+              <Text 
+                className="text-sm font-bold"
+                style={{ color: colors.primary }}
+              >
                 {earnedTotal} / {total} earned
               </Text>
             </View>
@@ -410,8 +404,11 @@ export default function AchievementsScreen() {
               {[120, 100, 140, 100].map((h, i) => (
                 <View
                   key={i}
-                  className="rounded-xl bg-slate-200/40 dark:bg-slate-900/40 opacity-50"
-                  style={{ height: h }}
+                  className="rounded-2xl opacity-40"
+                  style={{ 
+                    height: h,
+                    backgroundColor: colors.surfaceContainerHigh
+                  }}
                 />
               ))}
             </View>

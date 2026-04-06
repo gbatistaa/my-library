@@ -67,7 +67,7 @@ function ChartSubtitle({ title, text }: { title: string; text: string }) {
       <Text className="font-bold text-violet-600 dark:text-violet-400 text-xs uppercase tracking-wider">
         {title}
       </Text>
-      <Text className="mt-0.5 text-slate-500 dark:text-slate-400 text-[11px]">
+      <Text className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
         {text}
       </Text>
     </View>
@@ -94,7 +94,7 @@ function ColorPickerRow({
           key={c}
           activeOpacity={0.7}
           onPress={() => onSelectColor(c)}
-          className={`w-4 h-4 rounded-full border-2 ${selectedColor === c ? 'border-slate-400 dark:border-slate-100' : 'border-transparent'}`}
+          className={`w-4 h-4 rounded-full border-2 ${selectedColor === c ? "border-slate-400 dark:border-slate-100" : "border-transparent"}`}
           style={{ backgroundColor: c }}
         />
       ))}
@@ -223,13 +223,16 @@ export function AnalyticsCharts({
   const makeRefLineConfig = useCallback(
     (label: string) => ({
       thickness: 1,
-      color: mode === 'dark' ? 'rgba(148, 163, 184, 0.3)' : 'rgba(100, 116, 139, 0.2)',
+      color:
+        mode === "dark"
+          ? "rgba(148, 163, 184, 0.3)"
+          : "rgba(100, 116, 139, 0.2)",
       type: "dashed",
       dashWidth: 4,
       dashGap: 4,
       labelText: label,
       labelTextStyle: {
-        color: mode === 'dark' ? '#94A3B8' : '#64748B',
+        color: mode === "dark" ? "#94A3B8" : "#64748B",
         fontSize: 9,
         fontWeight: "700" as const,
       },
@@ -250,24 +253,30 @@ export function AnalyticsCharts({
     [makeRefLineConfig, formatNum, velocityAvg],
   );
 
-  const pointerConfigBase = useMemo(() => ({
-    pointerStripHeight: 140,
-    pointerStripColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.5)' : 'rgba(100, 116, 139, 0.3)',
-    pointerStripWidth: 1.5,
-    pointerColor: mode === 'dark' ? '#F8FAFC' : '#0F172A',
-    radius: 5,
-    pointerLabelWidth: 80,
-    pointerLabelHeight: 36,
-    activatePointersOnLongPress: true,
-    autoAdjustPointerLabelPosition: true,
-  }), [mode]);
+  const pointerConfigBase = useMemo(
+    () => ({
+      pointerStripHeight: 140,
+      pointerStripColor:
+        mode === "dark"
+          ? "rgba(148, 163, 184, 0.5)"
+          : "rgba(100, 116, 139, 0.3)",
+      pointerStripWidth: 1.5,
+      pointerColor: mode === "dark" ? "#F8FAFC" : "#0F172A",
+      radius: 5,
+      pointerLabelWidth: 80,
+      pointerLabelHeight: 36,
+      activatePointersOnLongPress: true,
+      autoAdjustPointerLabelPosition: true,
+    }),
+    [mode],
+  );
 
   const pagesPointerConfig = useMemo(
     () => ({
       ...pointerConfigBase,
       pointerLabelComponent: (items: any) => (
-        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 px-2 rounded-lg shadow-xl border border-slate-700/50 dark:border-slate-200">
-          <Text className="font-bold text-white dark:text-slate-900 text-[11px]">
+        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 shadow-xl px-2 border border-slate-700/50 dark:border-slate-200 rounded-lg">
+          <Text className="font-bold text-[11px] text-white dark:text-slate-900">
             {formatNum(items[0].value)} pages
           </Text>
         </View>
@@ -280,8 +289,8 @@ export function AnalyticsCharts({
     () => ({
       ...pointerConfigBase,
       pointerLabelComponent: (items: any) => (
-        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 px-2 rounded-lg shadow-xl">
-          <Text className="font-bold text-white dark:text-slate-900 text-[11px]">
+        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 shadow-xl px-2 rounded-lg">
+          <Text className="font-bold text-[11px] text-white dark:text-slate-900">
             {formatNum(items[0].value)} min
           </Text>
         </View>
@@ -294,8 +303,8 @@ export function AnalyticsCharts({
     () => ({
       ...pointerConfigBase,
       pointerLabelComponent: (items: any) => (
-        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 px-2 rounded-lg shadow-xl">
-          <Text className="font-bold text-white dark:text-slate-900 text-[11px]">
+        <View className="justify-center items-center bg-slate-900 dark:bg-slate-50 shadow-xl px-2 rounded-lg">
+          <Text className="font-bold text-[11px] text-white dark:text-slate-900">
             {formatNum(items[0].value)} p/m
           </Text>
         </View>
@@ -343,25 +352,25 @@ export function AnalyticsCharts({
   return (
     <View className="gap-6">
       {/* Curve Toggle */}
-      <View className="flex-row justify-between items-center bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
+      <View className="flex-row justify-between items-center bg-white dark:bg-slate-900 shadow-sm p-4 border border-slate-200 dark:border-slate-800/50 rounded-2xl">
         <View className="flex-row items-center gap-3">
-          <View className="bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-lg items-center justify-center">
+          <View className="justify-center items-center bg-slate-100 dark:bg-slate-700 rounded-lg w-8 h-8">
             <Text className="text-lg">📈</Text>
           </View>
-          <Text className="font-bold text-slate-800 dark:text-slate-100 text-[14px]">
+          <Text className="font-bold text-[14px] text-slate-800 dark:text-slate-100">
             Smooth Curves
           </Text>
         </View>
         <Switch
           value={isSmooth}
           onValueChange={setIsSmooth}
-          trackColor={{ false: '#CBD5E1', true: '#7c4dff' }}
-          thumbColor={mode === 'dark' ? '#F8FAFC' : '#FFFFFF'}
+          trackColor={{ false: "#CBD5E1", true: "#7c4dff" }}
+          thumbColor={mode === "dark" ? "#F8FAFC" : "#FFFFFF"}
         />
       </View>
 
       {/* Pages Read Chart */}
-      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 shadow-sm p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -398,17 +407,25 @@ export function AnalyticsCharts({
             disableScroll
             hideRules={false}
             rulesType="solid"
-            rulesColor={mode === 'dark' ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)'}
+            rulesColor={
+              mode === "dark"
+                ? "rgba(51, 65, 85, 0.5)"
+                : "rgba(226, 232, 240, 0.8)"
+            }
             yAxisColor="transparent"
-            xAxisColor={mode === 'dark' ? '#334155' : '#E2E8F0'}
+            xAxisColor={mode === "dark" ? "#334155" : "#E2E8F0"}
             yAxisLabelWidth={30}
-            yAxisTextStyle={{ color: '#94A3B8', fontSize: 10, fontWeight: '600' }}
+            yAxisTextStyle={{
+              color: "#94A3B8",
+              fontSize: 10,
+              fontWeight: "600",
+            }}
             xAxisLabelTextStyle={{
-              color: '#94A3B8',
+              color: "#94A3B8",
               fontSize: 9,
               width: 40,
               textAlign: "center",
-              fontWeight: '600'
+              fontWeight: "600",
             }}
             showReferenceLine1={pagesAvg > 0}
             referenceLine1Position={pagesAvg}
@@ -417,14 +434,16 @@ export function AnalyticsCharts({
             {...calcYAxis(pagesMax)}
           />
         ) : (
-          <View className="h-[160px] items-center justify-center">
-            <Text className="text-slate-400 dark:text-slate-500 font-medium">No data available</Text>
+          <View className="justify-center items-center h-[160px]">
+            <Text className="font-medium text-slate-400 dark:text-slate-500">
+              No data available
+            </Text>
           </View>
         )}
       </View>
 
       {/* Time Reading Chart */}
-      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 shadow-sm p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -454,19 +473,27 @@ export function AnalyticsCharts({
             disableScroll
             hideRules={false}
             rulesType="solid"
-            rulesColor={mode === 'dark' ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)'}
+            rulesColor={
+              mode === "dark"
+                ? "rgba(51, 65, 85, 0.5)"
+                : "rgba(226, 232, 240, 0.8)"
+            }
             xAxisThickness={1}
             yAxisThickness={0}
             yAxisLabelWidth={30}
-            yAxisTextStyle={{ color: '#94A3B8', fontSize: 10, fontWeight: '600' }}
+            yAxisTextStyle={{
+              color: "#94A3B8",
+              fontSize: 10,
+              fontWeight: "600",
+            }}
             xAxisLabelTextStyle={{
-              color: '#94A3B8',
+              color: "#94A3B8",
               fontSize: 9,
               width: 40,
               textAlign: "center",
-              fontWeight: '600'
+              fontWeight: "600",
             }}
-            xAxisColor={mode === 'dark' ? '#334155' : '#E2E8F0'}
+            xAxisColor={mode === "dark" ? "#334155" : "#E2E8F0"}
             showReferenceLine1={timeAvg > 0}
             referenceLine1Position={timeAvg}
             referenceLine1Config={timeRefConfig}
@@ -474,14 +501,16 @@ export function AnalyticsCharts({
             {...calcYAxis(timeMax)}
           />
         ) : (
-          <View className="h-[160px] items-center justify-center">
-            <Text className="text-slate-400 dark:text-slate-500 font-medium">No data available</Text>
+          <View className="justify-center items-center h-[160px]">
+            <Text className="font-medium text-slate-400 dark:text-slate-500">
+              No data available
+            </Text>
           </View>
         )}
       </View>
 
       {/* Pace Chart */}
-      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 shadow-sm p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -518,17 +547,25 @@ export function AnalyticsCharts({
             disableScroll
             hideRules={false}
             rulesType="solid"
-            rulesColor={mode === 'dark' ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)'}
+            rulesColor={
+              mode === "dark"
+                ? "rgba(51, 65, 85, 0.5)"
+                : "rgba(226, 232, 240, 0.8)"
+            }
             yAxisColor="transparent"
-            xAxisColor={mode === 'dark' ? '#334155' : '#E2E8F0'}
+            xAxisColor={mode === "dark" ? "#334155" : "#E2E8F0"}
             yAxisLabelWidth={30}
-            yAxisTextStyle={{ color: '#94A3B8', fontSize: 10, fontWeight: '600' }}
+            yAxisTextStyle={{
+              color: "#94A3B8",
+              fontSize: 10,
+              fontWeight: "600",
+            }}
             xAxisLabelTextStyle={{
-              color: '#94A3B8',
+              color: "#94A3B8",
               fontSize: 9,
               width: 40,
               textAlign: "center",
-              fontWeight: '600'
+              fontWeight: "600",
             }}
             showReferenceLine1={velocityAvg > 0}
             referenceLine1Position={velocityAvg}
@@ -537,30 +574,37 @@ export function AnalyticsCharts({
             {...calcYAxis(velocityMax)}
           />
         ) : (
-          <View className="h-[160px] items-center justify-center">
-            <Text className="text-slate-400 dark:text-slate-500 font-medium">No data available</Text>
+          <View className="justify-center items-center h-[160px]">
+            <Text className="font-medium text-slate-400 dark:text-slate-500">
+              No data available
+            </Text>
           </View>
         )}
       </View>
 
       {/* Genre Breakdown */}
-      <View className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl shadow-sm">
-        <Text className="mb-6 font-extrabold text-slate-900 dark:text-slate-50 text-lg">
+      <View className="bg-white dark:bg-slate-900 shadow-sm p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl">
+        <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-lg">
           Genre Distribution
         </Text>
+        <ChartSubtitle
+          title={chartSubtitle}
+          text={`Diversity in ${rawGenres.length} categories`}
+        />
         {pieData.length > 0 ? (
-          <View className="flex-row items-center justify-around">
+          <View className="flex-row justify-around items-center">
             <PieChart
               donut
               data={pieData}
               innerRadius={55}
               radius={75}
+              innerCircleColor={mode === "dark" ? "#0f172a" : "#ffffff"} // Matches slate-900 and white
               centerLabelComponent={() => (
                 <View className="justify-center items-center">
                   <Text className="font-black text-slate-900 dark:text-slate-50 text-2xl">
                     {rawGenres.length}
                   </Text>
-                  <Text className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                  <Text className="font-bold text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                     Types
                   </Text>
                 </View>
@@ -572,19 +616,19 @@ export function AnalyticsCharts({
                   key={index}
                   className="flex-row justify-between items-center"
                 >
-                  <View className="flex-row items-center flex-1 mr-3">
+                  <View className="flex-row flex-1 items-center mr-3">
                     <View
                       className="mr-2 rounded-full w-2 h-2"
                       style={{ backgroundColor: item.color }}
                     />
                     <Text
-                      className="flex-shrink text-slate-700 dark:text-slate-300 text-xs font-medium"
+                      className="flex-shrink font-medium text-slate-700 dark:text-slate-300 text-xs"
                       numberOfLines={1}
                     >
                       {item.label}
                     </Text>
                   </View>
-                  <Text className="font-bold text-slate-500 dark:text-slate-400 text-[10px]">
+                  <Text className="font-bold text-[10px] text-slate-500 dark:text-slate-400">
                     {item.percentage.toFixed(0)}%
                   </Text>
                 </View>
@@ -592,15 +636,17 @@ export function AnalyticsCharts({
             </View>
           </View>
         ) : (
-          <View className="h-[150px] items-center justify-center">
-            <Text className="text-slate-400 dark:text-slate-500 font-medium">No data available</Text>
+          <View className="justify-center items-center h-[150px]">
+            <Text className="font-medium text-slate-400 dark:text-slate-500">
+              No data available
+            </Text>
           </View>
         )}
       </View>
 
       {/* Language Breakdown */}
       {languageData.length > 0 && (
-        <View className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl shadow-sm">
+        <View className="bg-white dark:bg-slate-900 shadow-sm p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl">
           <Text className="mb-6 font-extrabold text-slate-900 dark:text-slate-50 text-lg">
             Language Spread
           </Text>
@@ -608,14 +654,15 @@ export function AnalyticsCharts({
             {languageData.map((lang: any, index: number) => (
               <View key={index}>
                 <View className="flex-row justify-between mb-1.5 px-0.5">
-                  <Text className="font-bold text-slate-800 dark:text-slate-100 text-[13px]">
+                  <Text className="font-bold text-[13px] text-slate-800 dark:text-slate-100">
                     {lang.name}
                   </Text>
-                  <Text className="font-bold text-slate-500 dark:text-slate-400 text-[11px]">
-                    {lang.count} {lang.count === 1 ? "Book" : "Books"} · {lang.percentage.toFixed(0)}%
+                  <Text className="font-bold text-[11px] text-slate-500 dark:text-slate-400">
+                    {lang.count} {lang.count === 1 ? "Book" : "Books"} ·{" "}
+                    {lang.percentage.toFixed(0)}%
                   </Text>
                 </View>
-                <View className="bg-slate-100 dark:bg-slate-700/50 rounded-full h-2 overflow-hidden shadow-inner">
+                <View className="bg-slate-100 dark:bg-slate-700/50 shadow-inner rounded-full h-2 overflow-hidden">
                   <View
                     className="rounded-full h-full"
                     style={{
