@@ -67,12 +67,7 @@ public class ReadingSessionService {
     }
 
     ReadingSessionEntity session = readingSessionMapper.toEntity(dto);
-
-    UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
-    session.setUser(userRef);
-    session.setBook(book);
-
-    ReadingSessionDTO saved = readingSessionMapper.toDto(readingSessionRepository.save(session));
+    int xpGained = dto.getPagesRead();
 
     // XP rewards: pages read
     experienceService.rewardActivity(userId, XpType.PAGES_READ, dto.getPagesRead());
@@ -80,8 +75,16 @@ public class ReadingSessionService {
     // Update streak engine & award daily streak XP if new reading day
     boolean newReadingDay = streakService.recordActivity(userId);
     if (newReadingDay) {
+      xpGained += 50;
       experienceService.rewardActivity(userId, XpType.DAILY_STREAK, 0);
     }
+
+    session.setXpGained(xpGained);
+    UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
+    session.setUser(userRef);
+    session.setBook(book);
+
+    ReadingSessionDTO saved = readingSessionMapper.toDto(readingSessionRepository.save(session));
 
     achievementEvaluator.evaluate(userId);
 

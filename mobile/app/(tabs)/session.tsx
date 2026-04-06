@@ -15,7 +15,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Feather } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { 
+  FadeIn, 
+  FadeInDown, 
+  useAnimatedStyle, 
+  withTiming 
+} from "react-native-reanimated";
 import { useAtom } from "jotai";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
@@ -69,6 +74,7 @@ const SessionScreen = () => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [pendingBook, setPendingBook] = useAtom(pendingSessionBookAtom);
+  const [legendOpen, setLegendOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -114,6 +120,15 @@ const SessionScreen = () => {
       ]).start();
     }
   }, [bookModalVisible, overlayAnim, slideAnim, SHEET_HEIGHT]);
+
+  const legendAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      height: withTiming(legendOpen ? 150 : 0, { duration: 300 }),
+      opacity: withTiming(legendOpen ? 1 : 0, { duration: 250 }),
+      marginTop: withTiming(legendOpen ? 12 : 0, { duration: 300 }),
+      overflow: "hidden",
+    };
+  });
 
   const closeBookModal = useCallback(() => setBookModalVisible(false), []);
 
@@ -274,13 +289,55 @@ const SessionScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* -- Header -------------------------------- */}
-        <Animated.View entering={FadeIn.duration(400)} className="pt-3.5 pb-2">
+        <Animated.View entering={FadeIn.duration(400)} className="flex-row justify-between items-center pt-3.5 pb-2">
           <Text
             className="font-extrabold text-[28px] tracking-[-0.5px]"
             style={{ color: colors.text }}
           >
             Reading Session
           </Text>
+          <TouchableOpacity 
+            onPress={() => setLegendOpen(!legendOpen)}
+            className="justify-center items-center rounded-full w-10 h-10"
+            style={{ backgroundColor: colors.surfaceContainerLow }}
+          >
+            <Feather name={legendOpen ? "chevron-up" : "help-circle"} size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* -- Points Legend Dropdown ---------------- */}
+        <Animated.View style={legendAnimatedStyle}>
+          <View 
+            className="p-4 rounded-2xl border" 
+            style={{ 
+              backgroundColor: isDark ? colors.surfaceContainerLow : "#F5F3FF",
+              borderColor: isDark ? colors.outlineVariant + "4D" : colors.primary + "20"
+            }}
+          >
+            <Text className="mb-3 font-bold text-sm" style={{ color: colors.primary }}>
+              How points work:
+            </Text>
+            <View className="gap-2">
+              <View className="flex-row items-center gap-2">
+                <Text className="text-base">📖</Text>
+                <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                  <Text className="font-bold" style={{ color: colors.text }}>+1 XP</Text> per page read
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-base">🔥</Text>
+                <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                  <Text className="font-bold" style={{ color: colors.text }}>+50 XP</Text> first session of the day
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-base">🏆</Text>
+                <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
+                  <Text className="font-bold" style={{ color: colors.text }}>+100 XP</Text> for finishing a book
+                </Text>
+              </View>
+            </View>
+          </View>
         </Animated.View>
 
         {/* -- Mode Toggle --------------------------- */}
@@ -689,7 +746,7 @@ const SessionScreen = () => {
                           : colors.secondary,
                       }}
                     >
-                      +{session.pagesRead} pts
+                      +{session.xpGained || session.pagesRead} pts
                     </Text>
                   </View>
                 </Animated.View>

@@ -18,4 +18,5 @@ public class ReadingSessionDTO {
   private String bookTitle;
   private String bookCoverUrl;
   private LocalDateTime createdAt;
+  private Integer xpGained;
 }

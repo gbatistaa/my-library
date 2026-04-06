@@ -6,6 +6,7 @@ export interface ReadingSessionDTO {
   bookTitle?: string;
   bookCoverUrl?: string;
   createdAt: string; // ISO date string
+  xpGained: number;
 }
 
 export interface CreateReadingSessionDTO {

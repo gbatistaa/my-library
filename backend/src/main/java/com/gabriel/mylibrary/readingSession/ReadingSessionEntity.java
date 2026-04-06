@@ -34,4 +34,7 @@ public class ReadingSessionEntity extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "book_id", nullable = false)
   private BookEntity book;
+
+  @Column(name = "xp_gained", nullable = false, columnDefinition = "integer default 0")
+  private Integer xpGained = 0;
 }

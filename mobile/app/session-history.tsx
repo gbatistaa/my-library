@@ -122,18 +122,40 @@ const SessionHistoryScreen = () => {
                   </Text>
                 </View>
 
-                {/* Bottom Row: Duration and Pages */}
-                <View className="flex-row items-center gap-3.5">
-                  <View className="flex-row items-center gap-1.5">
-                    <Feather name="clock" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
-                    <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
-                      {Math.ceil(item.durationSeconds / 60)} min
-                    </Text>
+                {/* Bottom Row: Duration, Pages and XP */}
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-3.5">
+                    <View className="flex-row items-center gap-1.5">
+                      <Feather name="clock" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
+                      <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
+                        {Math.ceil(item.durationSeconds / 60)} min
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-1.5">
+                      <Feather name="book-open" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
+                      <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
+                        {item.pagesRead} pages
+                      </Text>
+                    </View>
                   </View>
-                  <View className="flex-row items-center gap-1.5">
-                    <Feather name="book-open" size={13} color={isDark ? "#A78BFA" : "#6b38d4"} />
-                    <Text className="text-[#494454] dark:text-[#94A3B8] text-[13px] font-semibold">
-                      {item.pagesRead} pages
+
+                  <View
+                    className="px-2 py-[2px] rounded-full"
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(167, 139, 250, 0.1)"
+                        : "rgba(107, 56, 212, 0.1)",
+                      borderWidth: 1,
+                      borderColor: isDark ? "rgba(167, 139, 250, 0.2)" : "rgba(107, 56, 212, 0.2)",
+                    }}
+                  >
+                    <Text
+                      className="font-bold text-[11px]"
+                      style={{
+                        color: isDark ? "#A78BFA" : "#6b38d4",
+                      }}
+                    >
+                      +{item.xpGained || item.pagesRead} pts
                     </Text>
                   </View>
                 </View>

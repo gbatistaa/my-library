@@ -1,8 +1,14 @@
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { 
+  FadeIn, 
+  FadeInDown, 
+  useAnimatedStyle, 
+  withTiming 
+} from "react-native-reanimated";
+import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getAchievements } from "@/src/services/profileService";
@@ -64,6 +70,8 @@ const ACHIEVEMENT_XP_ROWS = [
 
 function XpLegendSection() {
   const { colors, mode } = useAppTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  
   const borderColor =
     mode === "dark" ? "rgba(167,139,250,0.15)" : "rgba(107,56,212,0.12)";
   const bg =
@@ -71,25 +79,35 @@ function XpLegendSection() {
   const headerColor = colors.primary;
   const labelColor = mode === "dark" ? "#CBD5E1" : "#374151";
 
+  const contentAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      height: withTiming(isOpen ? 640 : 0, { duration: 300 }), // ~640 is enough for all rows
+      opacity: withTiming(isOpen ? 1 : 0, { duration: 250 }),
+      overflow: "hidden",
+    };
+  });
+
   return (
     <Animated.View
       entering={FadeInDown.duration(350)}
       style={{
-        marginBottom: 40,
+        marginBottom: 24,
         borderRadius: 16,
         borderWidth: 1,
         borderColor,
-        overflow: "hidden",
         backgroundColor: bg,
       }}
     >
-      {/* Section title */}
-      <View
+      {/* Header (Toggle area) */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setIsOpen(!isOpen)}
         style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
           paddingHorizontal: 16,
           paddingVertical: 14,
-          borderBottomWidth: 1,
-          borderColor,
         }}
       >
         <Text
@@ -103,76 +121,83 @@ function XpLegendSection() {
         >
           {"\u26A1"} How to earn XP
         </Text>
-      </View>
+        <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={headerColor} />
+      </TouchableOpacity>
 
-      {/* Activities */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: headerColor,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            marginBottom: 8,
-            opacity: 0.7,
-          }}
-        >
-          Activities
-        </Text>
-        {ACTIVITY_XP_ROWS.map((row) => (
-          <View
-            key={row.label}
+      {/* Collapsible Content */}
+      <Animated.View style={contentAnimatedStyle}>
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
+
+        {/* Activities */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+          <Text
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingVertical: 6,
+              fontSize: 10,
+              fontWeight: "700",
+              color: headerColor,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              marginBottom: 8,
+              opacity: 0.7,
             }}
           >
-            <Text style={{ fontSize: 13, color: labelColor }}>{row.label}</Text>
-            <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
-              {row.xp}
-            </Text>
-          </View>
-        ))}
-      </View>
+            Activities
+          </Text>
+          {ACTIVITY_XP_ROWS.map((row) => (
+            <View
+              key={row.label}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 13, color: labelColor }}>{row.label}</Text>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+                {row.xp}
+              </Text>
+            </View>
+          ))}
+        </View>
 
-      {/* Divider */}
-      <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
 
-      {/* Achievements */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: "700",
-            color: headerColor,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            marginBottom: 8,
-            opacity: 0.7,
-          }}
-        >
-          Achievements
-        </Text>
-        {ACHIEVEMENT_XP_ROWS.map((row) => (
-          <View
-            key={row.name}
+        {/* Achievements */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+          <Text
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingVertical: 6,
+              fontSize: 10,
+              fontWeight: "700",
+              color: headerColor,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              marginBottom: 8,
+              opacity: 0.7,
             }}
           >
-            <Text style={{ fontSize: 13, color: labelColor }}>{row.name}</Text>
-            <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
-              +{row.xp} XP
-            </Text>
-          </View>
-        ))}
-      </View>
+            Achievements
+          </Text>
+          {ACHIEVEMENT_XP_ROWS.map((row) => (
+            <View
+              key={row.name}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 13, color: labelColor }}>{row.name}</Text>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+                +{row.xp} XP
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
