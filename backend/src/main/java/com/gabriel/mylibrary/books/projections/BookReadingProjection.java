@@ -5,7 +5,10 @@ import java.util.UUID;
 
 public interface BookReadingProjection {
   UUID getId();
+
   String getTitle();
+
   int getPages();
+
   LocalDateTime getCreatedAt();
 }

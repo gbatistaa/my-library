@@ -55,11 +55,7 @@ public class BookEntity extends BaseEntity {
   private String isbn;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "books_categories",
-      joinColumns = @JoinColumn(name = "book_id"),
-      inverseJoinColumns = @JoinColumn(name = "category_id")
-  )
+  @JoinTable(name = "books_categories", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
   @Builder.Default
   private Set<CategoryEntity> categories = new HashSet<>();
 

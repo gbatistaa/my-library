@@ -48,9 +48,12 @@ public class BookService {
   @Transactional(readOnly = true)
   public Page<BookSummary> findWithFilters(UUID userId, BookStatus status, Integer minRating,
       UUID categoryId, String author, Integer year, Pageable pageable) {
-    // For complex filters with Specifications, we fetch entities and map to summary projection/dto
-    // Mapping to an interface projection from an entity is not directly supported by MapStruct easily for Page.map
-    // So we'll use a DTO or just map to the existing DTO and let the controller handle it?
+    // For complex filters with Specifications, we fetch entities and map to summary
+    // projection/dto
+    // Mapping to an interface projection from an entity is not directly supported
+    // by MapStruct easily for Page.map
+    // So we'll use a DTO or just map to the existing DTO and let the controller
+    // handle it?
     // Actually, to follow the projection rule, I'll create a BookSummaryDTO record.
     return bookRepository
         .findAll(BookSpecification.withFilters(userId, status, minRating, categoryId, author, year), pageable)
