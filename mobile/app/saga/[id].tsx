@@ -18,77 +18,78 @@ import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { getSagaById, getSagaBooks, deleteSaga } from "@/src/services/sagaService";
 import { showApiError } from "@/src/services/apiError";
 import type { BookDTO } from "@/src/types/book";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 /* ─── Sub-components ─── */
 
 function LoadingState() {
   return (
-    <View className="flex-1 bg-[#0F172A] items-center justify-center">
-      <ActivityIndicator size="large" color="#A78BFA" />
+    <View className="flex-1 bg-slate-50 dark:bg-slate-950 items-center justify-center">
+      <ActivityIndicator size="large" color="#7c4dff" />
     </View>
   );
 }
 
 function ErrorState({ onBack }: { onBack: () => void }) {
   return (
-    <View className="flex-1 bg-[#0F172A] items-center justify-center px-8">
-      <Feather name="alert-circle" size={48} color="#ef4444" />
-      <Text className="text-white text-lg font-bold mt-4 text-center">
-        {"Couldn't load saga"}
-      </Text>
-      <Text className="text-slate-400 text-sm mt-2 text-center">
-        Something went wrong. Please try again.
-      </Text>
-      <Pressable
-        onPress={onBack}
-        className="mt-6 bg-purple-600 rounded-full px-6 py-3"
-      >
-        <Text className="text-white font-bold">Go Back</Text>
-      </Pressable>
+    <View className="flex-1 bg-slate-50 dark:bg-slate-950 items-center justify-center px-8">
+      <View className="bg-red-100 dark:bg-red-900/20 p-6 rounded-3xl items-center border border-red-200 dark:border-red-800/30">
+        <Feather name="alert-circle" size={48} color="#ef4444" />
+        <Text className="text-slate-900 dark:text-slate-50 text-xl font-bold mt-4 text-center">
+          Saga not found
+        </Text>
+        <Text className="text-slate-500 dark:text-slate-400 text-sm mt-2 text-center leading-5">
+          We couldn&apos;t load the details for this saga. It might have been deleted.
+        </Text>
+        <Pressable
+          onPress={onBack}
+          className="mt-6 bg-slate-900 dark:bg-slate-50 rounded-2xl px-8 py-3.5 shadow-lg active:scale-95"
+        >
+          <Text className="text-white dark:text-slate-950 font-bold">Go Back</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 function BookMiniCard({ book, delay }: { book: BookDTO; delay: number }) {
+  const router = useRouter();
   return (
     <Animated.View
-      entering={FadeInDown.duration(300).delay(delay)}
-      className="items-center mr-4"
-      style={{ width: 96 }}
+      entering={FadeInDown.duration(400).delay(delay)}
+      className="mr-5"
+      style={{ width: 100 }}
     >
-      {/* Cover */}
-      <View
-        className="rounded-xl overflow-hidden bg-[#1E293B]"
-        style={{ width: 96, height: 136 }}
+      <Pressable 
+        onPress={() => router.push(`/book/${book.id}`)}
+        className="active:opacity-80"
       >
-        {book.coverUrl ? (
-          <Image
-            source={{ uri: book.coverUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <Feather name="book" size={28} color="#475569" />
-          </View>
-        )}
-      </View>
+        {/* Cover */}
+        <View
+          className="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+          style={{ width: 100, height: 145 }}
+        >
+          {book.coverUrl ? (
+            <Image
+              source={{ uri: book.coverUrl }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="flex-1 items-center justify-center">
+              <Feather name="book" size={24} color="#94A3B8" />
+            </View>
+          )}
+        </View>
 
-      {/* Name */}
-      <Text
-        className="text-white text-xs font-semibold mt-2 text-center leading-tight"
-        numberOfLines={2}
-      >
-        {book.title}
-      </Text>
-
-      {/* Author */}
-      <Text
-        className="text-slate-500 text-[10px] mt-0.5 text-center"
-        numberOfLines={1}
-      >
-        {book.author}
-      </Text>
+        {/* Title */}
+        <Text
+          className="text-slate-900 dark:text-slate-100 text-[11px] font-bold mt-2.5 text-center leading-[15px]"
+          numberOfLines={2}
+        >
+          {book.title}
+        </Text>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -100,6 +101,7 @@ export default function SagaDetailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { mode, colors } = useAppTheme();
   const queryClient = useQueryClient();
 
   const {
@@ -142,17 +144,20 @@ export default function SagaDetailsScreen() {
   if (isLoading) return <LoadingState />;
   if (isError || !saga) return <ErrorState onBack={() => router.back()} />;
 
-  const coverWidth = width * 0.65;
+  const coverWidth = width * 0.62;
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={mode === 'dark' ? "light" : "dark"} />
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="flex-1 bg-[#0F172A]">
+      <View className="flex-1 bg-slate-50 dark:bg-slate-950">
+        {/* Background Accent Gradient Effect */}
+        <View className="absolute top-0 left-0 right-0 h-80 bg-violet-600/5 dark:bg-violet-500/5" />
+
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         >
           {/* ─── Top App Bar ─── */}
           <View
@@ -161,40 +166,39 @@ export default function SagaDetailsScreen() {
           >
             <Pressable
               onPress={() => router.back()}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20"
+              className="w-10 h-10 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-90"
               hitSlop={8}
             >
-              <Feather name="arrow-left" size={20} color="#F8FAFC" />
+              <Feather name="arrow-left" size={20} color={colors.text} />
             </Pressable>
 
-            <Text
-              className="text-white font-bold text-base flex-1 text-center mx-3"
-              numberOfLines={1}
-            >
-              {saga.name}
-            </Text>
+            <View className="flex-1 mx-4">
+              <Text
+                className="text-slate-900 dark:text-slate-50 font-black text-center text-lg tracking-tight"
+                numberOfLines={1}
+              >
+                Saga Details
+              </Text>
+            </View>
 
             <Pressable
               onPress={() => router.push(`/edit-saga/${id}`)}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20"
+              className="w-10 h-10 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-90"
               hitSlop={8}
             >
-              <Feather name="edit-2" size={18} color="#F8FAFC" />
+              <Feather name="edit-3" size={18} color={colors.text} />
             </Pressable>
           </View>
 
           {/* ─── Cover Image ─── */}
           <Animated.View
-            entering={FadeIn.duration(400)}
-            className="self-center rounded-3xl overflow-hidden"
+            entering={FadeIn.duration(600)}
+            className="self-center mt-6 rounded-[40px] overflow-hidden shadow-2xl"
             style={{
               width: coverWidth,
               aspectRatio: 2 / 3,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 16 },
-              shadowOpacity: 0.6,
-              shadowRadius: 24,
-              elevation: 20,
+              shadowColor: mode === 'dark' ? "#000" : "#6b38d4",
+              elevation: 25,
             }}
           >
             {saga.coverUrl ? (
@@ -204,8 +208,11 @@ export default function SagaDetailsScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-full h-full bg-[#1E293B] items-center justify-center">
-                <Text className="text-8xl">📚</Text>
+              <View className="w-full h-full bg-slate-200 dark:bg-slate-900 items-center justify-center">
+                <Text className="text-5xl font-bold text-slate-400 dark:text-slate-700">
+                  {saga.name.charAt(0).toUpperCase()}
+                </Text>
+                <Feather name="layers" size={40} color={mode === 'dark' ? "#334155" : "#CBD5E1"} style={{ marginTop: 10 }} />
               </View>
             )}
           </Animated.View>
@@ -213,38 +220,35 @@ export default function SagaDetailsScreen() {
           <View className="px-6">
             {/* ─── Title + Meta ─── */}
             <Animated.View
-              entering={FadeInDown.duration(350).delay(80)}
-              className="mt-8"
+              entering={FadeInDown.duration(400).delay(100)}
+              className="mt-10 items-center"
             >
-              <Text className="text-4xl font-bold text-white leading-tight">
+              <Text className="text-4xl font-black text-slate-950 dark:text-slate-50 text-center tracking-tight leading-tight">
                 {saga.name}
               </Text>
 
-              {saga.bookCount != null && (
-                <View className="flex-row items-center gap-2 mt-3">
-                  <View className="bg-purple-500/20 rounded px-2 py-0.5">
-                    <Text className="text-purple-200 text-[10px] font-bold uppercase tracking-wide">
-                      {saga.bookCount} {saga.bookCount === 1 ? "volume" : "volumes"}
-                    </Text>
-                  </View>
+              <View className="flex-row items-center gap-2 mt-4">
+                <View className="bg-violet-100 dark:bg-violet-950/40 rounded-full px-4 py-1.5 border border-violet-200 dark:border-violet-900/30">
+                  <Text className="text-violet-600 dark:text-violet-400 text-[10px] font-black uppercase tracking-[2px]">
+                    {saga.bookCount ?? 0} {saga.bookCount === 1 ? "Volume" : "Volumes"}
+                  </Text>
                 </View>
-              )}
+              </View>
             </Animated.View>
 
             {/* ─── Description ─── */}
             {saga.description && (
               <Animated.View
-                entering={FadeInDown.duration(350).delay(130)}
-                className="bg-white/5 border border-white/10 rounded-3xl p-5 relative overflow-hidden mt-6"
+                entering={FadeInDown.duration(400).delay(200)}
+                className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-[32px] p-6 mt-8 shadow-sm"
               >
-                <Text className="absolute top-3 right-4 text-white/5 text-8xl font-black leading-none select-none">
-                  {'"'}
-                </Text>
-                <View className="flex-row items-center gap-2 mb-4">
-                  <Feather name="align-left" size={16} color="#A78BFA" />
-                  <Text className="text-sm font-bold text-white">Description</Text>
+                <View className="flex-row items-center gap-2.5 mb-4">
+                  <View className="bg-violet-100 dark:bg-violet-500/20 w-8 h-8 rounded-xl items-center justify-center">
+                    <Feather name="file-text" size={16} color={mode === 'dark' ? "#A78BFA" : "#6d28d9"} />
+                  </View>
+                  <Text className="text-sm font-black text-slate-800 dark:text-slate-100">About this Saga</Text>
                 </View>
-                <Text className="text-sm text-slate-400 leading-relaxed">
+                <Text className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   {saga.description}
                 </Text>
               </Animated.View>
@@ -253,23 +257,27 @@ export default function SagaDetailsScreen() {
             {/* ─── Books Section ─── */}
             {books.length > 0 && (
               <Animated.View
-                entering={FadeInDown.duration(350).delay(180)}
-                className="mt-6"
+                entering={FadeInDown.duration(400).delay(300)}
+                className="mt-10"
               >
-                <View className="flex-row items-center gap-2 mb-4">
-                  <Feather name="book-open" size={15} color="#A78BFA" />
-                  <Text className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
-                    Books
+                <View className="flex-row items-center justify-between mb-5 px-1">
+                  <View className="flex-row items-center gap-2.5">
+                    <Text className="text-xs uppercase font-black text-slate-400 dark:text-slate-500 tracking-[3px]">
+                      Collection
+                    </Text>
+                  </View>
+                  <Text className="text-xs font-bold text-slate-400 dark:text-slate-600">
+                    {books.length} Books
                   </Text>
                 </View>
 
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingRight: 8 }}
+                  contentContainerStyle={{ paddingRight: 4, paddingBottom: 10 }}
                 >
                   {books.map((book, i) => (
-                    <BookMiniCard key={book.id} book={book} delay={i * 40} />
+                    <BookMiniCard key={book.id} book={book} delay={i * 50} />
                   ))}
                 </ScrollView>
               </Animated.View>
@@ -278,20 +286,21 @@ export default function SagaDetailsScreen() {
 
           {/* ─── Delete Button ─── */}
           <Animated.View
-            entering={FadeInDown.duration(350).delay(260)}
-            className="px-6 mt-8"
+            entering={FadeInDown.duration(400).delay(400)}
+            className="px-6 mt-10"
           >
             <Pressable
               onPress={handleDelete}
               disabled={isDeleting}
-              className="w-full h-14 rounded-2xl bg-red-600/90 flex-row items-center justify-center gap-2 active:bg-red-700 disabled:opacity-60"
+              className="w-full h-15 rounded-3xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/20 flex-row items-center justify-center gap-3 active:bg-red-100 disabled:opacity-60"
+              style={{ height: 60 }}
             >
               {isDeleting ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color="#ef4444" />
               ) : (
-                <Feather name="trash-2" size={18} color="#fff" />
+                <Feather name="trash-2" size={18} color="#ef4444" />
               )}
-              <Text className="text-white font-bold text-base">Delete Saga</Text>
+              <Text className="text-red-600 font-bold text-base">Remove from Library</Text>
             </Pressable>
           </Animated.View>
         </ScrollView>

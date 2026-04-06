@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
-import Animated, { useAnimatedStyle, withTiming, Easing } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, withTiming, Easing, FadeInDown, FadeIn } from "react-native-reanimated";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useRouter, Stack } from "expo-router";
 
@@ -48,14 +48,18 @@ function TextInputFocusable({
 } & TextInputProps) {
   const [focused, setFocused] = useState(false);
   const purple = mode === "dark" ? "#A78BFA" : "#6b38d4";
-  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(107, 56, 212, 0.08)";
+  const inactiveBorder = mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(15, 23, 42, 0.06)";
 
   const animatedBorderStyle = useAnimatedStyle(() => ({
     borderColor: withTiming(focused ? purple : inactiveBorder, {
       duration: 200,
       easing: Easing.out(Easing.ease),
     }),
-  }), [focused, purple, inactiveBorder]);
+    backgroundColor: withTiming(focused 
+      ? (mode === 'dark' ? '#1E293B' : '#F8FAFC') 
+      : (mode === 'dark' ? '#0F172A' : '#F1F5F9'), 
+    { duration: 200 }),
+  }), [focused, purple, inactiveBorder, mode]);
 
   return (
     <AnimatedTextInput
@@ -65,7 +69,7 @@ function TextInputFocusable({
       placeholderTextColor={placeholderColor}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
+      className={`${className} rounded-[20px] px-5 py-4 text-[15px] text-slate-900 dark:text-slate-50 font-medium shadow-sm`}
       style={[
         { borderWidth: 1.5 },
         animatedBorderStyle,
@@ -95,8 +99,8 @@ function FormInput({
   className?: string;
 } & TextInputProps) {
   return (
-    <View className="mb-5">
-      <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
+    <View className="mb-6">
+      <Text className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-2.5 ml-1">
         {label}
       </Text>
       <TextInputFocusable
@@ -126,53 +130,47 @@ function BookSelectCard({
   return (
     <Pressable
       onPress={onToggle}
-      className={`aspect-[3/4] rounded-2xl overflow-hidden ${
+      className={`aspect-[3/4.2] rounded-2xl overflow-hidden border-2 ${
         selected
-          ? "border-2 border-[#6b38d4] dark:border-[#A78BFA]"
-          : "border border-[#cbc3d7]/20 dark:border-[#334155]"
+          ? "border-violet-600 dark:border-violet-500 shadow-lg shadow-violet-500/20"
+          : "border-slate-100 dark:border-slate-800"
       }`}
     >
-      {/* Cover */}
-      {book.coverUrl ? (
-        <Image
-          source={{ uri: book.coverUrl }}
-          className="w-full h-[72%]"
-          resizeMode="cover"
-          style={{ opacity: selected ? 1 : 0.65 }}
-        />
-      ) : (
-        <View
-          className={`w-full h-[72%] items-center justify-center ${
-            selected
-              ? "bg-[#e9ddff] dark:bg-[#334155]"
-              : "bg-[#f0f3ff] dark:bg-[#1E293B]"
-          }`}
-        >
-          <Text className="text-3xl">📖</Text>
-        </View>
-      )}
+      {/* Cover container */}
+      <View className="w-full h-[70%] bg-slate-100 dark:bg-slate-900 items-center justify-center">
+        {book.coverUrl ? (
+          <Image
+            source={{ uri: book.coverUrl }}
+            className={`w-full h-full ${selected ? "opacity-100" : "opacity-60"}`}
+            resizeMode="cover"
+          />
+        ) : (
+          <Feather 
+            name="book" 
+            size={24} 
+            color={selected ? (mode === 'dark' ? '#A78BFA' : '#6d28d9') : (mode === 'dark' ? '#334155' : '#CBD5E1')} 
+          />
+        )}
+      </View>
 
       {/* Info strip */}
-      <View className="flex-1 bg-white dark:bg-[#1E293B] px-2 py-1.5 justify-center">
+      <View className={`flex-1 px-2.5 py-2 justify-center ${selected ? 'bg-violet-50 dark:bg-violet-950/20' : 'bg-white dark:bg-slate-900 border-t border-slate-50 dark:border-slate-800'}`}>
         <Text
-          className="text-[11px] font-bold text-[#111c2d] dark:text-[#F8FAFC]"
-          numberOfLines={1}
+          className={`text-[11px] font-bold ${selected ? 'text-violet-700 dark:text-violet-300' : 'text-slate-900 dark:text-slate-100'}`}
+          numberOfLines={2}
         >
           {book.title}
-        </Text>
-        <Text
-          className="text-[10px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
-          numberOfLines={1}
-        >
-          {book.author}
         </Text>
       </View>
 
       {/* Check badge */}
       {selected && (
-        <View className="absolute top-2 right-2 w-7 h-7 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center">
-          <Feather name="check" size={14} color="#fff" />
-        </View>
+        <Animated.View 
+          entering={FadeIn.duration(200)}
+          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-violet-600 dark:bg-violet-500 items-center justify-center shadow-md shadow-violet-900/40"
+        >
+          <Feather name="check" size={12} color="#fff" strokeWidth={4} />
+        </Animated.View>
       )}
     </Pressable>
   );
@@ -218,9 +216,8 @@ export default function AddSagaScreen() {
 
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
-      const mime = asset.mimeType ?? "";
       const uri = asset.uri ?? "";
-      if (mime === "image/svg+xml" || uri.toLowerCase().endsWith(".svg")) {
+      if (uri.toLowerCase().endsWith(".svg")) {
         Alert.alert(
           "Format not supported",
           "SVG files are not supported. Please choose a JPEG, PNG, WEBP, or other photo format."
@@ -273,11 +270,11 @@ export default function AddSagaScreen() {
     }
   };
 
-  const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
+  const iconColor = mode === "dark" ? "#A78BFA" : "#6d28d9";
   const placeholderColor = mode === "dark" ? "#475569" : "#94A3B8";
 
   return (
-    <View className="flex-1 bg-white dark:bg-[#0F172A]">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <Stack.Screen
         options={{
           headerShown: false,
@@ -287,7 +284,7 @@ export default function AddSagaScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -298,97 +295,112 @@ export default function AddSagaScreen() {
           keyboardShouldPersistTaps="handled"
           className="flex-1"
         >
-          {/* Header row with title and close button */}
-          <View className="flex-row justify-between items-center mt-6 mb-2">
-            <View>
-              <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
-                Create new saga
+          {/* Header */}
+          <Animated.View 
+            entering={FadeIn.duration(400)}
+            className="flex-row justify-between items-center mt-10 mb-2"
+            style={{ paddingTop: insets.top }}
+          >
+            <View className="flex-1 mr-4">
+              <Text className="text-3xl font-black text-slate-950 dark:text-slate-50 tracking-tight">
+                Create Saga
               </Text>
-              <Text className="text-sm text-[#494454] dark:text-[#94A3B8] mt-1">
-                Group your epic collections
+              <Text className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+                Organize your book collection
               </Text>
             </View>
-            <TouchableOpacity
+            <Pressable
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
+              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-900 items-center justify-center active:scale-90"
             >
               <Feather
                 name="x"
                 size={20}
-                color={mode === "dark" ? "#94A3B8" : "#494454"}
+                color={mode === "dark" ? "#94A3B8" : "#475569"}
               />
-            </TouchableOpacity>
-          </View>
+            </Pressable>
+          </Animated.View>
 
           {/* Cover image picker */}
-          <TouchableOpacity
-            onPress={pickImage}
-            activeOpacity={0.85}
-            className="w-full rounded-2xl overflow-hidden items-center justify-center mt-6 mb-6 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
-            style={{ 
-              aspectRatio: 16 / 9,
-              borderWidth: coverUri ? 0 : 2,
-              borderStyle: "dashed",
-              borderColor: mode === "dark" ? "#334155" : "#cbc3d7",
-            }}
-          >
-            {coverUri ? (
-              <>
-                <Image
-                  source={{ uri: coverUri }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-                <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                  <Feather name="camera" size={28} color="#fff" />
-                  <Text className="text-xs font-bold text-white uppercase tracking-widest mt-2">
-                    Change Cover
+          <Animated.View entering={FadeInDown.duration(500).delay(100)}>
+            <TouchableOpacity
+              onPress={pickImage}
+              activeOpacity={0.9}
+              className="w-full rounded-[32px] overflow-hidden items-center justify-center mt-6 mb-8 bg-slate-50 dark:bg-slate-900 shadow-sm shadow-slate-200 dark:shadow-none"
+              style={{ 
+                aspectRatio: 16 / 9.5,
+                borderWidth: coverUri ? 0 : 2,
+                borderStyle: "dashed",
+                borderColor: mode === "dark" ? "#334155" : "#E2E8F0",
+              }}
+            >
+              {coverUri ? (
+                <>
+                  <Image
+                    source={{ uri: coverUri }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-0 bg-slate-950/40 items-center justify-center">
+                    <View className="bg-white/20 p-4 rounded-full border border-white/30">
+                      <Feather name="camera" size={24} color="#fff" />
+                    </View>
+                    <Text className="text-[10px] font-black text-white uppercase tracking-[3px] mt-3">
+                      Modify Cover
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View className="bg-violet-100 dark:bg-violet-950/40 p-5 rounded-3xl mb-4 border border-violet-200 dark:border-violet-900/30">
+                    <Feather name="image" size={32} color={iconColor} />
+                  </View>
+                  <Text className="text-[11px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-[2px]">
+                    Choose Cover Image
                   </Text>
-                </View>
-              </>
-            ) : (
-              <>
-                <Feather name="camera" size={32} color={iconColor} />
-                <Text className="text-[11px] font-bold text-[#6b38d4] dark:text-[#A78BFA] uppercase tracking-widest mt-3">
-                  Upload Cover Image
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+                </>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
 
           {/* Name */}
-          <FormInput
-            label="Saga Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g. The Lord of the Rings"
-            placeholderColor={placeholderColor}
-            mode={mode}
-            autoCapitalize="words"
-          />
+          <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+            <FormInput
+              label="Collection Name"
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. Harry Potter"
+              placeholderColor={placeholderColor}
+              mode={mode}
+              autoCapitalize="words"
+            />
+          </Animated.View>
 
           {/* Description */}
-          <View className="mb-6">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-2">
-              Description (optional)
+          <Animated.View entering={FadeInDown.duration(500).delay(300)} className="mb-8">
+            <Text className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px] mb-2.5 ml-1">
+              About this Saga
             </Text>
             <TextInputFocusable
               value={description}
               onChangeText={setDescription}
-              placeholder="Talk about this saga..."
+              placeholder="A brief overview..."
               placeholderColor={placeholderColor}
               mode={mode}
               multiline
               textAlignVertical="top"
-              style={{ height: 80 }}
+              style={{ height: 100 }}
             />
-          </View>
+          </Animated.View>
 
           {/* Book Selection */}
-          <View className="mb-8">
-            <Text className="text-[10px] font-bold text-[#494454] dark:text-[#94A3B8] uppercase tracking-widest mb-3">
-              Select Books ({selectedBookIds.size})
-            </Text>
+          <Animated.View entering={FadeInDown.duration(500).delay(400)} className="mb-10">
+            <View className="flex-row items-center justify-between mb-4 px-1">
+              <Text className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[2px]">
+                Add Books ({selectedBookIds.size})
+              </Text>
+            </View>
+            
             {books.length > 0 ? (
               <View className="flex-row flex-wrap" style={{ marginHorizontal: -6 }}>
                 {books.map((book) => (
@@ -403,35 +415,34 @@ export default function AddSagaScreen() {
                 ))}
               </View>
             ) : (
-              <View className="py-8 items-center justify-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-2xl border border-dashed border-[#cbc3d7] dark:border-[#334155]">
-                <Text className="text-sm text-[#494454] dark:text-[#94A3B8]">
-                  No books found in your library yet.
+              <View className="py-12 items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800">
+                <Feather name="book-open" size={24} color={placeholderColor} />
+                <Text className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-3">
+                  Your library is empty
                 </Text>
               </View>
             )}
-          </View>
+          </Animated.View>
 
           {/* CTA */}
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={saving}
-            className="w-full h-14 rounded-2xl items-center justify-center bg-[#6b38d4] dark:bg-[#8455ef] mb-12"
-            style={{
-              shadowColor: "#6b38d4",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.4,
-              shadowRadius: 16,
-              elevation: 8,
-            }}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white tracking-wide">
-                Create Saga
-              </Text>
-            )}
-          </TouchableOpacity>
+          <Animated.View entering={FadeInDown.duration(500).delay(500)}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={saving}
+              className="w-full h-16 rounded-[24px] items-center justify-center bg-violet-600 dark:bg-violet-600 mb-10 shadow-xl shadow-violet-600/30 active:scale-95"
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <View className="flex-row items-center gap-3">
+                  <Feather name="plus-circle" size={18} color="#fff" />
+                  <Text className="text-base font-black text-white uppercase tracking-[1px]">
+                    Create Saga
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

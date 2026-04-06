@@ -13,27 +13,11 @@ interface HeatmapProps {
 }
 
 const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 const DAY_LABELS: (string | null)[] = [
-  null,
-  "Mon",
-  null,
-  "Wed",
-  null,
-  "Fri",
-  null,
+  null, "Mon", null, "Wed", null, "Fri", null,
 ];
 
 const CELL_SIZE = 13;
@@ -41,7 +25,7 @@ const CELL_GAP = 3;
 const CELL_STRIDE = CELL_SIZE + CELL_GAP;
 
 export function Heatmap({ data }: HeatmapProps) {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
 
   const parseDateLocal = (dateStr: string) => {
     const [year, month, day] = dateStr.split("-").map(Number);
@@ -96,9 +80,8 @@ export function Heatmap({ data }: HeatmapProps) {
     return null;
   };
 
-  // Cell colors are data-driven — must stay as inline style
   const getColor = (pages: number) => {
-    if (pages === 0) return colors.surface;
+    if (pages === 0) return mode === 'dark' ? '#334155' : '#F1F5F9';
     if (pages < 10) return colors.primary + "40";
     if (pages < 30) return colors.primary + "80";
     if (pages < 60) return colors.primary + "C0";
@@ -114,21 +97,19 @@ export function Heatmap({ data }: HeatmapProps) {
   const MONTH_ROW_HEIGHT = 16;
 
   return (
-    <View className="bg-white dark:bg-[#1E293B] p-4 border border-[#E2E8F0] dark:border-[#334155] rounded-2xl">
+    <View className="bg-white dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-sm">
       {/* Header */}
-      <View className="mb-3">
-        <Text className="font-bold text-[#111c2d] dark:text-[#F8FAFC] text-base">
+      <View className="mb-4">
+        <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
           Activity Heatmap
         </Text>
-        <Text className="mt-0.5 text-[#494454] dark:text-[#94A3B8] text-xs">
-          {activeDays} {activeDays === 1 ? "day" : "days"} with reading activity
-          in {year}
+        <Text className="mt-1 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+          {activeDays} {activeDays === 1 ? "day" : "days"} of reading in {year}
         </Text>
       </View>
 
       {/* Grid */}
       <View className="flex-row">
-        {/* Fixed day-of-week labels */}
         <View
           style={{
             width: DAY_LABEL_COL_WIDTH,
@@ -145,7 +126,7 @@ export function Heatmap({ data }: HeatmapProps) {
               }}
             >
               {label && (
-                <Text className="font-medium text-[#494454] text-[9px] dark:text-[#94A3B8]">
+                <Text className="font-bold text-slate-400 dark:text-slate-500 text-[9px] uppercase">
                   {label}
                 </Text>
               )}
@@ -153,10 +134,8 @@ export function Heatmap({ data }: HeatmapProps) {
           ))}
         </View>
 
-        {/* Scrollable month labels + week columns */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
-            {/* Month labels */}
             <View
               className="flex-row"
               style={{ height: MONTH_ROW_HEIGHT, marginBottom: CELL_GAP }}
@@ -169,7 +148,7 @@ export function Heatmap({ data }: HeatmapProps) {
                     style={{ width: CELL_STRIDE, justifyContent: "flex-end" }}
                   >
                     {label && (
-                      <Text className="font-semibold text-[#494454] text-[9px] dark:text-[#94A3B8]">
+                      <Text className="font-bold text-slate-400 dark:text-slate-500 text-[9px] uppercase">
                         {label}
                       </Text>
                     )}
@@ -178,7 +157,6 @@ export function Heatmap({ data }: HeatmapProps) {
               })}
             </View>
 
-            {/* Week columns */}
             <View className="flex-row">
               {weeks.map((week, colIndex) => (
                 <View key={colIndex} style={{ marginRight: CELL_GAP }}>
@@ -196,7 +174,7 @@ export function Heatmap({ data }: HeatmapProps) {
                             : getColor(day.pagesRead),
                         borderWidth:
                           day.date !== "PAD" && day.pagesRead === 0 ? 1 : 0,
-                        borderColor: colors.border,
+                        borderColor: mode === 'dark' ? '#475569' : '#E2E8F0',
                       }}
                     />
                   ))}
@@ -207,13 +185,13 @@ export function Heatmap({ data }: HeatmapProps) {
         </ScrollView>
       </View>
 
-      {/* Intensity legend */}
-      <View className="flex-row justify-end items-center mt-[10px]">
-        <Text className="mr-[6px] text-[#494454] text-[9px] dark:text-[#94A3B8]">
+      {/* Legend */}
+      <View className="flex-row justify-end items-center mt-4">
+        <Text className="mr-2 text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-wider">
           Less
         </Text>
         {[
-          { bg: colors.surface, bordered: true },
+          { bg: mode === 'dark' ? '#334155' : '#F1F5F9', bordered: true },
           { bg: colors.primary + "40" },
           { bg: colors.primary + "80" },
           { bg: colors.primary + "C0" },
@@ -221,15 +199,15 @@ export function Heatmap({ data }: HeatmapProps) {
         ].map((s, i) => (
           <View
             key={i}
-            className={`w-[10px] h-[10px] rounded-[2px] ${i < 4 ? "mr-[3px]" : "mr-[6px]"}`}
+            className={`w-2.5 h-2.5 rounded-sm ${i < 4 ? "mr-1" : "mr-2"}`}
             style={{
               backgroundColor: s.bg,
               borderWidth: s.bordered ? 1 : 0,
-              borderColor: colors.border,
+              borderColor: mode === 'dark' ? '#475569' : '#E2E8F0',
             }}
           />
         ))}
-        <Text className="text-[#494454] text-[9px] dark:text-[#94A3B8]">
+        <Text className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-wider">
           More
         </Text>
       </View>

@@ -67,7 +67,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
           <>
             {/* ── Cover (image-only container with rounded corners) ── */}
             <View 
-              className="w-full aspect-[2/3] rounded-2xl overflow-hidden dark:border dark:border-[#334155]"
+              className="w-full aspect-[2/3] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
               style={{
                 transform: [{ scale: pressed ? 0.96 : 1 }],
               }}
@@ -82,7 +82,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
                   />
                 ) : (
                   <View 
-                    className="w-full h-full bg-[#e9ddff] dark:bg-[#1E293B] items-center justify-center"
+                    className="w-full h-full bg-slate-100 dark:bg-slate-900 items-center justify-center"
                     style={{ opacity: pressed ? 0.7 : 1 }}
                   >
                     <Text className="text-5xl">📖</Text>
@@ -95,17 +95,17 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
                 className={`absolute top-2 left-2 rounded-full px-2 py-0.5 ${bgClass}`}
                 style={{ opacity: pressed ? 0.8 : 1 }}
               >
-                <Text className="text-[10px] font-bold text-white">{label}</Text>
+                <Text className="text-[10px] font-bold text-white uppercase tracking-tighter">{label}</Text>
               </View>
 
               {/* Category tag — top-right, over the image */}
               {book.categories && book.categories.length > 0 && (
                 <View 
-                  className="absolute top-2 right-2 bg-[#e9ddff]/90 dark:bg-[#334155]/90 rounded-full px-2 py-0.5 max-w-[80px]"
+                  className="absolute top-2 right-2 bg-slate-950/40 dark:bg-slate-950/60 rounded-full px-2 py-0.5 max-w-[80px]"
                   style={{ opacity: pressed ? 0.8 : 1 }}
                 >
                   <Text
-                    className="text-[10px] font-bold text-[#5516be] dark:text-[#A78BFA]"
+                    className="text-[10px] font-bold text-white dark:text-slate-200"
                     numberOfLines={1}
                   >
                     {book.categories[0].name}
@@ -123,13 +123,13 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
               }}
             >
               <Text
-                className="text-[13px] font-bold text-[#111c2d] dark:text-[#F8FAFC] leading-[18px]"
+                className="text-[14px] font-bold text-slate-900 dark:text-slate-50 leading-[18px]"
                 numberOfLines={1}
               >
                 {book.title}
               </Text>
               <Text
-                className="text-[11px] text-[#494454] dark:text-[#94A3B8] mt-0.5"
+                className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5"
                 numberOfLines={1}
               >
                 {book.author}
@@ -143,7 +143,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
               </Text>
 
               {/* Reading progress bar */}
-              <View className="mt-1 h-1 w-full rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+              <View className="mt-1 h-1 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <View
                   className="h-full rounded-full"
                   style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
@@ -165,8 +165,8 @@ function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(300).delay(index * 40)}
-      className="w-[280px] rounded-2xl overflow-hidden mr-4"
+      entering={FadeInDown.duration(400).delay(index * 50)}
+      className="w-[280px] rounded-3xl overflow-hidden mr-4 shadow-xl shadow-black/10"
       style={{ aspectRatio: 16 / 9 }}
     >
       {/* Background: cover image or placeholder */}
@@ -177,26 +177,26 @@ function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
           resizeMode="cover"
         />
       ) : (
-        <View className="absolute inset-0 bg-[#1E293B] items-center justify-center">
-          <Text className="text-6xl font-bold text-[#A78BFA]/30">{initial}</Text>
+        <View className="absolute inset-0 bg-slate-900 items-center justify-center">
+          <Text className="text-7xl font-bold text-slate-800">{initial}</Text>
         </View>
       )}
 
-      {/* Dark overlay for contrast */}
-      <View className="absolute inset-0 bg-black/30" />
+      {/* Modern Gradient-like Overlay */}
+      <View className="absolute inset-0 bg-slate-950/20" />
+      <View className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
 
-      {/* Volume badge — above title strip */}
-      {volumeCount > 0 && (
-        <View className="absolute left-3 bg-[#334155]/80 rounded-full px-2.5 py-1" style={{ bottom: 52 }}>
-          <Text className="text-[10px] font-bold text-[#A78BFA] uppercase tracking-wider">
-            {volumeCount} {volumeCount === 1 ? "volume" : "volumes"}
-          </Text>
-        </View>
-      )}
-
-      {/* Title strip */}
-      <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-4 py-3">
-        <Text className="font-bold text-base text-white" numberOfLines={1}>
+      {/* Info Content */}
+      <View className="absolute bottom-0 left-0 right-0 p-5">
+        {/* Volume badge */}
+        {volumeCount > 0 && (
+          <View className="self-start bg-violet-600 dark:bg-violet-500 rounded-full px-2.5 py-1 mb-2 shadow-lg shadow-violet-900/40">
+            <Text className="text-[10px] font-black text-white uppercase tracking-widest">
+              {volumeCount} {volumeCount === 1 ? "Volume" : "Volumes"}
+            </Text>
+          </View>
+        )}
+        <Text className="font-black text-xl text-white tracking-tight" numberOfLines={1}>
           {saga.name}
         </Text>
       </View>
@@ -342,7 +342,7 @@ export default function LibraryScreen() {
   const safeSagas: SagaDTO[] = Array.isArray(sagas) ? sagas : [];
 
   return (
-    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-950">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
 
       <FABMenu
@@ -357,8 +357,6 @@ export default function LibraryScreen() {
         iconColor={iconColor}
       />
 
-
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -372,41 +370,42 @@ export default function LibraryScreen() {
           entering={FadeIn.duration(400)}
           className="pt-3.5 pb-6 flex-row justify-between items-center"
         >
-          <Text className="text-[28px] font-extrabold text-[#111c2d] dark:text-[#F8FAFC] tracking-[-0.5px]">
+          <Text className="text-3xl font-black text-slate-900 dark:text-slate-50 tracking-tight">
             Library
           </Text>
 
           <Pressable
             onPress={() => setFabOpen((p) => !p)}
-            className="w-10 h-10 rounded-full bg-[#6b38d4] dark:bg-[#A78BFA] items-center justify-center shadow-lg shadow-[#6b38d4]/30 dark:shadow-[#A78BFA]/30 active:scale-95"
-            style={{ elevation: 4 }}
+            className="w-11 h-11 rounded-full bg-violet-600 dark:bg-violet-500 items-center justify-center shadow-xl shadow-violet-600/30 dark:shadow-violet-900/40 active:scale-95"
           >
-            <Text className="text-white text-[22px] leading-none font-bold">+</Text>
+            <Feather name="plus" size={24} color="#fff" />
           </Pressable>
         </Animated.View>
 
         {/* Search input */}
         <Animated.View
           entering={FadeIn.duration(400).delay(60)}
-          className="flex-row items-center gap-3 bg-[#f0f3ff] dark:bg-[#1E293B] rounded-full px-4 py-3 mb-4"
-          style={[{ borderWidth: 1.5 }, searchAnimatedBorder]}
+          className="flex-row items-center gap-3 bg-slate-100 dark:bg-slate-900 rounded-2xl px-5 py-4 mb-6 shadow-sm border border-slate-200/50 dark:border-slate-800/50"
+          style={[searchAnimatedBorder]}
         >
-          <Feather name="search" size={16} color={searchIconColor} />
+          <Feather name="search" size={18} color={searchIconColor} />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search books…"
+            placeholder="Search titles or authors…"
             placeholderTextColor="#94A3B8"
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            className="flex-1 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+            className="flex-1 text-[15px] font-medium text-slate-900 dark:text-slate-50"
             returnKeyType="search"
             autoCapitalize="none"
             autoCorrect={false}
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
-              <Feather name="x" size={16} color="#94A3B8" />
+            <Pressable onPress={() => setSearchQuery("")} hitSlop={12}>
+              <View className="bg-slate-200 dark:bg-slate-800 rounded-full p-1">
+                <Feather name="x" size={12} color="#94A3B8" />
+              </View>
             </Pressable>
           )}
         </Animated.View>
@@ -415,26 +414,26 @@ export default function LibraryScreen() {
         {safeCategories.length > 0 && (
           <Animated.View
             entering={FadeIn.duration(400).delay(100)}
-            className="mb-6"
+            className="mb-8"
           >
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+              contentContainerStyle={{ gap: 10, paddingVertical: 2 }}
             >
               <Pressable
                 onPress={() => setSelectedCategory(null)}
-                className={`rounded-full px-4 py-2 ${
+                className={`rounded-full px-5 py-2.5 ${
                   selectedCategory === null
-                    ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
-                    : "bg-[#f0f3ff] dark:bg-[#1E293B]"
+                    ? "bg-violet-600 dark:bg-violet-500 shadow-md shadow-violet-600/20"
+                    : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800"
                 }`}
               >
                 <Text
-                  className={`text-xs font-bold ${
+                  className={`text-xs font-black uppercase tracking-wider ${
                     selectedCategory === null
                       ? "text-white"
-                      : "text-[#494454] dark:text-[#94A3B8]"
+                      : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   All
@@ -449,17 +448,17 @@ export default function LibraryScreen() {
                       selectedCategory === cat.id ? null : cat.id
                     )
                   }
-                  className={`rounded-full px-4 py-2 ${
+                  className={`rounded-full px-5 py-2.5 ${
                     selectedCategory === cat.id
-                      ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
-                      : "bg-[#f0f3ff] dark:bg-[#1E293B]"
+                      ? "bg-violet-600 dark:bg-violet-500 shadow-md shadow-violet-600/20"
+                      : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800"
                   }`}
                 >
                   <Text
-                    className={`text-xs font-bold ${
+                    className={`text-xs font-black uppercase tracking-wider ${
                       selectedCategory === cat.id
                         ? "text-white"
-                        : "text-[#494454] dark:text-[#94A3B8]"
+                        : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     {cat.name}
@@ -474,15 +473,20 @@ export default function LibraryScreen() {
         {safeSagas.length > 0 && (
           <Animated.View
             entering={FadeIn.duration(400).delay(140)}
-            className="mb-8"
+            className="mb-10"
           >
-            <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px] mb-4">
-              Sagas
-            </Text>
+            <View className="flex-row items-center justify-between mb-5 px-1">
+              <Text className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[3px]">
+                Sagas
+              </Text>
+              <Text className="text-xs font-bold text-slate-400 dark:text-slate-700">
+                {safeSagas.length} Collections
+              </Text>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingRight: 4 }}
+              contentContainerStyle={{ paddingRight: 4, paddingBottom: 10 }}
             >
               {safeSagas.map((saga, i) => (
                 <Pressable
@@ -499,9 +503,14 @@ export default function LibraryScreen() {
 
         {/* Books section */}
         <Animated.View entering={FadeIn.duration(400).delay(180)}>
-          <Text className="text-xs font-bold text-[#111c2d]/60 dark:text-[#F8FAFC]/60 uppercase tracking-[3px] mb-4">
-            Books
-          </Text>
+          <View className="flex-row items-center justify-between mb-5 px-1">
+            <Text className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[3px]">
+              Books
+            </Text>
+            <Text className="text-xs font-bold text-slate-400 dark:text-slate-700">
+              {filteredBooks.length} Items
+            </Text>
+          </View>
 
           {filteredBooks.length === 0 ? (
             <EmptyBooks hasSearch={searchQuery.length > 0} />

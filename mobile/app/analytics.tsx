@@ -44,25 +44,25 @@ function SummaryCard({
   return (
     <Animated.View
       entering={FadeInDown.duration(350).delay(delay)}
-      className="flex-1 gap-[10px] bg-white dark:bg-[#1E293B] p-[14px] border border-[#E2E8F0] dark:border-[#334155] rounded-2xl"
+      className="flex-1 gap-2 bg-white dark:bg-slate-800 p-3.5 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-sm"
     >
       <View
-        className="justify-center items-center rounded-full w-[34px] h-[34px]"
+        className="justify-center items-center rounded-full w-9 h-9"
         style={{ backgroundColor: iconBg }}
       >
         <Feather name={iconName} size={16} color={iconColor} />
       </View>
 
       <View>
-        <Text className="font-extrabold text-[#111c2d] text-[22px] dark:text-[#F8FAFC] tracking-tight">
+        <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-xl tracking-tight">
           {value}
         </Text>
-        <Text className="mt-[1px] font-semibold text-[#494454] text-[10px] dark:text-[#94A3B8]">
+        <Text className="mt-0.5 font-bold text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wider">
           {unit}
         </Text>
       </View>
 
-      <Text className="font-medium text-[#494454] text-[11px] dark:text-[#94A3B8] leading-[14px]">
+      <Text className="font-medium text-slate-600 dark:text-slate-400 text-xs leading-4">
         {label}
       </Text>
     </Animated.View>
@@ -77,9 +77,9 @@ const FILTER_LABELS: Record<string, string> = {
   MONTH: "30 Days",
   HALF_YEAR: "6 Mos",
   YEAR: "1 Year",
-  CURRENT_WEEK: "This Week",
-  CURRENT_MONTH: "This Month",
-  CURRENT_YEAR: "This Year",
+  CURRENT_WEEK: "Week",
+  CURRENT_MONTH: "Month",
+  CURRENT_YEAR: "Year",
 };
 
 function getDynamicChartSubtitle(period: string): string {
@@ -209,74 +209,87 @@ export default function AnalyticsScreen() {
     intervalType === "ROLLING" ? ROLLING_FILTERS : CURRENT_FILTERS;
 
   return (
-    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-950">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 20,
         }}
         className="flex-1"
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pb-12">
+        <View className="px-5">
           {/* Header */}
-          <View className="mb-6">
-            <TouchableOpacity
-              onPress={() => router.back()}
-              activeOpacity={0.7}
-              className="justify-center items-center bg-[rgba(255,255,255,0.1)] mb-5 rounded-full w-10 h-10"
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Feather name="arrow-left" size={20} color={colors.text} />
-            </TouchableOpacity>
+          <View className="mb-6 flex-row items-center justify-between">
+            <View className="flex-1">
+              <TouchableOpacity
+                onPress={() => router.back()}
+                activeOpacity={0.7}
+                className="justify-center items-center bg-slate-200/50 dark:bg-slate-800/50 mb-5 rounded-full w-10 h-10"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather name="arrow-left" size={20} color={colors.text} />
+              </TouchableOpacity>
 
-            <Text className="font-extrabold text-[#111c2d] text-[26px] dark:text-[#F8FAFC]">
-              Reading Analytics
-            </Text>
-            <Text className="mt-1 text-[#494454] dark:text-[#94A3B8] text-sm">
-              Deep dive into your reading habits.
-            </Text>
+              <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-3xl tracking-tight">
+                Analytics
+              </Text>
+              <Text className="mt-1 text-slate-500 dark:text-slate-400 text-sm">
+                Deep dive into your reading habits.
+              </Text>
+            </View>
+            <View className="justify-center items-center bg-violet-100 dark:bg-violet-900/30 w-12 h-12 rounded-2xl">
+              <Feather name="bar-chart-2" size={24} color={mode === "dark" ? "#A78BFA" : "#6b38d4"} />
+            </View>
           </View>
 
-          {/* Interval Type Toggle */}
-          <View className="flex-row bg-white dark:bg-[#1E293B] mb-3 p-1 border border-[#E2E8F0] dark:border-[#334155] rounded-xl">
+          {/* Type Toggle */}
+          <View className="flex-row bg-slate-200/50 dark:bg-slate-900/50 mb-3 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800">
             {(["ROLLING", "CURRENT"] as const).map((type) => {
               const isActive = intervalType === type;
               return (
                 <TouchableOpacity
                   key={type}
                   onPress={() => handleTypeChange(type)}
-                  className={`flex-1 py-2 items-center rounded-lg ${isActive ? "bg-[#dee8ff] dark:bg-[#334155]" : ""}`}
+                  className={`flex-1 py-2.5 items-center rounded-lg ${isActive ? "bg-white dark:bg-slate-800 shadow-sm" : ""}`}
                 >
                   <Text
-                    className={`text-[13px] ${
+                    className={`text-xs ${
                       isActive
-                        ? "font-bold text-[#111c2d] dark:text-[#F8FAFC]"
-                        : "font-medium text-[#494454] dark:text-[#94A3B8]"
+                        ? "font-bold text-slate-900 dark:text-slate-50"
+                        : "font-semibold text-slate-500 dark:text-slate-400"
                     }`}
                   >
-                    {type === "ROLLING" ? "Trailing Window" : "Current Period"}
+                    {type === "ROLLING" ? "Floating Window" : "Current Period"}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          {/* Period Filters */}
-          <View className="flex-row bg-white dark:bg-[#1E293B] mb-6 p-1 border border-[#E2E8F0] dark:border-[#334155] rounded-xl">
+          {/* Period Filter */}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            className="mb-6"
+            contentContainerStyle={{ gap: 8 }}
+          >
             {currentActiveFilters.map((f) => {
               const isActive = period === f;
               return (
                 <TouchableOpacity
                   key={f}
                   onPress={() => setPeriod(f)}
-                  className={`flex-1 py-2 items-center rounded-lg ${isActive ? "bg-[#6b38d4] dark:bg-[#A78BFA]" : ""}`}
+                  className={`px-5 py-2 rounded-full border ${
+                    isActive 
+                      ? "bg-violet-600 border-violet-600" 
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                  }`}
                 >
                   <Text
-                    className={`text-[13px] ${
-                      isActive
-                        ? "font-bold text-white"
-                        : "font-medium text-[#494454] dark:text-[#94A3B8]"
+                    className={`text-xs font-bold ${
+                      isActive ? "text-white" : "text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     {FILTER_LABELS[f]}
@@ -284,29 +297,32 @@ export default function AnalyticsScreen() {
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
 
           {/* Content */}
           <View className="gap-6">
             {isLoading ? (
-              <ActivityIndicator size="large" color={colors.primary} />
+              <View className="py-12 items-center">
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
             ) : isError ? (
-              <View className="items-center bg-[#ba1a1a]/10 dark:bg-[#F87171]/10 p-6 rounded-xl">
-                <Text className="font-bold text-[#ba1a1a] dark:text-[#F87171] text-base">
-                  Failed to load analytics data.
+              <View className="items-center bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-100 dark:border-red-900/20">
+                <Feather name="alert-circle" size={24} color="#ef4444" />
+                <Text className="mt-3 font-bold text-red-600 dark:text-red-400 text-base">
+                  Failed to load analytics
                 </Text>
-                <Text className="mt-2 text-[#494454] dark:text-[#94A3B8] text-sm text-center">
-                  Please check your connection and try again.
+                <Text className="mt-1 text-red-500/70 dark:text-red-400/50 text-xs text-center">
+                  Check your connection and try again
                 </Text>
               </View>
             ) : (
               <>
                 {summary && (
-                  <View className="flex-row gap-[10px] mb-2">
+                  <View className="flex-row gap-2.5 mb-2">
                     <SummaryCard
                       iconName="file-text"
-                      iconBg={colors.violet100}
-                      iconColor={colors.primary}
+                      iconBg={mode === 'dark' ? 'rgba(124, 77, 255, 0.15)' : '#ede9fe'}
+                      iconColor={mode === 'dark' ? '#A78BFA' : '#6b38d4'}
                       value={summary.totalPagesRead.toLocaleString()}
                       unit="pages"
                       label="Pages Read"
@@ -314,19 +330,19 @@ export default function AnalyticsScreen() {
                     />
                     <SummaryCard
                       iconName="clock"
-                      iconBg={colors.orange100}
-                      iconColor={colors.secondary}
+                      iconBg={mode === 'dark' ? 'rgba(245, 158, 11, 0.15)' : '#fef3c7'}
+                      iconColor={mode === 'dark' ? '#FBBF24' : '#d97706'}
                       value={summary.totalActiveMinutes.toLocaleString()}
-                      unit="minutes"
-                      label="Time Reading"
+                      unit="mins"
+                      label="Reading Time"
                       delay={140}
                     />
                     <SummaryCard
                       iconName="zap"
-                      iconBg={colors.green100}
-                      iconColor={colors.green700}
+                      iconBg={mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#dcfce7'}
+                      iconColor={mode === 'dark' ? '#34D399' : '#15803d'}
                       value={summary.avgPagesPerMinute.toFixed(1)}
-                      unit="pages / min"
+                      unit="pg/min"
                       label="Avg Pace"
                       delay={200}
                     />
