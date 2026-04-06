@@ -343,7 +343,7 @@ export function AnalyticsCharts({
   return (
     <View className="gap-6">
       {/* Curve Toggle */}
-      <View className="flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-sm">
+      <View className="flex-row justify-between items-center bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
         <View className="flex-row items-center gap-3">
           <View className="bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-lg items-center justify-center">
             <Text className="text-lg">📈</Text>
@@ -361,7 +361,7 @@ export function AnalyticsCharts({
       </View>
 
       {/* Pages Read Chart */}
-      <View className="bg-white dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -424,7 +424,7 @@ export function AnalyticsCharts({
       </View>
 
       {/* Time Reading Chart */}
-      <View className="bg-white dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -481,7 +481,7 @@ export function AnalyticsCharts({
       </View>
 
       {/* Pace Chart */}
-      <View className="bg-white dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-2xl shadow-sm">
         <View className="flex-row justify-between items-start mb-2">
           <View className="flex-1">
             <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">
@@ -544,7 +544,7 @@ export function AnalyticsCharts({
       </View>
 
       {/* Genre Breakdown */}
-      <View className="bg-white dark:bg-slate-800 p-6 border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-sm">
+      <View className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl shadow-sm">
         <Text className="mb-6 font-extrabold text-slate-900 dark:text-slate-50 text-lg">
           Genre Distribution
         </Text>
@@ -600,7 +600,7 @@ export function AnalyticsCharts({
 
       {/* Language Breakdown */}
       {languageData.length > 0 && (
-        <View className="bg-white dark:bg-slate-800 p-6 border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-sm">
+        <View className="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800/50 rounded-3xl shadow-sm">
           <Text className="mb-6 font-extrabold text-slate-900 dark:text-slate-50 text-lg">
             Language Spread
           </Text>

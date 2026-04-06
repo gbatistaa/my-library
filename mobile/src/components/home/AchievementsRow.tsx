@@ -51,8 +51,8 @@ function Badge({ achievement, isLight }: { achievement: AchievementDTO, isLight:
           alignItems: "center",
           justifyContent: "center",
           borderWidth: 1.5,
-          backgroundColor: earned ? styles.bg : isLight ? "#ede9fe" : "#1E293B",
-          borderColor: earned ? styles.border : isLight ? "#e2e8f0" : "#334155",
+          backgroundColor: earned ? styles.bg : isLight ? "#ede9fe" : "#0F172A",
+          borderColor: earned ? styles.border : isLight ? "#e2e8f0" : "#1e293b",
         }}
       >
         <Text style={{ fontSize: 20 }}>

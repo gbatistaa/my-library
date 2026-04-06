@@ -18,10 +18,10 @@ module.exports = {
         },
         // Backgrounds
         paper: '#F8F9FA',
-        'deep-space': '#0F172A',
+        'deep-space': '#020617',
         // Surfaces
         'surface-light': '#FFFFFF',
-        'surface-dark': '#1E293B',
+        'surface-dark': '#0F172A',
         // Text
         'ink': '#1E293B',
         'ink-secondary': '#64748B',

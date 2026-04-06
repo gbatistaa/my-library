@@ -83,7 +83,7 @@ function FormInput({
         placeholderTextColor={placeholderColor}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className={`${className} bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
+        className={`${className} bg-[#f0f3ff] dark:bg-slate-900 rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]`}
         style={[
           { borderWidth: 1.5 },
           animatedBorderStyle,
@@ -359,7 +359,7 @@ export default function EditBookScreen() {
   }), [isInputFocused, iconColor, inactiveBorder]);
 
   return (
-    <View className="flex-1 bg-white dark:bg-[#0F172A]">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <Stack.Screen
         options={{
           headerShown: false,
@@ -392,7 +392,7 @@ export default function EditBookScreen() {
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
+              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-slate-900 items-center justify-center"
             >
               <Feather
                 name="x"
@@ -406,7 +406,7 @@ export default function EditBookScreen() {
           <TouchableOpacity
             onPress={pickImage}
             activeOpacity={0.85}
-            className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mt-6 mb-8 bg-[#e9ddff]/30 dark:bg-[#1E293B]"
+            className="w-full h-44 rounded-2xl overflow-hidden items-center justify-center mt-6 mb-8 bg-[#e9ddff]/30 dark:bg-slate-900"
             style={{
               borderWidth: displayCover ? 0 : 2,
               borderStyle: "dashed",
@@ -564,7 +564,7 @@ export default function EditBookScreen() {
               placeholder="Add a category…"
               placeholderTextColor={placeholderColor}
               autoCapitalize="words"
-              className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+              className="bg-[#f0f3ff] dark:bg-slate-900 rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
               style={[
                 { borderWidth: 1.5 },
                 categoryAnimatedBorder,
@@ -573,8 +573,8 @@ export default function EditBookScreen() {
 
             {showSuggestions && filteredCategories.length > 0 && (
               <View
-                className="bg-white dark:bg-[#1E293B] rounded-xl mt-1 overflow-hidden"
-                style={{ borderWidth: 1, borderColor: mode === "dark" ? "#334155" : "#E2E8F0" }}
+                className="bg-white dark:bg-slate-900 rounded-xl mt-1 overflow-hidden"
+                style={{ borderWidth: 1, borderColor: mode === "dark" ? "#1e293b" : "#E2E8F0" }}
               >
                 {filteredCategories.slice(0, 6).map((cat, i) => (
                   <Pressable
@@ -615,7 +615,7 @@ export default function EditBookScreen() {
                   className={`rounded-full px-4 py-2 ${
                     status === opt.value
                       ? "bg-[#6b38d4] dark:bg-[#A78BFA]"
-                      : "bg-[#f0f3ff] dark:bg-[#1E293B] border border-[#cbc3d7]/40 dark:border-[#334155]"
+                      : "bg-[#f0f3ff] dark:bg-slate-900 border border-[#cbc3d7]/40 dark:border-slate-800"
                   }`}
                 >
                   <Text

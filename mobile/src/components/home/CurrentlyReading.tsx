@@ -20,7 +20,7 @@ interface Props {
 function BookCoverPlaceholder() {
   const { colors } = useAppTheme();
   return (
-    <View className="justify-center items-center bg-[#f0f3ff] dark:bg-[#1E293B] rounded-lg w-24 h-36">
+    <View className="justify-center items-center bg-[#f0f3ff] dark:bg-slate-900 rounded-lg w-24 h-36">
       <Feather name="book" size={28} color={colors.primary + "60"} />
     </View>
   );
@@ -37,14 +37,14 @@ function BookCard({ book }: { book: BookDTO }) {
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row gap-4 bg-[#ede9fe] dark:bg-[#1E293B] active:opacity-90 p-4 rounded-xl w-[300px] active:scale-[0.98]"
+      className="flex-row gap-4 bg-[#ede9fe] dark:bg-slate-900 active:opacity-90 p-4 rounded-xl w-[300px] active:scale-[0.98]"
     >
       {/* Cover with page badge overlay */}
       <View className="relative">
         {book.coverUrl ? (
           <Image
             source={{ uri: book.coverUrl }}
-            className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-lg w-24 h-36"
+            className="bg-[#f0f3ff] dark:bg-slate-900 rounded-lg w-24 h-36"
             resizeMode="cover"
           />
         ) : (

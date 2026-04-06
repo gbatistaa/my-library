@@ -143,7 +143,7 @@ function BookCard({ book, index }: { book: BookDTO; index: number }) {
               </Text>
 
               {/* Reading progress bar */}
-              <View className="mt-1 h-1 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+              <View className="mt-1 h-1 w-full rounded-full bg-slate-200 dark:bg-slate-900 overflow-hidden">
                 <View
                   className="h-full rounded-full"
                   style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
@@ -177,7 +177,7 @@ function SagaCard({ saga, index }: { saga: SagaDTO; index: number }) {
           resizeMode="cover"
         />
       ) : (
-        <View className="absolute inset-0 bg-slate-900 items-center justify-center">
+        <View className="absolute inset-0 bg-slate-950 items-center justify-center">
           <Text className="text-7xl font-bold text-slate-800">{initial}</Text>
         </View>
       )}
@@ -236,7 +236,7 @@ function FABMenu({
       {open && (
         <Animated.View
           entering={FadeInDown.duration(200)}
-          className="absolute right-5 z-20 bg-white dark:bg-[#1E293B] rounded-2xl overflow-hidden dark:border dark:border-[#334155] shadow-2xl"
+          className="absolute right-5 z-20 bg-white dark:bg-slate-900 rounded-2xl overflow-hidden dark:border dark:border-slate-800 shadow-2xl"
           style={{ top: fabTop, minWidth: 180 }}
         >
           {FAB_ITEMS.map((item, i) => (
@@ -342,7 +342,7 @@ export default function LibraryScreen() {
   const safeSagas: SagaDTO[] = Array.isArray(sagas) ? sagas : [];
 
   return (
-    <View className="flex-1 bg-slate-50 dark:bg-slate-950">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
 
       <FABMenu
@@ -403,7 +403,7 @@ export default function LibraryScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")} hitSlop={12}>
-              <View className="bg-slate-200 dark:bg-slate-800 rounded-full p-1">
+              <View className="bg-slate-200 dark:bg-slate-900 rounded-full p-1">
                 <Feather name="x" size={12} color="#94A3B8" />
               </View>
             </Pressable>
@@ -426,7 +426,7 @@ export default function LibraryScreen() {
                 className={`rounded-full px-5 py-2.5 ${
                   selectedCategory === null
                     ? "bg-violet-600 dark:bg-violet-500 shadow-md shadow-violet-600/20"
-                    : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800"
+                    : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50"
                 }`}
               >
                 <Text
@@ -451,7 +451,7 @@ export default function LibraryScreen() {
                   className={`rounded-full px-5 py-2.5 ${
                     selectedCategory === cat.id
                       ? "bg-violet-600 dark:bg-violet-500 shadow-md shadow-violet-600/20"
-                      : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800"
+                      : "bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50"
                   }`}
                 >
                   <Text

@@ -206,7 +206,7 @@ export default function AuthScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0A0F1E" }}>
+    <View style={{ flex: 1, backgroundColor: "#020617" }}>
       <StatusBar style="light" />
 
       {/* Background decorative orbs */}
@@ -275,7 +275,7 @@ export default function AuthScreen() {
             entering={FadeInUp.duration(400).delay(120)}
             style={{
               borderRadius: 24,
-              backgroundColor: "#111827",
+              backgroundColor: "#0F172A",
               padding: 24,
               shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 8 },
@@ -289,7 +289,7 @@ export default function AuthScreen() {
               style={{
                 flexDirection: "row",
                 borderRadius: 12,
-                backgroundColor: "#0A0F1E",
+                backgroundColor: "#020617",
                 padding: 4,
                 marginBottom: 24,
               }}
@@ -441,7 +441,7 @@ export default function AuthScreen() {
                       borderColor: registerErrors.birthDate
                         ? "#F43F5E"
                         : "#334155",
-                      backgroundColor: "#1E293B",
+                      backgroundColor: "#0F172A",
                       paddingHorizontal: 16,
                       height: 52,
                     }}
@@ -488,7 +488,7 @@ export default function AuthScreen() {
                     >
                       <View
                         style={{
-                          backgroundColor: "#111827",
+                          backgroundColor: "#0F172A",
                           borderTopLeftRadius: 24,
                           borderTopRightRadius: 24,
                           padding: 16,

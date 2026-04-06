@@ -349,7 +349,7 @@ const SessionScreen = () => {
             <View className="relative">
               <Pressable
                 onPress={() => setBookModalVisible(true)}
-                className="flex-row items-center bg-white/65 dark:bg-[#1E293B]/60 shadow-black/[0.08] shadow-lg dark:shadow-black/30 px-4 py-3.5 border border-[#6b38d4]/[0.12] dark:border-[#A78BFA]/[0.18] rounded-2xl active:scale-[0.98]"
+                className="flex-row items-center bg-white/65 dark:bg-[#0F172A]/60 shadow-black/[0.08] shadow-lg dark:shadow-black/30 px-4 py-3.5 border border-[#6b38d4]/[0.12] dark:border-[#A78BFA]/[0.18] rounded-2xl active:scale-[0.98]"
                 style={{ elevation: 4 }}
               >
                 {/* Thumbnail */}

@@ -162,7 +162,7 @@ function EditProfileModal({
 
       {/* Sheet with SLIDE (using Transform) */}
       <RNAnimated.View
-        className="right-0 bottom-0 left-0 absolute bg-[#f8f9ff] dark:bg-[#0f172a] px-6 pt-5 rounded-t-[28px]"
+        className="right-0 bottom-0 left-0 absolute bg-[#f8f9ff] dark:bg-slate-900 px-6 pt-5 rounded-t-[28px]"
         style={{
           paddingBottom: insets.bottom + 20,
           shadowColor: "#000",
@@ -321,7 +321,7 @@ function ConfirmRevokeModal({
         pointerEvents="box-none"
       >
         <RNAnimated.View
-          className="bg-white dark:bg-[#1E293B] rounded-2xl w-full overflow-hidden"
+          className="bg-white dark:bg-slate-900 rounded-2xl w-full overflow-hidden"
           style={{
             opacity: fadeAnim,
             transform: [{ scale: scaleAnim }],
@@ -428,7 +428,7 @@ function DeviceCard({
       className={`flex-row items-center gap-3 p-4 rounded-xl ${
         isCurrentDevice
           ? "bg-[#6b38d4]/10 dark:bg-[#7c4dff]/10 border border-[#6b38d4]/20 dark:border-[#7c4dff]/20"
-          : "bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800"
+          : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
       }`}
     >
       {/* Device icon circle */}
@@ -614,7 +614,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#f8f9ff] dark:bg-[#0f172a]">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{
@@ -632,71 +632,65 @@ export default function ProfileScreen() {
       >
         {/* ── Hero Header ─────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(400)}>
-          {user.profilePicPath ? (
-            <ImageBackground
-              source={{ uri: user.profilePicPath }}
-              className="w-full h-[220px]"
-              resizeMode="cover"
-              blurRadius={15}
-            >
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.72)"]}
-                className="flex-1 justify-end items-center pb-5"
-              >
+          <View className="w-full h-[225px] justify-center items-center overflow-hidden">
+            {user.profilePicPath ? (
+              <>
+                <ImageBackground
+                  source={{ uri: user.profilePicPath }}
+                  className="absolute inset-0 w-full h-full"
+                  resizeMode="cover"
+                  blurRadius={10}
+                />
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.7)"]}
+                  className="absolute inset-0"
+                />
+              </>
+            ) : (
+              <>
+                <View className="absolute inset-0 bg-violet-600 dark:bg-violet-700" />
+                <Text className="absolute -top-4 font-black text-[150px] text-white/10 tracking-[-6px] self-center">
+                  {initials}
+                </Text>
+                <LinearGradient
+                  colors={["transparent", "rgba(0,0,0,0.3)"]}
+                  className="absolute inset-0"
+                />
+              </>
+            )}
+
+            {/* Profile Content (Always Centered) */}
+            <View className="items-center z-10">
+              <View className="shadow-2xl shadow-black/40">
                 <Avatar
                   user={user}
-                  size={88}
+                  size={92}
                   editable
                   onPress={openProfilePicPicker}
-                  accentColor={colors.primary}
+                  accentColor={user.profilePicPath ? colors.primary : "#fff"}
                 />
-                <Text className="mt-2.5 font-extrabold text-white text-xl tracking-[-0.4px]">
-                  {user.name ?? user.username}
-                </Text>
-                <Text className="mt-0.5 text-[13px] text-white/70">
-                  @{user.username}
-                </Text>
-              </LinearGradient>
-            </ImageBackground>
-          ) : (
-            <View className="justify-end items-center bg-[#6b38d4] pb-5 w-full h-[220px] overflow-hidden">
-              <Text className="-top-2 absolute font-black text-[140px] text-white/5 tracking-[-4px]">
-                {initials}
-              </Text>
-              <LinearGradient
-                colors={["transparent", "rgba(0,0,0,0.4)"]}
-                className="absolute inset-0"
-              />
-              <View className="items-center pb-5">
-                <Avatar
-                  user={user}
-                  size={88}
-                  editable
-                  onPress={openProfilePicPicker}
-                  accentColor="#fff"
-                />
-                <Text className="mt-2.5 font-extrabold text-white text-xl tracking-[-0.4px]">
-                  {user.name ?? user.username}
-                </Text>
-                <Text className="mt-0.5 text-[13px] text-white/70">
-                  @{user.username}
-                </Text>
               </View>
+              <Text className="mt-3.5 font-black text-white text-2xl tracking-tight shadow-sm">
+                {user.name ?? user.username}
+              </Text>
+              <Text className="mt-0.5 font-bold text-white/80 text-sm tracking-wide">
+                @{user.username}
+              </Text>
             </View>
-          )}
+          </View>
 
           {/* Edit Profile button */}
-          <View className="items-center pt-4 pb-2">
+          <View className="items-center pt-5 pb-2">
             <TouchableOpacity
               onPress={() => setEditVisible(true)}
-              className="flex-row items-center gap-1.5 bg-[#6b38d4]/10 dark:bg-[#7c4dff]/10 px-5 py-2.5 border border-[#6b38d4]/20 dark:border-[#7c4dff]/20 rounded-xl"
+              className="flex-row items-center gap-2 bg-violet-600/10 dark:bg-violet-400/10 px-6 py-3 border border-violet-600/20 dark:border-violet-400/20 rounded-2xl active:scale-95"
             >
               <Ionicons
-                name="create"
-                size={14}
+                name="create-outline"
+                size={16}
                 color={mode === "dark" ? "#A78BFA" : "#6b38d4"}
               />
-              <Text className="font-bold text-[#6b38d4] text-[13px] dark:text-[#A78BFA]">
+              <Text className="font-black text-violet-700 dark:text-violet-300 text-[13px] uppercase tracking-wider">
                 Edit Profile
               </Text>
             </TouchableOpacity>
@@ -707,7 +701,7 @@ export default function ProfileScreen() {
           {/* ── User Info Card ─────────────────────────────────── */}
           <Animated.View
             entering={FadeInDown.duration(400).delay(50)}
-            className="bg-white dark:bg-[#1E293B] shadow-sm p-5 border border-slate-200 dark:border-slate-800 rounded-[24px]"
+            className="bg-white dark:bg-slate-900 shadow-sm p-5 border border-slate-200 dark:border-slate-800 rounded-[24px]"
           >
             <Text className="mb-1 font-extrabold text-[15px] text-slate-900 dark:text-slate-50">
               Account Information
@@ -762,7 +756,7 @@ export default function ProfileScreen() {
                     />
                   ))}
                 {(!Array.isArray(devices) || devices.length === 0) && (
-                  <View className="items-center bg-white dark:bg-[#1E293B] p-5 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <View className="items-center bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 rounded-2xl">
                     <Text className="text-slate-500 text-sm">
                       No connected devices found
                     </Text>

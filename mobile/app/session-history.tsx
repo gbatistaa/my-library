@@ -60,10 +60,10 @@ const SessionHistoryScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
+    <View className="flex-1 bg-[#f9f9ff] dark:bg-slate-950">
       <View
         style={{ paddingTop: insets.top + 16 }}
-        className="flex-row items-center px-5 pb-4 bg-white dark:bg-[#1E293B] border-b border-[#E2E8F0] dark:border-[#334155]"
+        className="flex-row items-center px-5 pb-4 bg-white dark:bg-slate-900 border-b border-[#E2E8F0] dark:border-slate-800"
       >
         <TouchableOpacity
           onPress={() => router.back()}
@@ -92,7 +92,7 @@ const SessionHistoryScreen = () => {
           />
         }
         renderItem={({ item }) => (
-          <View className="bg-white dark:bg-[#1E293B] p-4 rounded-2xl border border-[#E2E8F0] dark:border-[#334155]">
+          <View className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-[#E2E8F0] dark:border-slate-800">
             <View className="flex-row items-center">
               {/* Thumbnail */}
               <View className="w-[52px] h-[70px] rounded-[10px] bg-[#f0f3ff] dark:bg-white/5 mr-[15px] overflow-hidden justify-center items-center">

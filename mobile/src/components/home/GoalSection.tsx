@@ -46,7 +46,7 @@ function MetricBar({
           </Text>
         </Text>
       </View>
-      <View className="h-2 rounded-full bg-[#f1f5f9] dark:bg-[#0F172A] overflow-hidden">
+      <View className="h-2 rounded-full bg-[#f1f5f9] dark:bg-slate-950 overflow-hidden">
         <View
           style={{ width: `${Math.round(pct * 100)}%`, backgroundColor: color }}
           className="h-full rounded-full"
@@ -96,7 +96,7 @@ function CurrentYearCard({
 
   return (
     <View
-      className="bg-[#ede9fe] dark:bg-[#1E293B] rounded-2xl p-5 shadow-sm dark:border dark:border-[#334155] overflow-hidden relative mb-3"
+      className="bg-[#ede9fe] dark:bg-slate-900 rounded-2xl p-5 shadow-sm dark:border dark:border-slate-800 overflow-hidden relative mb-3"
     >
       {/* Header row */}
       <View className="flex-row justify-between items-start mb-4">
@@ -135,7 +135,7 @@ function CurrentYearCard({
           </View>
           <Pressable
             onPress={onDelete}
-            className="w-8 h-8 rounded-full bg-[#f1f5f9] dark:bg-[#334155] items-center justify-center active:opacity-60"
+            className="w-8 h-8 rounded-full bg-[#f1f5f9] dark:bg-slate-800 items-center justify-center active:opacity-60"
           >
             <Feather
               name="trash-2"

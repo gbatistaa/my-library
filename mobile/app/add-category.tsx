@@ -95,7 +95,7 @@ function FormInput({
         placeholderTextColor={placeholderColor}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
+        className="bg-[#f0f3ff] dark:bg-slate-900 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
         style={[
           { borderWidth: 1.5 },
           animatedBorderStyle,
@@ -277,7 +277,7 @@ export default function AddCategoryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-[#0F172A]">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <Stack.Screen options={{ headerShown: false }} />
 
       <KeyboardAvoidingView
@@ -306,7 +306,7 @@ export default function AddCategoryScreen() {
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="justify-center items-center bg-[#f0f3ff] dark:bg-white/10 rounded-full w-10 h-10"
+              className="justify-center items-center bg-[#f0f3ff] dark:bg-slate-900 rounded-full w-10 h-10"
             >
               <Feather
                 name="x"
@@ -344,7 +344,7 @@ export default function AddCategoryScreen() {
               numberOfLines={4}
               textAlignVertical="top"
               maxLength={255}
-              className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
+              className="bg-[#f0f3ff] dark:bg-slate-900 px-4 py-4 rounded-2xl text-[#111c2d] text-[15px] dark:text-white"
               style={[
                 { height: 100, borderWidth: 1.5 },
                 descAnimatedBorder,
@@ -482,7 +482,7 @@ export default function AddCategoryScreen() {
                     maxLength={7}
                     autoCapitalize="characters"
                     autoCorrect={false}
-                    className="bg-[#f0f3ff] dark:bg-white/5 px-4 py-3 rounded-xl font-mono text-[#111c2d] text-[15px] dark:text-white"
+                    className="bg-[#f0f3ff] dark:bg-slate-900 px-4 py-3 rounded-xl font-mono text-[#111c2d] text-[15px] dark:text-white"
                     style={[
                       { borderWidth: 1.5 },
                       hexAnimatedBorder,
@@ -517,7 +517,7 @@ export default function AddCategoryScreen() {
                   ? "#8455ef"
                   : "#6b38d4"
                 : mode === "dark"
-                  ? "#1E293B"
+                  ? "#0f172a"
                   : "#E2E8F0",
               shadowColor: canSubmit ? "#6b38d4" : "transparent",
               shadowOffset: { width: 0, height: 8 },
@@ -583,7 +583,7 @@ export default function AddCategoryScreen() {
             right: 0,
             height: colorHeightAnim,
             opacity: colorOpacityAnim,
-            backgroundColor: mode === "dark" ? "#1E293B" : "#FFFFFF",
+            backgroundColor: mode === "dark" ? "#0F172A" : "#FFFFFF",
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
             overflow: "hidden",

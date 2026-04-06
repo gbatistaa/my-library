@@ -20,6 +20,7 @@ import { getBookById, resetBookForReread, deleteBook } from "@/src/services/book
 import { showApiError } from "@/src/services/apiError";
 import { pendingSessionBookAtom } from "@/src/store/session";
 import type { BookStatus } from "@/src/types/book";
+import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 /* ─── Helpers ─── */
 
@@ -35,13 +36,13 @@ function formatDate(dateStr: string | null): string {
 function getStatusLabel(status: BookStatus): string {
   switch (status) {
     case "READING":
-      return "READING NOW";
+      return "Reading Now";
     case "COMPLETED":
-      return "COMPLETED";
+      return "Completed";
     case "DROPPED":
-      return "DROPPED";
+      return "Dropped";
     default:
-      return "TO READ";
+      return "To Read";
   }
 }
 
@@ -55,8 +56,8 @@ function StarRating({ rating }: { rating: number | null }) {
         <MaterialIcons
           key={i}
           name={i <= filled ? "star" : "star-border"}
-          size={15}
-          color={i <= filled ? "#F59E0B" : "#475569"}
+          size={16}
+          color={i <= filled ? "#F59E0B" : "#94A3B8"}
         />
       ))}
     </View>
@@ -76,15 +77,17 @@ function InfoCard({
 }) {
   return (
     <Animated.View
-      entering={FadeInDown.duration(350).delay(delay)}
-      className="bg-[#1E293B] border border-white/[0.08] rounded-2xl p-4 mb-3"
+      entering={FadeInDown.duration(400).delay(delay)}
+      className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 mb-4 shadow-sm shadow-slate-200/50 dark:shadow-none"
     >
-      <Text className="text-[10px] uppercase text-slate-500 mb-1 tracking-widest">
+      <Text className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 mb-1.5 tracking-[2px]">
         {label}
       </Text>
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-3">
         {icon}
-        <Text className="text-base text-white font-medium">{value}</Text>
+        <Text className="text-base text-slate-900 dark:text-slate-50 font-bold tracking-tight">
+          {value}
+        </Text>
       </View>
     </Animated.View>
   );
@@ -94,28 +97,30 @@ function InfoCard({
 
 function LoadingState() {
   return (
-    <View className="flex-1 bg-[#0F172A] items-center justify-center">
-      <ActivityIndicator size="large" color="#A78BFA" />
+    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center">
+      <ActivityIndicator size="large" color="#7c4dff" />
     </View>
   );
 }
 
 function ErrorState({ onBack }: { onBack: () => void }) {
   return (
-    <View className="flex-1 bg-[#0F172A] items-center justify-center px-8">
-      <Feather name="alert-circle" size={48} color="#ef4444" />
-      <Text className="text-white text-lg font-bold mt-4 text-center">
-        {"Couldn't load book"}
-      </Text>
-      <Text className="text-slate-400 text-sm mt-2 text-center">
-        Something went wrong. Please try again.
-      </Text>
-      <Pressable
-        onPress={onBack}
-        className="mt-6 bg-purple-600 rounded-full px-6 py-3"
-      >
-        <Text className="text-white font-bold">Go Back</Text>
-      </Pressable>
+    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center px-8">
+      <View className="bg-red-50 dark:bg-red-900/10 p-6 rounded-[32px] items-center border border-red-100 dark:border-red-900/20">
+        <Feather name="alert-circle" size={48} color="#ef4444" />
+        <Text className="text-slate-950 dark:text-slate-50 text-xl font-bold mt-4 text-center">
+          {"Couldn't load book"}
+        </Text>
+        <Text className="text-slate-500 dark:text-slate-400 text-sm mt-2 text-center leading-5">
+          Something went wrong while fetching the details.
+        </Text>
+        <Pressable
+          onPress={onBack}
+          className="mt-6 bg-slate-900 dark:bg-slate-50 rounded-2xl px-8 py-3.5 shadow-lg active:scale-95"
+        >
+          <Text className="text-white dark:text-slate-950 font-bold">Go Back</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -127,6 +132,7 @@ export default function BookDetailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { mode, colors } = useAppTheme();
 
   const queryClient = useQueryClient();
   const setPendingBook = useSetAtom(pendingSessionBookAtom);
@@ -201,22 +207,31 @@ export default function BookDetailsScreen() {
       ? Math.min(100, Math.floor(((book.pagesRead ?? 0) / book.pages) * 100))
       : 0;
 
-  const coverWidth = width * 0.65;
+  const coverWidth = width * 0.62;
+
+  const getStatusColor = (status: BookStatus) => {
+    switch (status) {
+      case "READING": return "#F59E0B";
+      case "COMPLETED": return "#10b981";
+      case "DROPPED": return "#ef4444";
+      default: return "#6366f1";
+    }
+  };
+
+  const statusColor = getStatusColor(book.status);
 
   return (
     <>
-      <StatusBar style="light" />
-      <Stack.Screen
-        options={{
-          title: book?.title ?? "Book Details",
-          headerShown: false,
-        }}
-      />
+      <StatusBar style={mode === 'dark' ? "light" : "dark"} />
+      <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="flex-1 bg-[#0F172A]">
+      <View className="flex-1 bg-white dark:bg-slate-950">
+        {/* Top Accent Gradient overlay */}
+        <View className="absolute top-0 left-0 right-0 h-64 bg-violet-600/5 dark:bg-violet-500/5" />
+
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         >
           {/* ─── Top App Bar ─── */}
           <View
@@ -225,40 +240,39 @@ export default function BookDetailsScreen() {
           >
             <Pressable
               onPress={() => router.back()}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20"
+              className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:scale-90"
               hitSlop={8}
             >
-              <Feather name="arrow-left" size={20} color="#F8FAFC" />
+              <Feather name="arrow-left" size={20} color={colors.text} />
             </Pressable>
 
-            <Text
-              className="text-white font-bold text-base flex-1 text-center mx-3"
-              numberOfLines={1}
-            >
-              {book?.title}
-            </Text>
+            <View className="flex-1 mx-4">
+              <Text
+                className="text-slate-900 dark:text-slate-50 font-black text-center text-lg tracking-tight"
+                numberOfLines={1}
+              >
+                Book Details
+              </Text>
+            </View>
 
             <Pressable
               onPress={() => router.push(`/edit-book/${id}`)}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20"
+              className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:scale-90"
               hitSlop={8}
             >
-              <Feather name="edit-2" size={18} color="#F8FAFC" />
+              <Feather name="edit-3" size={18} color={colors.text} />
             </Pressable>
           </View>
 
           {/* ─── Cover Image ─── */}
           <Animated.View
-            entering={FadeIn.duration(400)}
-            className="self-center rounded-3xl overflow-hidden"
+            entering={FadeIn.duration(600)}
+            className="self-center mt-6 rounded-[32px] overflow-hidden shadow-2xl"
             style={{
               width: coverWidth,
               aspectRatio: 2 / 3,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 16 },
-              shadowOpacity: 0.6,
-              shadowRadius: 24,
-              elevation: 20,
+              shadowColor: mode === 'dark' ? "#000" : "#6b38d4",
+              elevation: 25,
             }}
           >
             {book.coverUrl ? (
@@ -268,7 +282,7 @@ export default function BookDetailsScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-full h-full bg-[#1E293B] items-center justify-center">
+              <View className="w-full h-full bg-slate-200 dark:bg-slate-900 items-center justify-center">
                 <Text className="text-8xl">📖</Text>
               </View>
             )}
@@ -277,23 +291,32 @@ export default function BookDetailsScreen() {
           <View className="px-6">
             {/* ─── Metadata Header ─── */}
             <Animated.View
-              entering={FadeInDown.duration(350).delay(80)}
-              className="mt-8"
+              entering={FadeInDown.duration(400).delay(100)}
+              className="mt-10"
             >
               {/* Status badge + rating row */}
-              <View className="flex-row items-center gap-3 mb-2">
-                <View className="bg-purple-500/20 rounded px-2 py-0.5">
-                  <Text className="text-purple-200 text-[10px] font-bold uppercase tracking-wide">
+              <View className="flex-row items-center justify-between mb-4">
+                <View 
+                  className="rounded-full px-3 py-1 border"
+                  style={{ 
+                    backgroundColor: `${statusColor}15`,
+                    borderColor: `${statusColor}30` 
+                  }}
+                >
+                  <Text 
+                    className="text-[10px] font-black uppercase tracking-[1px]"
+                    style={{ color: statusColor }}
+                  >
                     {getStatusLabel(book.status)}
                   </Text>
                 </View>
                 <StarRating rating={book.rating} />
               </View>
 
-              <Text className="text-4xl font-bold text-white mt-1 leading-tight">
+              <Text className="text-4xl font-black text-slate-950 dark:text-slate-50 tracking-tight leading-tight">
                 {book.title}
               </Text>
-              <Text className="text-lg italic text-slate-300 mt-2">
+              <Text className="text-xl font-medium text-slate-500 dark:text-slate-400 mt-2.5 italic">
                 {book.author}
               </Text>
             </Animated.View>
@@ -301,20 +324,19 @@ export default function BookDetailsScreen() {
             {/* Category Tags */}
             {book.categories && book.categories.length > 0 && (
               <Animated.View
-                entering={FadeInDown.duration(350).delay(130)}
-                className="flex-row flex-wrap gap-2.5 mt-5"
+                entering={FadeInDown.duration(400).delay(150)}
+                className="flex-row flex-wrap gap-2.5 mt-6"
               >
                 {book.categories.map((cat, i) => (
                   <View
                     key={`${cat.name}-${i}`}
-                    className="flex-row items-center gap-2 rounded-full px-5 py-2.5"
+                    className="rounded-xl px-4 py-2 border shadow-sm"
                     style={{
-                      backgroundColor: cat.color ? `${cat.color}26` : "rgba(167, 139, 250, 0.15)",
-                      borderWidth: 1.5,
-                      borderColor: cat.color ? cat.color : "rgba(167, 139, 250, 0.3)",
+                      backgroundColor: cat.color ? `${cat.color}10` : "rgba(107, 56, 212, 0.05)",
+                      borderColor: cat.color ? `${cat.color}30` : "rgba(107, 56, 212, 0.2)",
                     }}
                   >
-                    <Text className="text-[14px] font-bold" style={{ color: cat.color ? cat.color : "#c084fc" }}>
+                    <Text className="text-[13px] font-bold" style={{ color: cat.color ? cat.color : "#6d28d9" }}>
                       {cat.name}
                     </Text>
                   </View>
@@ -324,11 +346,10 @@ export default function BookDetailsScreen() {
 
             {/* ─── Action + Progress Container ─── */}
             <Animated.View
-              entering={FadeInDown.duration(350).delay(180)}
-              className="bg-white/5 border border-white/10 rounded-3xl p-4 mt-6"
+              entering={FadeInDown.duration(400).delay(200)}
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 mt-8 shadow-sm"
             >
-              {/* Buttons row */}
-              <View className="flex-row mb-4">
+              <View className="flex-row mb-6">
                 <Pressable
                   onPress={
                     book.status === "COMPLETED"
@@ -336,16 +357,17 @@ export default function BookDetailsScreen() {
                       : handleContinueOrStartReading
                   }
                   disabled={book.status === "COMPLETED" && isResetting}
-                  className="flex-1 bg-purple-600 rounded-full h-14 flex-row items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+                  className="flex-1 bg-violet-600 dark:bg-violet-500 rounded-2xl h-15 flex-row items-center justify-center gap-3 shadow-lg shadow-violet-600/30 active:scale-95 disabled:opacity-60"
+                  style={{ height: 60 }}
                 >
                   {book.status === "COMPLETED" && isResetting ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <MaterialIcons name="play-arrow" size={22} color="#fff" />
+                    <Feather name={book.status === 'READING' ? 'play-circle' : 'book-open'} size={20} color="#fff" />
                   )}
-                  <Text className="text-white font-bold text-base">
+                  <Text className="text-white font-black text-base uppercase tracking-wider">
                     {book.status === "READING"
-                      ? "Continue Reading"
+                      ? "Continue"
                       : book.status === "COMPLETED"
                       ? "Read Again"
                       : "Start Reading"}
@@ -353,76 +375,66 @@ export default function BookDetailsScreen() {
                 </Pressable>
               </View>
 
-              {/* Progress text row */}
-              <View className="flex-row justify-between px-2">
-                <Text className="text-[10px] uppercase font-semibold text-slate-500 tracking-widest">
-                  {book.pagesRead ?? 0} pages read
+              <View className="flex-row justify-between px-1 mb-3">
+                <Text className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-[1.5px]">
+                  {book.pagesRead ?? 0} Pages Read
                 </Text>
-                <Text className="text-[10px] uppercase font-semibold text-slate-500 tracking-widest">
-                  {book.pages} pages total
+                <Text className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-[1.5px]">
+                  {book.pages} Total
                 </Text>
               </View>
 
-              {/* Progress bar */}
-              <View className="mt-3 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+              <View className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden shadow-inner">
                 <View
-                  className="h-full rounded-full bg-purple-500"
+                  className="h-full rounded-full bg-violet-600 dark:bg-violet-500"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </View>
-              <Text className="text-center text-[10px] text-slate-500 mt-1.5 tracking-wide">
-                {progressPercentage}%
+              <Text className="text-center text-[11px] font-black text-slate-400 dark:text-slate-600 mt-2.5 uppercase tracking-widest">
+                {progressPercentage}% Complete
               </Text>
             </Animated.View>
 
             {/* ─── Info Cards ─── */}
-            <View className="mt-4">
+            <View className="mt-8">
               {book.isbn && (
                 <InfoCard
                   label="ISBN-13"
                   value={book.isbn}
-                  delay={230}
+                  delay={250}
+                  icon={<Feather name="hash" size={15} color="#94A3B8" />}
                 />
               )}
               <InfoCard
-                label="Started Reading"
+                label="Started"
                 value={formatDate(book.startDate)}
-                icon={
-                  <Feather name="calendar" size={15} color="#64748B" />
-                }
-                delay={270}
+                icon={<Feather name="calendar" size={15} color="#94A3B8" />}
+                delay={300}
               />
               <InfoCard
-                label={book.status === "COMPLETED" ? "Finished Reading" : "Target / Finish Date"}
+                label={book.status === "COMPLETED" ? "Finished" : "Target Date"}
                 value={formatDate(book.finishDate)}
-                icon={
-                  <Feather name="calendar" size={15} color="#64748B" />
-                }
-                delay={310}
+                icon={<Feather name="check" size={15} color="#94A3B8" />}
+                delay={350}
               />
             </View>
 
             {/* ─── Personal Notes ─── */}
             {book.notes && (
               <Animated.View
-                entering={FadeInDown.duration(350).delay(360)}
-                className="bg-white/5 border border-white/10 rounded-3xl p-5 relative overflow-hidden mb-2 mt-1"
+                entering={FadeInDown.duration(400).delay(400)}
+                className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-[32px] p-6 mt-2 mb-4 shadow-sm"
               >
-                {/* Watermark quote icon */}
-                <Text className="absolute top-3 right-4 text-white/5 text-8xl font-black leading-none select-none">
-                  {"\""}
-                </Text>
-
-                {/* Header */}
-                <View className="flex-row items-center gap-2 mb-4">
-                  <Feather name="menu" size={16} color="#A78BFA" />
-                  <Text className="text-sm font-bold text-white">
-                    Personal Notes
+                <View className="flex-row items-center gap-2.5 mb-4">
+                  <View className="bg-amber-100 dark:bg-amber-900/20 p-1.5 rounded-lg">
+                    <Feather name="edit-2" size={14} color="#D97706" />
+                  </View>
+                  <Text className="text-sm font-black text-slate-900 dark:text-slate-100">
+                    Reader Reflections
                   </Text>
                 </View>
 
-                {/* Notes text */}
-                <Text className="text-sm text-slate-400 leading-relaxed">
+                <Text className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   {book.notes}
                 </Text>
               </Animated.View>
@@ -431,22 +443,21 @@ export default function BookDetailsScreen() {
 
           {/* ─── Delete Button ─── */}
           <Animated.View
-            entering={FadeInDown.duration(350).delay(400)}
-            className="px-6 mt-2"
+            entering={FadeInDown.duration(400).delay(450)}
+            className="px-6 mt-6"
           >
             <Pressable
               onPress={handleDelete}
               disabled={isDeleting}
-              className="w-full h-14 rounded-2xl bg-red-600/90 flex-row items-center justify-center gap-2 active:bg-red-700 disabled:opacity-60"
+              className="w-full h-15 rounded-3xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/20 flex-row items-center justify-center gap-3 active:bg-red-100 disabled:opacity-60"
+              style={{ height: 60 }}
             >
               {isDeleting ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color="#ef4444" />
               ) : (
-                <Feather name="trash-2" size={18} color="#fff" />
+                <Feather name="trash-2" size={18} color="#ef4444" />
               )}
-              <Text className="text-white font-bold text-base">
-                Delete Book
-              </Text>
+              <Text className="text-red-600 font-bold text-base">Remove from Library</Text>
             </Pressable>
           </Animated.View>
         </ScrollView>

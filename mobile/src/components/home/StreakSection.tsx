@@ -63,7 +63,7 @@ export function StreakSection({ streak }: Props) {
           {/* Progress toward best */}
           {best > 0 && current < best && (
             <View className="mt-3">
-              <View className="h-1 rounded-full bg-[#E2E8F0] dark:bg-[#334155] overflow-hidden">
+              <View className="h-1 rounded-full bg-[#E2E8F0] dark:bg-slate-800 overflow-hidden">
                 <View
                   style={{
                     width: `${Math.round(Math.min(current / best, 1) * 100)}%`,

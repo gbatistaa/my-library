@@ -55,7 +55,7 @@ const CATEGORY_ICON_BG: Record<string, string> = {
 function getIconBgClass(category: string, earned: boolean): string {
   if (!earned) {
     // unearned: surfaceContainerHigh
-    return "bg-[#dee8ff] dark:bg-[#334155]";
+    return "bg-[#dee8ff] dark:bg-slate-800";
   }
   // earned dark: primary/33
   // earned light: category-based
@@ -75,8 +75,8 @@ function AchievementCard({
   const pct = Math.round(progress * 100);
 
   const cardClass = earned
-    ? "bg-[#ede9fe] dark:bg-[#1E293B] dark:border dark:border-[#475569]/10"
-    : "bg-[#ede9fe]/60 dark:bg-[#1E293B]/40 border border-[#cbc3d7]/10 dark:border-[#475569]/20 opacity-80";
+    ? "bg-[#ede9fe] dark:bg-slate-900 dark:border dark:border-slate-800"
+    : "bg-[#ede9fe]/60 dark:bg-slate-900/40 border border-[#cbc3d7]/10 dark:border-slate-800/20 opacity-80";
 
   const iconBgClass = getIconBgClass(achievement.category, earned);
 
@@ -203,7 +203,7 @@ export default function AchievementsScreen() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <View className="flex-1 bg-[#f9f9ff] dark:bg-[#0F172A]">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-950">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={{
@@ -244,7 +244,7 @@ export default function AchievementsScreen() {
               {[120, 100, 140, 100].map((h, i) => (
                 <View
                   key={i}
-                  className="rounded-xl bg-[#E2E8F0]/40 dark:bg-[#334155]/40 opacity-50"
+                  className="rounded-xl bg-slate-200/40 dark:bg-slate-900/40 opacity-50"
                   style={{ height: h }}
                 />
               ))}

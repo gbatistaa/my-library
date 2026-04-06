@@ -24,7 +24,7 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 
 function LoadingState() {
   return (
-    <View className="flex-1 bg-slate-50 dark:bg-slate-950 items-center justify-center">
+    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center">
       <ActivityIndicator size="large" color="#7c4dff" />
     </View>
   );
@@ -32,10 +32,10 @@ function LoadingState() {
 
 function ErrorState({ onBack }: { onBack: () => void }) {
   return (
-    <View className="flex-1 bg-slate-50 dark:bg-slate-950 items-center justify-center px-8">
-      <View className="bg-red-100 dark:bg-red-900/20 p-6 rounded-3xl items-center border border-red-200 dark:border-red-800/30">
+    <View className="flex-1 bg-white dark:bg-slate-950 items-center justify-center px-8">
+      <View className="bg-red-50 dark:bg-red-900/10 p-6 rounded-[32px] items-center border border-red-100 dark:border-red-900/20">
         <Feather name="alert-circle" size={48} color="#ef4444" />
-        <Text className="text-slate-900 dark:text-slate-50 text-xl font-bold mt-4 text-center">
+        <Text className="text-slate-950 dark:text-slate-50 text-xl font-bold mt-4 text-center">
           Saga not found
         </Text>
         <Text className="text-slate-500 dark:text-slate-400 text-sm mt-2 text-center leading-5">
@@ -151,9 +151,9 @@ export default function SagaDetailsScreen() {
       <StatusBar style={mode === 'dark' ? "light" : "dark"} />
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="flex-1 bg-slate-50 dark:bg-slate-950">
-        {/* Background Accent Gradient Effect */}
-        <View className="absolute top-0 left-0 right-0 h-80 bg-violet-600/5 dark:bg-violet-500/5" />
+      <View className="flex-1 bg-white dark:bg-slate-950">
+        {/* Background Accent Gradient overlay */}
+        <View className="absolute top-0 left-0 right-0 h-64 bg-violet-600/5 dark:bg-violet-500/5" />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -166,7 +166,7 @@ export default function SagaDetailsScreen() {
           >
             <Pressable
               onPress={() => router.back()}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-90"
+              className="w-10 h-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm active:scale-90"
               hitSlop={8}
             >
               <Feather name="arrow-left" size={20} color={colors.text} />
@@ -183,7 +183,7 @@ export default function SagaDetailsScreen() {
 
             <Pressable
               onPress={() => router.push(`/edit-saga/${id}`)}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-90"
+              className="w-10 h-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm active:scale-90"
               hitSlop={8}
             >
               <Feather name="edit-3" size={18} color={colors.text} />
@@ -240,7 +240,7 @@ export default function SagaDetailsScreen() {
             {saga.description && (
               <Animated.View
                 entering={FadeInDown.duration(400).delay(200)}
-                className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/60 rounded-[32px] p-6 mt-8 shadow-sm"
+                className="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 rounded-[32px] p-6 mt-8 shadow-sm"
               >
                 <View className="flex-row items-center gap-2.5 mb-4">
                   <View className="bg-violet-100 dark:bg-violet-500/20 w-8 h-8 rounded-xl items-center justify-center">

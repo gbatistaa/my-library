@@ -97,7 +97,7 @@ export function Heatmap({ data }: HeatmapProps) {
   const MONTH_ROW_HEIGHT = 16;
 
   return (
-    <View className="bg-white dark:bg-slate-800 p-5 border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-sm">
+    <View className="bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800/50 rounded-3xl shadow-sm">
       {/* Header */}
       <View className="mb-4">
         <Text className="font-extrabold text-slate-900 dark:text-slate-50 text-base">

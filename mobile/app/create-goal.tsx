@@ -85,7 +85,7 @@ function FormInput({
         placeholderTextColor={placeholderColor}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="bg-[#f0f3ff] dark:bg-[#1E293B] rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
+        className="bg-[#f0f3ff] dark:bg-slate-900 rounded-xl px-4 py-4 text-[15px] text-[#111c2d] dark:text-[#F8FAFC]"
         style={[{ borderWidth: 1.5 }, animatedBorderStyle]}
         {...props}
       />
@@ -155,7 +155,7 @@ export default function CreateGoalScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-[#0F172A]">
+    <View className="flex-1 bg-white dark:bg-slate-950">
       <Stack.Screen options={{ headerShown: false }} />
 
       <KeyboardAvoidingView
@@ -184,7 +184,7 @@ export default function CreateGoalScreen() {
             </View>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-[#1E293B] items-center justify-center"
+              className="w-10 h-10 rounded-full bg-[#f0f3ff] dark:bg-slate-900 items-center justify-center"
             >
               <Feather
                 name="x"
@@ -211,7 +211,7 @@ export default function CreateGoalScreen() {
                       backgroundColor: active
                         ? tertiaryColor
                         : mode === "dark"
-                          ? "#1E293B"
+                          ? "#0F172A"
                           : "#f0f3ff",
                       borderWidth: active ? 0 : 1.5,
                       borderColor: active
@@ -394,7 +394,7 @@ export default function CreateGoalScreen() {
                       backgroundColor: active
                         ? tertiaryColor
                         : mode === "dark"
-                          ? "#1E293B"
+                          ? "#0F172A"
                           : "#f0f3ff",
                       borderWidth: active ? 0 : 1.5,
                       borderColor: active

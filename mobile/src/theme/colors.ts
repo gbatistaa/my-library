@@ -51,11 +51,11 @@ export const colors = {
   },
   dark: {
     // Surfaces
-    background: "#0F172A",
-    surface: "#1E293B",
-    surfaceContainerLow: "#1E293B",
-    surfaceContainerHigh: "#334155",
-    surfaceContainer: "#1E293B",
+    background: "#020617",
+    surface: "#0F172A",
+    surfaceContainerLow: "#0F172A",
+    surfaceContainerHigh: "#1E293B",
+    surfaceContainer: "#0F172A",
 
     // Text
     text: "#F8FAFC",
@@ -64,17 +64,17 @@ export const colors = {
     // Primary palette
     primary: "#A78BFA",
     primaryContainer: "#A78BFA",
-    primaryFixed: "#334155",
-    onPrimary: "#0F172A",
+    primaryFixed: "#0F172A",
+    onPrimary: "#020617",
     onPrimaryFixedVariant: "#A78BFA",
 
     // Borders
-    border: "#334155",
-    outlineVariant: "#334155",
-    outline: "#475569",
+    border: "#1E293B",
+    outlineVariant: "#1E293B",
+    outline: "#334155",
 
     // Tab bar
-    tabBar: "#1E293B",
+    tabBar: "#0F172A",
     tabBarInactive: "#64748B",
 
     // Semantic
