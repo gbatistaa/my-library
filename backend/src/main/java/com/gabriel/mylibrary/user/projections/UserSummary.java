@@ -22,4 +22,6 @@ public interface UserSummary {
   Long getTotalExperience();
 
   Integer getLevel();
+
+  Long getCurrentXp();
 }

@@ -33,6 +33,7 @@ import { useRouter } from "expo-router";
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { useProfilePicture } from "@/src/hooks/useProfilePicture";
 import { Avatar } from "@/src/components/common/Avatar";
+import { XpProgressRing, XpLabel } from "@/src/components/common/XpProgressRing";
 import {
   getMyDevices,
   revokeDevice,
@@ -632,7 +633,7 @@ export default function ProfileScreen() {
       >
         {/* ── Hero Header ─────────────────────────────────────── */}
         <Animated.View entering={FadeIn.duration(400)}>
-          <View className="w-full h-[225px] justify-center items-center overflow-hidden">
+          <View className="w-full h-[260px] justify-center items-center overflow-hidden">
             {user.profilePicPath ? (
               <>
                 <ImageBackground
@@ -661,20 +662,31 @@ export default function ProfileScreen() {
 
             {/* Profile Content (Always Centered) */}
             <View className="items-center z-10">
-              <View className="shadow-2xl shadow-black/40">
-                <Avatar
-                  user={user}
-                  size={92}
-                  editable
-                  onPress={openProfilePicPicker}
-                  accentColor={user.profilePicPath ? colors.primary : "#fff"}
-                />
+              <View style={{ position: "relative" }} className="shadow-2xl shadow-black/40">
+                <XpProgressRing
+                  currentXp={user.currentXp ?? 0}
+                  xpForNextLevel={(user.level ?? 1) * 100}
+                  size={108}
+                  strokeWidth={4}
+                >
+                  <Avatar
+                    user={user}
+                    size={92}
+                    editable
+                    onPress={openProfilePicPicker}
+                    accentColor={user.profilePicPath ? colors.primary : "#fff"}
+                  />
+                </XpProgressRing>
+                <XpLabel level={user.level ?? 1} />
               </View>
               <Text className="mt-3.5 font-black text-white text-2xl tracking-tight shadow-sm">
                 {user.name ?? user.username}
               </Text>
               <Text className="mt-0.5 font-bold text-white/80 text-sm tracking-wide">
                 @{user.username}
+              </Text>
+              <Text style={{ marginTop: 6, fontSize: 13, fontWeight: "700", color: "rgba(255,255,255,0.90)", letterSpacing: 0.2 }}>
+                {"\u26A1"} Level {user.level ?? 1} {"\u00B7"} {user.currentXp ?? 0} / {(user.level ?? 1) * 100} XP
               </Text>
             </View>
           </View>

@@ -7,6 +7,8 @@ import com.gabriel.mylibrary.readingGoal.ReadingGoalRepository;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import com.gabriel.mylibrary.streak.StreakEntity;
 import com.gabriel.mylibrary.streak.StreakRepository;
+import com.gabriel.mylibrary.gamification.ExperienceService;
+import com.gabriel.mylibrary.gamification.XpType;
 import com.gabriel.mylibrary.user.UserEntity;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class AchievementEvaluator {
   private final ReadingGoalRepository readingGoalRepository;
   private final StreakRepository streakRepository;
   private final EntityManager entityManager;
+  private final ExperienceService experienceService;
 
   @Transactional
   public void evaluate(UUID userId) {
@@ -88,6 +91,8 @@ public class AchievementEvaluator {
     achievement.setEarnedAt(LocalDate.now());
     achievement.setUser(entityManager.getReference(UserEntity.class, userId));
     achievementRepository.save(achievement);
+
+    experienceService.rewardActivity(userId, XpType.ACHIEVEMENT_EARNED, def.getXpReward());
   }
 
   // === Helper methods ===

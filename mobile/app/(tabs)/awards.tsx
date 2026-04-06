@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { StatusBar } from "expo-status-bar";
-
 import { useAppTheme } from "@/src/hooks/useAppTheme";
 import { getAchievements } from "@/src/services/profileService";
 import type { AchievementDTO } from "@/src/types/profile";
@@ -35,6 +34,148 @@ const ACHIEVEMENT_EMOJIS: Record<string, string> = {
   "New Year Pro": "\u{1F3C5}",
   "Peak Focus": "\u{1F9D7}",
 };
+
+// ─── XP Legend data ───────────────────────────────────────────────────────────
+
+const ACTIVITY_XP_ROWS = [
+  { label: "Each page read", xp: "+1 XP / page" },
+  { label: "Book completed", xp: "+100 XP" },
+  { label: "Daily reading streak", xp: "+50 XP" },
+];
+
+const ACHIEVEMENT_XP_ROWS = [
+  { name: "First Book", xp: 50 },
+  { name: "Comeback Kid", xp: 75 },
+  { name: "Habit Formed (7d streak)", xp: 100 },
+  { name: "Marathon (3h session)", xp: 100 },
+  { name: "Contrarian", xp: 150 },
+  { name: "Genre Explorer", xp: 150 },
+  { name: "Speed Demon", xp: 150 },
+  { name: "Binge Reader", xp: 200 },
+  { name: "New Voice (10 authors)", xp: 200 },
+  { name: "Saga Slayer", xp: 200 },
+  { name: "Goal Crusher", xp: 250 },
+  { name: "Bookworm (10 books)", xp: 300 },
+  { name: "DNF Zero", xp: 300 },
+  { name: "Iron Reader (30d streak)", xp: 350 },
+  { name: "Page Turner (10k pages)", xp: 500 },
+  { name: "Centurion (100 books)", xp: 1000 },
+];
+
+function XpLegendSection() {
+  const { colors, mode } = useAppTheme();
+  const borderColor =
+    mode === "dark" ? "rgba(167,139,250,0.15)" : "rgba(107,56,212,0.12)";
+  const bg =
+    mode === "dark" ? "rgba(30,41,59,0.6)" : "rgba(237,233,254,0.45)";
+  const headerColor = colors.primary;
+  const labelColor = mode === "dark" ? "#CBD5E1" : "#374151";
+
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(350)}
+      style={{
+        marginBottom: 40,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor,
+        overflow: "hidden",
+        backgroundColor: bg,
+      }}
+    >
+      {/* Section title */}
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          borderBottomWidth: 1,
+          borderColor,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 11,
+            fontWeight: "800",
+            color: headerColor,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+          }}
+        >
+          {"\u26A1"} How to earn XP
+        </Text>
+      </View>
+
+      {/* Activities */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: headerColor,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+            marginBottom: 8,
+            opacity: 0.7,
+          }}
+        >
+          Activities
+        </Text>
+        {ACTIVITY_XP_ROWS.map((row) => (
+          <View
+            key={row.label}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: 6,
+            }}
+          >
+            <Text style={{ fontSize: 13, color: labelColor }}>{row.label}</Text>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+              {row.xp}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Divider */}
+      <View style={{ height: 1, backgroundColor: borderColor, marginHorizontal: 16 }} />
+
+      {/* Achievements */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 }}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: "700",
+            color: headerColor,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+            marginBottom: 8,
+            opacity: 0.7,
+          }}
+        >
+          Achievements
+        </Text>
+        {ACHIEVEMENT_XP_ROWS.map((row) => (
+          <View
+            key={row.name}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: 6,
+            }}
+          >
+            <Text style={{ fontSize: 13, color: labelColor }}>{row.name}</Text>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: headerColor }}>
+              +{row.xp} XP
+            </Text>
+          </View>
+        ))}
+      </View>
+    </Animated.View>
+  );
+}
 
 function getAchievementEmoji(achievement: AchievementDTO): string {
   return (
@@ -252,13 +393,16 @@ export default function AchievementsScreen() {
           ) : grouped.length === 0 ? (
             <EmptyState />
           ) : (
-            grouped.map((g) => (
-              <CategoryGroup
-                key={g.category}
-                category={g.category}
-                achievements={g.items}
-              />
-            ))
+            <>
+              <XpLegendSection />
+              {grouped.map((g) => (
+                <CategoryGroup
+                  key={g.category}
+                  category={g.category}
+                  achievements={g.items}
+                />
+              ))}
+            </>
           )}
         </View>
       </ScrollView>

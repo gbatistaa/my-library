@@ -12,25 +12,18 @@ import { useAppTheme } from "@/src/hooks/useAppTheme";
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface Props {
-  level: number;
-  totalXp: number;
+  /** XP earned within the current level (resets to 0 on level-up). */
+  currentXp: number;
+  /** XP needed to advance to the next level (= currentLevel * 100). */
+  xpForNextLevel: number;
   size?: number;
   strokeWidth?: number;
   children?: React.ReactNode;
 }
 
-/** Returns the XP thresholds for a given level. */
-function getLevelBounds(level: number) {
-  // Level = floor(sqrt(totalXP) / 10) + 1
-  // So XP needed for level L is: ((L - 1) * 10)^2
-  const currentLevelXp = Math.pow((level - 1) * 10, 2);
-  const nextLevelXp = Math.pow(level * 10, 2);
-  return { currentLevelXp, nextLevelXp };
-}
-
 export function XpProgressRing({
-  level,
-  totalXp,
+  currentXp,
+  xpForNextLevel,
   size = 56,
   strokeWidth = 3.5,
   children,
@@ -39,10 +32,7 @@ export function XpProgressRing({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const { currentLevelXp, nextLevelXp } = getLevelBounds(level);
-  const xpInLevel = totalXp - currentLevelXp;
-  const xpNeeded = nextLevelXp - currentLevelXp;
-  const progress = xpNeeded > 0 ? Math.min(xpInLevel / xpNeeded, 1) : 0;
+  const progress = xpForNextLevel > 0 ? Math.min(currentXp / xpForNextLevel, 1) : 0;
 
   const animatedProgress = useSharedValue(0);
 

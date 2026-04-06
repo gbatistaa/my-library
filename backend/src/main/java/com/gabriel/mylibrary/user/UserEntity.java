@@ -55,6 +55,9 @@ public class UserEntity extends BaseEntity {
   @Column(nullable = false, columnDefinition = "integer default 1")
   private Integer level = 1;
 
+  @Column(name = "current_xp", nullable = false, columnDefinition = "bigint default 0")
+  private Long currentXp = 0L;
+
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<RefreshTokenEntity> refreshTokens = new ArrayList<>();
 

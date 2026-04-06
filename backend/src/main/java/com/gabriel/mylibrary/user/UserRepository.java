@@ -22,13 +22,13 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
   @Query("SELECT u.id AS id, u.name AS name, u.username AS username, " +
       "u.email AS email, u.birthDate AS birthDate, u.createdAt AS createdAt, " +
       "u.profilePicPath AS profilePicPath, " +
-      "u.totalExperience AS totalExperience, u.level AS level " +
+      "u.totalExperience AS totalExperience, u.level AS level, u.currentXp AS currentXp " +
       "FROM UserEntity u WHERE u.id = :id")
   Optional<UserSummary> findSummaryById(UUID id);
 
   @Query("SELECT u.id AS id, u.name AS name, u.username AS username, " +
       "u.email AS email, u.birthDate AS birthDate, u.createdAt AS createdAt, " +
-      "u.totalExperience AS totalExperience, u.level AS level " +
+      "u.totalExperience AS totalExperience, u.level AS level, u.currentXp AS currentXp " +
       "FROM UserEntity u WHERE u.id = :id")
   Optional<UserProfileProjection> findProfileById(UUID id);
 }

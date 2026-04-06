@@ -21,4 +21,5 @@ public class UserDTO {
   private String profilePicPath;
   private Long totalExperience;
   private Integer level;
+  private Long currentXp;
 }

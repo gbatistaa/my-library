@@ -11,6 +11,7 @@ export interface UserDTO {
   profilePicPath: string | null;
   totalExperience: number;
   level: number;
+  currentXp: number;
 }
 
 /** Returned by POST /auth/login and /auth/register */

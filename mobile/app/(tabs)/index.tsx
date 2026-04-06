@@ -168,8 +168,8 @@ export default function HomeScreen() {
             {user && (
               <View>
                 <XpProgressRing
-                  level={user.level ?? 1}
-                  totalXp={user.totalExperience ?? 0}
+                  currentXp={user.currentXp ?? 0}
+                  xpForNextLevel={(user.level ?? 1) * 100}
                   size={52}
                   strokeWidth={3}
                 >

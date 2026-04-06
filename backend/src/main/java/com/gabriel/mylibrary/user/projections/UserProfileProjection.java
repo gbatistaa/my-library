@@ -24,4 +24,6 @@ public interface UserProfileProjection {
   Long getTotalExperience();
 
   Integer getLevel();
+
+  Long getCurrentXp();
 }
