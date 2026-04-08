@@ -5,7 +5,6 @@ import com.gabriel.mylibrary.analytics.dtos.AnalyticsTrendDTO;
 import com.gabriel.mylibrary.analytics.dtos.AnalyticsDistributionDTO;
 import com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO;
 import com.gabriel.mylibrary.stats.dtos.HeatmapDTO;
-import com.gabriel.mylibrary.books.BookEntity;
 import com.gabriel.mylibrary.books.BookRepository;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import org.springframework.stereotype.Service;
