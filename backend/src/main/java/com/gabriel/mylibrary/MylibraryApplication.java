@@ -29,14 +29,4 @@ public class MylibraryApplication {
       System.out.println("Context Path: " + context.getServletContext().getContextPath());
     };
   }
-
-  @PostConstruct
-  public void JustBorn() {
-    System.out.println("I am just born");
-  }
-
-  @PreDestroy
-  public void AboutToDie() {
-    System.out.println("I am about to die");
-  }
 }

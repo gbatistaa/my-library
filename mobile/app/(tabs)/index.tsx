@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, Alert } from "react-native";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import {
   fetchCurrentUser,
 } from "@/src/services/profileService";
 import { getCurrentlyReading } from "@/src/services/bookService";
+import { sendTestEmail } from "@/src/services/emailService";
 
 import { useRouter } from "expo-router";
 import { CurrentlyReading } from "@/src/components/home/CurrentlyReading";
@@ -273,6 +274,32 @@ export default function HomeScreen() {
               }}>
               <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>View Complete Reading Analysis</Text>
               <Text style={{ color: '#fff', fontSize: 16 }}>→</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  if (!user?.email) {
+                    Alert.alert("Error", "User email not found");
+                    return;
+                  }
+                  await sendTestEmail(user.email, "Test Email from My Library");
+                  Alert.alert("Success", "Email sent successfully!");
+                } catch (error) {
+                  Alert.alert("Error", "Failed to send email");
+                  console.error(error);
+                }
+              }}
+              style={{
+                marginTop: 12,
+                backgroundColor: colors.secondary + "20",
+                borderWidth: 1,
+                borderColor: colors.secondary,
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+              }}>
+              <Text style={{ color: colors.secondary, fontSize: 15, fontWeight: '700' }}>Send Test Email 📧</Text>
             </TouchableOpacity>
           </View>
 
