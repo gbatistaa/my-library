@@ -69,10 +69,8 @@ public class ReadingSessionService {
     ReadingSessionEntity session = readingSessionMapper.toEntity(dto);
     int xpGained = dto.getPagesRead();
 
-    // XP rewards: pages read
     experienceService.rewardActivity(userId, XpType.PAGES_READ, dto.getPagesRead());
 
-    // Update streak engine & award daily streak XP if new reading day
     boolean newReadingDay = streakService.recordActivity(userId);
     if (newReadingDay) {
       xpGained += 50;

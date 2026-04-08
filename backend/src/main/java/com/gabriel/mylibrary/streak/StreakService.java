@@ -33,7 +33,9 @@ public class StreakService {
 
   /**
    * Records a reading activity for today.
-   * @return true if this is the first activity of the day (new reading day), false if already recorded today.
+   *
+   * @return true if this is the first activity of the day (new reading day),
+   *         false if already recorded today.
    */
   @Transactional
   public boolean recordActivity(UUID userId) {
@@ -66,6 +68,12 @@ public class StreakService {
     return true;
   }
 
+  @Transactional
+  public void resetStreak() {
+    LocalDate yesterday = LocalDate.now().minusDays(1);
+    streakRepository.resetStreaksOlderThan(yesterday);
+  }
+
   private StreakEntity getOrCreateStreak(UUID userId) {
     return streakRepository.findByUserId(userId)
         .orElseGet(() -> {
@@ -77,7 +85,7 @@ public class StreakService {
 
   private String generateInsight(StreakEntity streak) {
     if (streak.getLastReadingDate() == null) {
-      return "📚 Comece sua jornada! Registre sua primeira sessão de leitura.";
+      return "📚 Start your journey! Register your first reading session.";
     }
 
     LocalDate today = LocalDate.now();
@@ -86,16 +94,16 @@ public class StreakService {
     if (daysSinceLastRead == 0) {
       int gapToBest = streak.getBestStreak() - streak.getCurrentStreak();
       if (gapToBest <= 0) {
-        return "🏆 Novo recorde! Você está no seu melhor streak de " + streak.getCurrentStreak() + " dias!";
+        return "🏆 New record! You're on your best streak " + streak.getCurrentStreak() + " Dias!";
       } else if (gapToBest <= 3) {
-        return "🔥 Você está a apenas " + gapToBest + " dias do seu recorde de " + streak.getBestStreak() + " dias!";
+        return "🔥 You are just " + gapToBest + " days of your record " + streak.getBestStreak() + " Dias!";
       }
-      return "✅ Você já leu hoje! Streak atual: " + streak.getCurrentStreak() + " dias.";
+      return "✅ You've already read it today! Current streak: " + streak.getCurrentStreak() + " Dias.";
     } else if (daysSinceLastRead == 1) {
-      return "⚠️ Leia hoje para não perder seu streak de " + streak.getCurrentStreak() + " dias!";
+      return "⚠️ Read today so you don't lose your streak " + streak.getCurrentStreak() + " Dias!";
     } else {
-      return "💪 De volta ao jogo? Você leu " + streak.getTotalReadingDays()
-          + " dias no total. Comece um novo streak hoje!";
+      return "💪 Back in the game? Did you read " + streak.getTotalReadingDays()
+          + " days in total. Start a new streak today!";
     }
   }
 }
