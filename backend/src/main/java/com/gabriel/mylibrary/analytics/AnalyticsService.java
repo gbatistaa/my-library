@@ -58,7 +58,6 @@ public class AnalyticsService {
     double cumulativeValue = 0.0;
 
     if (period.toUpperCase().endsWith("WEEK") || "MONTH".equalsIgnoreCase(period) || "CURRENT_MONTH".equalsIgnoreCase(period)) {
-      // Weeks → 3-letter day name ("Mon", "Tue"…); months → bare day number ("1"…"31")
       boolean isWeekPeriod = period.toUpperCase().contains("WEEK");
       DateTimeFormatter formatter = isWeekPeriod
           ? DateTimeFormatter.ofPattern("EEE", java.util.Locale.ENGLISH)
