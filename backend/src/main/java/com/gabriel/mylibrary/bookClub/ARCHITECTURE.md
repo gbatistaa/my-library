@@ -25,10 +25,10 @@ erDiagram
 
 ## Aggregate Roots
 
-| Aggregate Root   | Owned Entities                              | Responsibility                              |
-|------------------|---------------------------------------------|---------------------------------------------|
-| `BookClubEntity` | `BookClubMemberEntity`, `ClubInviteEntity`  | Club identity, membership, access control   |
-| `ClubBookEntity` | `ClubBookProgressEntity`, `ClubBookReviewEntity` | Book lifecycle within a club, reading tracking |
+| Aggregate Root   | Owned Entities                                     | Responsibility                                   |
+| ---------------- | -------------------------------------------------- | ------------------------------------------------ |
+| `BookClubEntity` | `BookClubMemberEntity`, `ClubInviteEntity`         | Club identity, membership, access control        |
+| `ClubBookEntity` | `ClubBookProgressEntity`, `ClubBookReviewEntity`   | Book lifecycle within a club, reading tracking   |
 
 ---
 
@@ -38,16 +38,16 @@ erDiagram
 
 The club itself. Owns membership and configuration.
 
-| Field             | Type              | Constraint       | Purpose                                                      |
-|-------------------|-------------------|------------------|--------------------------------------------------------------|
-| `id`              | `UUID`            | PK               | Inherited from `BaseEntity`                                  |
-| `name`            | `String`          | NOT NULL, max 100| Club display name                                            |
-| `description`     | `String`          | nullable         | Optional club description                                    |
-| `maxMembers`      | `Integer`         | nullable, min 3  | Cap on membership (null = unlimited)                         |
-| `inviteCode`      | `String`          | UNIQUE, NOT NULL | Compressed UUID (Base62) for shareable join link              |
-| `status`          | `BookClubStatus`  | NOT NULL         | `ACTIVE`, `INACTIVE`, `ARCHIVED`                             |
-| `admin`           | `UserEntity`      | FK, NOT NULL     | The founding user who controls the club                      |
-| `members`         | `List<BookClubMemberEntity>` | cascade ALL | All participants including the admin                  |
+| Field         | Type                         | Constraint        | Purpose                                          |
+| ------------- | ---------------------------- | ----------------- | ------------------------------------------------ |
+| `id`          | `UUID`                       | PK                | Inherited from `BaseEntity`                      |
+| `name`        | `String`                     | NOT NULL, max 100 | Club display name                                |
+| `description` | `String`                     | nullable          | Optional club description                        |
+| `maxMembers`  | `Integer`                    | nullable, min 3   | Cap on membership (null = unlimited)             |
+| `inviteCode`  | `String`                     | UNIQUE, NOT NULL  | Compressed UUID (Base62) for shareable join link |
+| `status`      | `BookClubStatus`             | NOT NULL          | `ACTIVE`, `INACTIVE`, `ARCHIVED`                 |
+| `admin`       | `UserEntity`                 | FK, NOT NULL      | The founding user who controls the club          |
+| `members`     | `List<BookClubMemberEntity>` | cascade ALL       | All participants including the admin             |
 
 **Key rules:**
 
@@ -62,12 +62,12 @@ The club itself. Owns membership and configuration.
 
 Join table between users and clubs, carrying the role.
 
-| Field   | Type                 | Constraint | Purpose                              |
-|---------|----------------------|------------|--------------------------------------|
-| `id`    | `UUID`               | PK         | Inherited                            |
-| `role`  | `BookClubMemberRole` | NOT NULL   | `ADMIN`, `MEMBER`                    |
-| `club`  | `BookClubEntity`     | FK         | Parent club                          |
-| `user`  | `UserEntity`         | FK         | The participating user               |
+| Field  | Type                 | Constraint | Purpose                |
+| ------ | -------------------- | ---------- | ---------------------- |
+| `id`   | `UUID`               | PK         | Inherited              |
+| `role` | `BookClubMemberRole` | NOT NULL   | `ADMIN`, `MEMBER`      |
+| `club` | `BookClubEntity`     | FK         | Parent club            |
+| `user` | `UserEntity`         | FK         | The participating user |
 
 **Key rules:**
 
@@ -81,16 +81,16 @@ Join table between users and clubs, carrying the role.
 
 Handles direct user-to-user invitations (separate from the invite code flow).
 
-| Field       | Type            | Constraint | Purpose                                      |
-|-------------|-----------------|------------|----------------------------------------------|
-| `id`        | `UUID`          | PK         | Inherited                                    |
-| `token`     | `String`        | NOT NULL   | Unique invite token                          |
-| `expiresAt` | `LocalDate`     | NOT NULL   | Expiration date                              |
-| `isUsed`    | `Boolean`       | NOT NULL   | Whether it has been consumed                 |
-| `status`    | `InviteStatus`  | NOT NULL   | `PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED` |
-| `club`      | `BookClubEntity`| FK         | Target club                                  |
-| `inviter`   | `UserEntity`    | FK         | Who sent the invite                          |
-| `invitee`   | `UserEntity`    | FK         | Who receives the invite                      |
+| Field       | Type             | Constraint | Purpose                                      |
+| ----------- | ---------------- | ---------- | -------------------------------------------- |
+| `id`        | `UUID`           | PK         | Inherited                                    |
+| `token`     | `String`         | NOT NULL   | Unique invite token                          |
+| `expiresAt` | `LocalDate`      | NOT NULL   | Expiration date                              |
+| `isUsed`    | `Boolean`        | NOT NULL   | Whether it has been consumed                 |
+| `status`    | `InviteStatus`   | NOT NULL   | `PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED` |
+| `club`      | `BookClubEntity` | FK         | Target club                                  |
+| `inviter`   | `UserEntity`     | FK         | Who sent the invite                          |
+| `invitee`   | `UserEntity`     | FK         | Who receives the invite                      |
 
 **Two invitation paths exist:**
 
@@ -103,17 +103,17 @@ Handles direct user-to-user invitations (separate from the invite code flow).
 
 A slot in the club's reading queue. This is **not** the book itself — it is the book's context within a specific club.
 
-| Field               | Type              | Constraint       | Purpose                                                         |
-|---------------------|-------------------|------------------|-----------------------------------------------------------------|
-| `id`                | `UUID`            | PK               | Inherited                                                       |
-| `orderIndex`        | `Integer`         | NOT NULL         | Position in the reading queue (admin-defined)                   |
-| `status`            | `ClubBookStatus`  | NOT NULL         | `PENDING`, `ACTIVE`, `DISCUSSIONS`, `DONE`                      |
-| `deadline`          | `LocalDate`       | nullable         | Admin-set deadline for finishing the book                        |
-| `deadlineExtendedAt`| `LocalDate`       | nullable         | Extended deadline (max `deadline + 10 days`)                    |
-| `startedAt`         | `LocalDate`       | nullable         | When the book became `ACTIVE`                                   |
-| `finishedAt`        | `LocalDate`       | nullable         | When the book transitioned to `DONE`                            |
-| `club`              | `BookClubEntity`  | FK               | Parent club                                                     |
-| `book`              | `BookEntity`      | FK               | Reference to the canonical book data (from Google Books API)    |
+| Field                | Type             | Constraint | Purpose                                                      |
+| -------------------- | ---------------- | ---------- | ------------------------------------------------------------ |
+| `id`                 | `UUID`           | PK         | Inherited                                                    |
+| `orderIndex`         | `Integer`        | NOT NULL   | Position in the reading queue (admin-defined)                |
+| `status`             | `ClubBookStatus` | NOT NULL   | `PENDING`, `ACTIVE`, `DISCUSSIONS`, `DONE`                   |
+| `deadline`           | `LocalDate`      | nullable   | Admin-set deadline for finishing the book                    |
+| `deadlineExtendedAt` | `LocalDate`      | nullable   | Extended deadline (max `deadline + 10 days`)                 |
+| `startedAt`          | `LocalDate`      | nullable   | When the book became `ACTIVE`                                |
+| `finishedAt`         | `LocalDate`      | nullable   | When the book transitioned to `DONE`                         |
+| `club`               | `BookClubEntity` | FK         | Parent club                                                  |
+| `book`               | `BookEntity`     | FK         | Reference to the canonical book data (from Google Books API) |
 
 #### ClubBookStatus State Machine
 
@@ -133,11 +133,11 @@ stateDiagram-v2
 
 **Transition rules in detail:**
 
-| From          | To            | Trigger                                                                                 |
-|---------------|---------------|-----------------------------------------------------------------------------------------|
-| `PENDING`     | `ACTIVE`      | Admin manually activates. Only **one** book per club can be `ACTIVE` at a time. Sets `startedAt = now()`. Creates `ClubBookProgressEntity` for every current member. |
-| `ACTIVE`      | `DISCUSSIONS` | **Automatic** when the last member marks the book as finished (all progress records have `isFinished = true`). OR **automatic** when the effective deadline (`deadlineExtendedAt ?? deadline`) expires — members who haven't finished get `memberStatus = UNFINISHED`. |
-| `ACTIVE`      | `DONE`        | Only if admin explicitly skips the discussion phase (optional shortcut).                |
+| From          | To            | Trigger                                                                                                                                                                                                                                                                        |
+| ------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PENDING`     | `ACTIVE`      | Admin manually activates. Only **one** book per club can be `ACTIVE` at a time. Sets `startedAt = now()`. Creates `ClubBookProgressEntity` for every current member.                                                                                                           |
+| `ACTIVE`      | `DISCUSSIONS` | **Automatic** when the last member marks the book as finished (all progress records have `isFinished = true`). OR **automatic** when the effective deadline (`deadlineExtendedAt ?? deadline`) expires — members who haven't finished get `memberStatus = UNFINISHED`.         |
+| `ACTIVE`      | `DONE`        | Only if admin explicitly skips the discussion phase (optional shortcut).                                                                                                                                                                                                       |
 | `DISCUSSIONS` | `DONE`        | **Automatic** when the admin activates the next `PENDING` book. The current `DISCUSSIONS` book transitions to `DONE` and sets `finishedAt = now()`. During `DISCUSSIONS`, no further progress updates are accepted — any member who hasn't finished is locked as `UNFINISHED`. |
 
 **Deadline logic:**
@@ -153,15 +153,15 @@ stateDiagram-v2
 
 Per-member reading progress for a specific club book. This is where individual tracking lives.
 
-| Field          | Type                       | Constraint | Purpose                                                    |
-|----------------|----------------------------|------------|------------------------------------------------------------|
-| `id`           | `UUID`                     | PK         | Inherited                                                  |
-| `currentPage`  | `Integer`                  | NOT NULL   | Last reported page (starts at 0)                           |
-| `isFinished`   | `Boolean`                  | NOT NULL   | Whether the member has completed the book                  |
-| `memberStatus` | `ClubBookMemberStatus`     | NOT NULL   | `READING`, `FINISHED`, `UNFINISHED`                        |
-| `finishedAt`   | `LocalDate`                | nullable   | When the member marked the book as complete                |
-| `member`       | `BookClubMemberEntity`     | FK         | The club member                                            |
-| `clubBook`     | `ClubBookEntity`           | FK         | The club book being tracked                                |
+| Field          | Type                   | Constraint | Purpose                                     |
+| -------------- | ---------------------- | ---------- | ------------------------------------------- |
+| `id`           | `UUID`                 | PK         | Inherited                                   |
+| `currentPage`  | `Integer`              | NOT NULL   | Last reported page (starts at 0)            |
+| `isFinished`   | `Boolean`              | NOT NULL   | Whether the member has completed the book   |
+| `memberStatus` | `ClubBookMemberStatus` | NOT NULL   | `READING`, `FINISHED`, `UNFINISHED`         |
+| `finishedAt`   | `LocalDate`            | nullable   | When the member marked the book as complete |
+| `member`       | `BookClubMemberEntity` | FK         | The club member                             |
+| `clubBook`     | `ClubBookEntity`       | FK         | The club book being tracked                 |
 
 **Key rules:**
 
@@ -178,13 +178,13 @@ Per-member reading progress for a specific club book. This is where individual t
 
 Post-reading reviews, only available during `DISCUSSIONS` or `DONE` phases.
 
-| Field        | Type              | Constraint | Purpose                          |
-|--------------|-------------------|------------|----------------------------------|
-| `id`         | `UUID`            | PK         | Inherited                        |
-| `rating`     | `Integer`         | NOT NULL   | 1-5 star rating                  |
-| `reviewText` | `String`          | NOT NULL   | Written review                   |
-| `clubBook`   | `ClubBookEntity`  | FK         | The book being reviewed          |
-| `user`       | `UserEntity`      | FK         | The reviewer                     |
+| Field        | Type             | Constraint | Purpose                 |
+| ------------ | ---------------- | ---------- | ----------------------- |
+| `id`         | `UUID`           | PK         | Inherited               |
+| `rating`     | `Integer`        | NOT NULL   | 1-5 star rating         |
+| `reviewText` | `String`         | NOT NULL   | Written review          |
+| `clubBook`   | `ClubBookEntity` | FK         | The book being reviewed |
+| `user`       | `UserEntity`     | FK         | The reviewer            |
 
 **Key rules:**
 
@@ -197,7 +197,7 @@ Post-reading reviews, only available during `DISCUSSIONS` or `DONE` phases.
 
 ### `BookClubStatus`
 
-```
+```text
 ACTIVE      — Club is operational
 INACTIVE    — Temporarily paused (no active reading)
 ARCHIVED    — Permanently closed by admin (read-only)
@@ -205,14 +205,14 @@ ARCHIVED    — Permanently closed by admin (read-only)
 
 ### `BookClubMemberRole`
 
-```
+```text
 ADMIN       — Club founder; full control
 MEMBER      — Regular participant
 ```
 
 ### `ClubBookStatus` (new)
 
-```
+```text
 PENDING       — Queued, not yet started
 ACTIVE        — Currently being read
 DISCUSSIONS   — Reading period over, discussion open, no more progress updates
@@ -221,7 +221,7 @@ DONE          — Completed and archived
 
 ### `ClubBookMemberStatus` (new)
 
-```
+```text
 READING       — Currently reading
 FINISHED      — Completed the book within the deadline
 UNFINISHED    — Did not complete before the book left ACTIVE status
@@ -229,7 +229,7 @@ UNFINISHED    — Did not complete before the book left ACTIVE status
 
 ### `InviteStatus`
 
-```
+```text
 PENDING     — Awaiting response
 ACCEPTED    — User joined the club
 REJECTED    — User declined
@@ -244,14 +244,14 @@ EXPIRED     — Past expiration date
 
 Manages club CRUD and lifecycle.
 
-| Method                          | Description                                                                                         |
-|---------------------------------|-----------------------------------------------------------------------------------------------------|
-| `create(dto)`                   | Creates club, generates `inviteCode` from UUID, auto-creates `BookClubMemberEntity(ADMIN)` for creator |
-| `findById(id)`                  | Returns club with membership info                                                                   |
-| `findAllByUser(userId)`         | Returns all clubs where user is a member                                                            |
-| `update(id, dto)`               | Updates name, description, maxMembers (admin only)                                                  |
-| `archive(id)`                   | Sets status to `ARCHIVED` (admin only). No further mutations allowed                                |
-| `delete(id)`                    | Hard delete (admin only, only if no books have been started)                                        |
+| Method                  | Description                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `create(dto)`           | Creates club, generates `inviteCode` from UUID, auto-creates `BookClubMemberEntity(ADMIN)` for creator |
+| `findById(id)`          | Returns club with membership info                                                                      |
+| `findAllByUser(userId)` | Returns all clubs where user is a member                                                               |
+| `update(id, dto)`       | Updates name, description, maxMembers (admin only)                                                     |
+| `archive(id)`           | Sets status to `ARCHIVED` (admin only). No further mutations allowed                                   |
+| `delete(id)`            | Hard delete (admin only, only if no books have been started)                                           |
 
 ---
 
@@ -259,11 +259,11 @@ Manages club CRUD and lifecycle.
 
 Handles both invitation flows.
 
-| Method                              | Description                                                                                  |
-|-------------------------------------|----------------------------------------------------------------------------------------------|
-| `inviteByUsername(clubId, username)` | Creates a `ClubInviteEntity` targeting the user. Validates club capacity                     |
-| `respondToInvite(inviteId, accept)` | Accepts or rejects. On accept: creates `BookClubMemberEntity(MEMBER)` + progress for active book |
-| `joinByCode(inviteCode)`            | Looks up club by `inviteCode`, validates capacity, creates membership directly               |
+| Method                               | Description                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `inviteByUsername(clubId, username)` | Creates a `ClubInviteEntity` targeting the user. Validates club capacity                         |
+| `respondToInvite(inviteId, accept)`  | Accepts or rejects. On accept: creates `BookClubMemberEntity(MEMBER)` + progress for active book |
+| `joinByCode(inviteCode)`             | Looks up club by `inviteCode`, validates capacity, creates membership directly                   |
 
 ---
 
@@ -271,14 +271,14 @@ Handles both invitation flows.
 
 Manages the book queue and lifecycle transitions.
 
-| Method                                 | Description                                                                                               |
-|----------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `addBook(clubId, bookId, orderIndex, deadline)` | Admin adds a book to the queue as `PENDING`. Book data fetched/cached from Google Books API     |
-| `reorderBooks(clubId, newOrder)`       | Admin reorders the `PENDING` books (cannot reorder `ACTIVE`/`DISCUSSIONS`/`DONE`)                         |
-| `activateBook(clubId, clubBookId)`     | Admin starts a book: transitions `PENDING -> ACTIVE`, creates progress records for all members. If another book is in `DISCUSSIONS`, it transitions to `DONE` first |
-| `extendDeadline(clubBookId, newDate)`  | Admin extends deadline. Validates `newDate <= originalDeadline + 10 days`                                 |
-| `removeBook(clubBookId)`               | Admin removes a `PENDING` book from the queue. Cannot remove `ACTIVE`/`DISCUSSIONS`/`DONE` books          |
-| `checkDeadlines()`                     | `@Scheduled` daily job. Finds `ACTIVE` books past effective deadline, transitions to `DISCUSSIONS`, marks unfinished members as `UNFINISHED` |
+| Method                                          | Description                                                                                                                                                         |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addBook(clubId, bookId, orderIndex, deadline)` | Admin adds a book to the queue as `PENDING`. Book data fetched/cached from Google Books API                                                                         |
+| `reorderBooks(clubId, newOrder)`                | Admin reorders the `PENDING` books (cannot reorder `ACTIVE`/`DISCUSSIONS`/`DONE`)                                                                                   |
+| `activateBook(clubId, clubBookId)`              | Admin starts a book: transitions `PENDING -> ACTIVE`, creates progress records for all members. If another book is in `DISCUSSIONS`, it transitions to `DONE` first |
+| `extendDeadline(clubBookId, newDate)`           | Admin extends deadline. Validates `newDate <= originalDeadline + 10 days`                                                                                           |
+| `removeBook(clubBookId)`                        | Admin removes a `PENDING` book from the queue. Cannot remove `ACTIVE`/`DISCUSSIONS`/`DONE` books                                                                    |
+| `checkDeadlines()`                              | `@Scheduled` daily job. Finds `ACTIVE` books past effective deadline, transitions to `DISCUSSIONS`, marks unfinished members as `UNFINISHED`                        |
 
 ---
 
@@ -286,13 +286,13 @@ Manages the book queue and lifecycle transitions.
 
 Tracks individual member reading progress.
 
-| Method                                          | Description                                                                                  |
-|-------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `updateProgress(clubBookId, memberId, page)`    | Updates `currentPage`. Rejects if book is not `ACTIVE`. Auto-finishes if `page >= totalPages` |
-| `markAsFinished(clubBookId, memberId)`          | Explicitly marks member as finished. Triggers completion check                                |
-| `checkClubBookCompletion(clubBookId)`           | If all members are finished, transitions book `ACTIVE -> DISCUSSIONS`                         |
-| `getProgressForMember(memberId, clubBookId)`    | Returns current progress and percentage                                                       |
-| `getProgressForClubBook(clubBookId)`            | Returns all members' progress (for club dashboard)                                            |
+| Method                                       | Description                                                                                   |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `updateProgress(clubBookId, memberId, page)` | Updates `currentPage`. Rejects if book is not `ACTIVE`. Auto-finishes if `page >= totalPages` |
+| `markAsFinished(clubBookId, memberId)`       | Explicitly marks member as finished. Triggers completion check                                |
+| `checkClubBookCompletion(clubBookId)`        | If all members are finished, transitions book `ACTIVE -> DISCUSSIONS`                         |
+| `getProgressForMember(memberId, clubBookId)` | Returns current progress and percentage                                                       |
+| `getProgressForClubBook(clubBookId)`         | Returns all members' progress (for club dashboard)                                            |
 
 ---
 
@@ -300,12 +300,12 @@ Tracks individual member reading progress.
 
 Manages post-reading reviews.
 
-| Method                                    | Description                                                        |
-|-------------------------------------------|--------------------------------------------------------------------|
-| `submitReview(clubBookId, userId, dto)`   | Creates review. Only allowed if book is `DISCUSSIONS` or `DONE`    |
-| `getReviewsForBook(clubBookId)`           | Returns all reviews for a club book                                |
-| `updateReview(reviewId, dto)`             | Author edits their own review                                      |
-| `deleteReview(reviewId)`                  | Author or admin deletes a review                                   |
+| Method                                  | Description                                                       |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| `submitReview(clubBookId, userId, dto)` | Creates review. Only allowed if book is `DISCUSSIONS` or `DONE`   |
+| `getReviewsForBook(clubBookId)`         | Returns all reviews for a club book                               |
+| `updateReview(reviewId, dto)`           | Author edits their own review                                     |
+| `deleteReview(reviewId)`                | Author or admin deletes a review                                  |
 
 ---
 
@@ -506,7 +506,7 @@ stateDiagram-v2
 
 ## Package Structure
 
-```
+```bash
 bookClub/
   |-- clubs/
   |     |-- BookClubEntity.java
@@ -588,11 +588,11 @@ bookClub/
 
 ## Changes Required vs. Current Codebase
 
-| Entity / Enum               | Current State                          | Required Change                                                         |
-|-----------------------------|----------------------------------------|-------------------------------------------------------------------------|
-| `BookClubEntity`            | Missing `inviteCode`, `status`         | Add `inviteCode` (String, unique) and `status` (BookClubStatus) fields  |
-| `ClubBookEntity`            | Uses `isCurrent` boolean               | Replace with `status` enum (`ClubBookStatus`). Add `deadline` and `deadlineExtendedAt` fields. Remove `currentPage` (belongs in progress) |
-| `ClubBookProgressEntity`    | Missing `isFinished`, `memberStatus`   | Add `isFinished` (Boolean), `memberStatus` (ClubBookMemberStatus)       |
-| `BookClubMemberRole`        | Has `INVITED`                          | Remove `INVITED` (invitation state lives in `ClubInviteEntity`, not in membership role) |
-| New: `ClubBookStatus`       | Does not exist                         | Create enum: `PENDING`, `ACTIVE`, `DISCUSSIONS`, `DONE`                 |
-| New: `ClubBookMemberStatus` | Does not exist                         | Create enum: `READING`, `FINISHED`, `UNFINISHED`                        |
+| Entity / Enum               | Current State                        | Required Change                                                                                                                           |
+| --------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `BookClubEntity`            | Missing `inviteCode`, `status`       | Add `inviteCode` (String, unique) and `status` (BookClubStatus) fields                                                                    |
+| `ClubBookEntity`            | Uses `isCurrent` boolean             | Replace with `status` enum (`ClubBookStatus`). Add `deadline` and `deadlineExtendedAt` fields. Remove `currentPage` (belongs in progress) |
+| `ClubBookProgressEntity`    | Missing `isFinished`, `memberStatus` | Add `isFinished` (Boolean), `memberStatus` (ClubBookMemberStatus)                                                                         |
+| `BookClubMemberRole`        | Has `INVITED`                        | Remove `INVITED` (invitation state lives in `ClubInviteEntity`, not in membership role)                                                   |
+| New: `ClubBookStatus`       | Does not exist                       | Create enum: `PENDING`, `ACTIVE`, `DISCUSSIONS`, `DONE`                                                                                   |
+| New: `ClubBookMemberStatus` | Does not exist                       | Create enum: `READING`, `FINISHED`, `UNFINISHED`                                                                                          |
