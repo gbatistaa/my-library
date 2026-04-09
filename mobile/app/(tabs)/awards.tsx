@@ -1,12 +1,18 @@
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+} from "react-native";
 import { useState, useCallback } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  useAnimatedStyle, 
-  withTiming 
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  LinearTransition,
 } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
@@ -41,8 +47,6 @@ const ACHIEVEMENT_EMOJIS: Record<string, string> = {
   "Peak Focus": "\u{1F9D7}",
 };
 
-// ─── XP Legend data ───────────────────────────────────────────────────────────
-
 const ACTIVITY_XP_ROWS = [
   { label: "Each page read", xp: "+1 XP / page" },
   { label: "Book completed", xp: "+100 XP" },
@@ -73,21 +77,18 @@ function XpLegendSection() {
   const [isOpen, setIsOpen] = useState(false);
   const isDark = mode === "dark";
 
-  const borderColor = isDark ? "rgba(167,139,250,0.15)" : "rgba(107,56,212,0.12)";
+  const borderColor = isDark
+    ? "rgba(167,139,250,0.15)"
+    : "rgba(107,56,212,0.12)";
   const bg = isDark ? "rgba(30,41,59,0.6)" : "rgba(237,233,254,0.45)";
 
-  const contentAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      height: withTiming(isOpen ? 680 : 0, { duration: 350 }),
-      opacity: withTiming(isOpen ? 1 : 0, { duration: 250 }),
-      overflow: "hidden",
-    };
-  });
+  // We no longer need contentAnimatedStyle or useSharedValue with Layout Animations!
 
   return (
     <Animated.View
       entering={FadeInDown.duration(350)}
-      className="mb-8 border rounded-2xl"
+      layout={LinearTransition.springify()}
+      className={`mb-8 border rounded-2xl overflow-hidden`}
       style={{
         borderColor,
         backgroundColor: bg,
@@ -97,65 +98,100 @@ function XpLegendSection() {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => setIsOpen(!isOpen)}
-        className="flex-row items-center justify-between px-4 py-4"
+        className="flex-row justify-between items-center px-4 py-4"
       >
         <Text
-          className="text-[11px] font-extrabold uppercase tracking-[2px]"
+          className="font-extrabold text-[11px] uppercase tracking-[2px]"
           style={{ color: colors.primary }}
         >
           {"\u26A1"} How to earn XP
         </Text>
-        <Feather name={isOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.primary} />
+        <Feather
+          name={isOpen ? "chevron-up" : "chevron-down"}
+          size={16}
+          color={colors.primary}
+        />
       </TouchableOpacity>
 
       {/* Collapsible Content */}
-      <Animated.View style={contentAnimatedStyle}>
-        {/* Divider */}
-        <View className="mx-4 h-[1px]" style={{ backgroundColor: borderColor }} />
+      {isOpen && (
+        <Animated.View
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(200)}
+        >
+          {/* Divider */}
+          <View
+            className="mx-4 h-[1px]"
+            style={{ backgroundColor: borderColor }}
+          />
 
-        {/* Activities */}
-        <View className="px-4 pt-4 pb-2">
-          <Text
-            className="mb-2 text-[10px] font-bold uppercase tracking-[1.5px] opacity-70"
-            style={{ color: colors.primary }}
-          >
-            Activities
-          </Text>
-          {ACTIVITY_XP_ROWS.map((row) => (
-            <View key={row.label} className="flex-row items-center justify-between py-1.5">
-              <Text className="text-[13px]" style={{ color: isDark ? "#CBD5E1" : "#374151" }}>
-                {row.label}
-              </Text>
-              <Text className="text-[13px] font-bold" style={{ color: colors.primary }}>
-                {row.xp}
-              </Text>
+          {/* Activities */}
+          <View className="px-4 pt-4 pb-2">
+            <Text
+              className="opacity-70 mb-2 font-bold text-[10px] uppercase tracking-[1.5px]"
+              style={{ color: colors.primary }}
+            >
+              Activities
+            </Text>
+            {ACTIVITY_XP_ROWS.map((row) => (
+              <View
+                key={row.label}
+                className="flex-row justify-between items-center py-1.5"
+              >
+                <Text
+                  className="text-[13px]"
+                  style={{ color: isDark ? "#CBD5E1" : "#374151" }}
+                >
+                  {row.label}
+                </Text>
+                <Text
+                  className="font-bold text-[13px]"
+                  style={{ color: colors.primary }}
+                >
+                  {row.xp}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Divider */}
+          <View
+            className="mx-4 h-[1px]"
+            style={{ backgroundColor: borderColor }}
+          />
+
+          {/* Achievements */}
+          <View className="px-4 pt-4 pb-4">
+            <Text
+              className="opacity-70 mb-2 font-bold text-[10px] uppercase tracking-[1.5px]"
+              style={{ color: colors.primary }}
+            >
+              Achievements
+            </Text>
+            <View className="flex-col flex-wrap justify-between gap-y-1">
+              {ACHIEVEMENT_XP_ROWS.map((row) => (
+                <View
+                  key={row.name}
+                  className="flex-row justify-between items-center"
+                >
+                  <Text
+                    className="text-[13px]"
+                    style={{ color: isDark ? "#CBD5E1" : "#374151" }}
+                  >
+                    {row.name}
+                  </Text>
+                  <Text
+                    className="font-bold text-[13px]"
+                    style={{ color: colors.primary }}
+                  >
+                    +{row.xp} XP
+                  </Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-
-        {/* Divider */}
-        <View className="mx-4 h-[1px]" style={{ backgroundColor: borderColor }} />
-
-        {/* Achievements */}
-        <View className="px-4 pt-4 pb-4">
-          <Text
-            className="mb-2 text-[10px] font-bold uppercase tracking-[1.5px] opacity-70"
-            style={{ color: colors.primary }}
-          >
-            Achievements
-          </Text>
-          {ACHIEVEMENT_XP_ROWS.map((row) => (
-            <View key={row.name} className="flex-row items-center justify-between py-1.5">
-              <Text className="text-[13px]" style={{ color: isDark ? "#CBD5E1" : "#374151" }}>
-                {row.name}
-              </Text>
-              <Text className="text-[13px] font-bold" style={{ color: colors.primary }}>
-                +{row.xp} XP
-              </Text>
-            </View>
-          ))}
-        </View>
-      </Animated.View>
+          </View>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }
@@ -168,7 +204,6 @@ function getAchievementEmoji(achievement: AchievementDTO): string {
   );
 }
 
-/* ── Icon bg class per category (earned, light mode) ── */
 const CATEGORY_ICON_BG: Record<string, string> = {
   VOLUME: "bg-[#e9ddff]",
   VELOCITY: "bg-[#ffddb8]",
@@ -178,11 +213,8 @@ const CATEGORY_ICON_BG: Record<string, string> = {
 
 function getIconBgClass(category: string, earned: boolean): string {
   if (!earned) {
-    // unearned: surfaceContainerHigh
     return "bg-[#dee8ff] dark:bg-slate-800";
   }
-  // earned dark: primary/33
-  // earned light: category-based
   const lightBg = CATEGORY_ICON_BG[category] ?? "bg-[#e9ddff]";
   return `${lightBg} dark:bg-[#A78BFA]/20`;
 }
@@ -216,14 +248,12 @@ function AchievementCard({
           !earned ? "opacity-60" : ""
         }`}
       >
-        <Text className="text-[30px]">
-          {getAchievementEmoji(achievement)}
-        </Text>
+        <Text className="text-[30px]">{getAchievementEmoji(achievement)}</Text>
       </View>
 
       {/* Title */}
       <Text
-        className="font-bold text-center mt-5 text-[15px]"
+        className="mt-5 font-bold text-[15px] text-center"
         style={{ color: colors.text }}
         numberOfLines={2}
       >
@@ -232,7 +262,7 @@ function AchievementCard({
 
       {/* Description */}
       <Text
-        className="text-[11px] text-center leading-[16px] mt-1.5 mb-4"
+        className="mt-1.5 mb-4 text-[11px] text-center leading-[16px]"
         style={{ color: colors.textSecondary }}
         numberOfLines={3}
       >
@@ -240,23 +270,23 @@ function AchievementCard({
       </Text>
 
       {/* Progress bar */}
-      <View 
-        className="w-full h-1.5 rounded-full overflow-hidden"
+      <View
+        className="rounded-full w-full h-1.5 overflow-hidden"
         style={{ backgroundColor: colors.surfaceContainerHigh }}
       >
         <View
-          className="h-full rounded-full"
-          style={{ 
+          className="rounded-full h-full"
+          style={{
             width: earned ? "100%" : `${pct}%`,
-            backgroundColor: colors.primary
+            backgroundColor: colors.primary,
           }}
         />
       </View>
 
       {/* Progress label for unearned */}
       {!earned && (
-        <Text 
-          className="text-[10px] font-bold mt-2"
+        <Text
+          className="mt-2 font-bold text-[10px]"
           style={{ color: colors.primary }}
         >
           {achievement.progressLabel || `${pct}%`}
@@ -274,7 +304,7 @@ function CategoryGroup({
   achievements: AchievementDTO[];
 }) {
   const { colors } = useAppTheme();
-  
+
   return (
     <View className="mb-10">
       {/* Category header: emoji + uppercase label */}
@@ -282,8 +312,8 @@ function CategoryGroup({
         <Text className="text-xl">
           {CATEGORY_EMOJIS[category] ?? "\u{1F3C6}"}
         </Text>
-        <Text 
-          className="text-[11px] font-bold uppercase tracking-[2px] opacity-60"
+        <Text
+          className="opacity-60 font-bold text-[11px] uppercase tracking-[2px]"
           style={{ color: colors.text }}
         >
           {CATEGORY_LABELS[category] ?? category}
@@ -293,11 +323,7 @@ function CategoryGroup({
       {/* Achievement grid (2 columns) */}
       <View className="flex-row flex-wrap justify-between gap-y-4">
         {achievements.map((a, i) => (
-          <AchievementCard
-            key={a.code}
-            achievement={a}
-            index={i}
-          />
+          <AchievementCard key={a.code} achievement={a} index={i} />
         ))}
       </View>
     </View>
@@ -307,16 +333,16 @@ function CategoryGroup({
 function EmptyState() {
   const { colors } = useAppTheme();
   return (
-    <View className="py-20 items-center">
-      <Text className="text-[48px] mb-4">{"\u{1F3C6}"}</Text>
-      <Text 
-        className="text-[18px] font-bold mb-2"
+    <View className="items-center py-20">
+      <Text className="mb-4 text-[48px]">{"\u{1F3C6}"}</Text>
+      <Text
+        className="mb-2 font-bold text-[18px]"
         style={{ color: colors.text }}
       >
         No achievements yet
       </Text>
-      <Text 
-        className="text-sm text-center leading-[20px] max-w-[280px]"
+      <Text
+        className="max-w-[280px] text-sm text-center leading-[20px]"
         style={{ color: colors.textSecondary }}
       >
         Start reading to unlock your first badges. There are 16 to collect!
@@ -374,21 +400,21 @@ export default function AchievementsScreen() {
         {/* Header */}
         <Animated.View
           entering={FadeIn.duration(400)}
-          className="pt-3.5 pb-6 flex-row justify-between items-center"
+          className="flex-row justify-between items-center pt-3.5 pb-6"
         >
-          <Text 
-            className="text-[28px] font-extrabold tracking-[-0.5px]"
+          <Text
+            className="font-extrabold text-[28px] tracking-[-0.5px]"
             style={{ color: colors.text }}
           >
             Achievements
           </Text>
           {total > 0 && (
-            <View 
+            <View
               className="px-4 py-1.5 rounded-full"
               style={{ backgroundColor: colors.surfaceContainerLow }}
             >
-              <Text 
-                className="text-sm font-bold"
+              <Text
+                className="font-bold text-sm"
                 style={{ color: colors.primary }}
               >
                 {earnedTotal} / {total} earned
@@ -404,10 +430,10 @@ export default function AchievementsScreen() {
               {[120, 100, 140, 100].map((h, i) => (
                 <View
                   key={i}
-                  className="rounded-2xl opacity-40"
-                  style={{ 
+                  className="opacity-40 rounded-2xl"
+                  style={{
                     height: h,
-                    backgroundColor: colors.surfaceContainerHigh
+                    backgroundColor: colors.surfaceContainerHigh,
                   }}
                 />
               ))}

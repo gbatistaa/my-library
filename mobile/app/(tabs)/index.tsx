@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, RefreshControl, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,19 +33,18 @@ import { QuickStats } from "@/src/components/home/QuickStats";
 import { GoalSection } from "@/src/components/home/GoalSection";
 import { AchievementsRow } from "@/src/components/home/AchievementsRow";
 import { Avatar } from "@/src/components/common/Avatar";
-import { XpProgressRing, XpLabel } from "@/src/components/common/XpProgressRing";
+import {
+  XpProgressRing,
+  XpLabel,
+} from "@/src/components/common/XpProgressRing";
 import { XpFloatingFeedback } from "@/src/components/common/XpFloatingFeedback";
 
 function Skeleton({ height = 120 }: { height?: number }) {
   const { colors } = useAppTheme();
   return (
     <View
-      style={{
-        height,
-        borderRadius: 12,
-        backgroundColor: colors.border + "40",
-        opacity: 0.5,
-      }}
+      className="opacity-50 rounded-xl"
+      style={{ height, backgroundColor: colors.border + "40" }}
     />
   );
 }
@@ -49,7 +55,6 @@ function getGreeting(): string {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
-
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -63,14 +68,12 @@ export default function HomeScreen() {
   const prevXpRef = useRef<number | null>(null);
   const currentYear = new Date().getFullYear();
 
-  // Refresh user profile to get latest XP/level on each visit
   const { data: freshUser } = useQuery({
     queryKey: ["currentUser"],
     queryFn: fetchCurrentUser,
     retry: 1,
   });
 
-  // Sync fresh user data into atom and detect XP changes
   useEffect(() => {
     if (!freshUser) return;
     const prevXp = prevXpRef.current;
@@ -79,7 +82,7 @@ export default function HomeScreen() {
     }
     prevXpRef.current = freshUser.totalExperience;
     setUser(freshUser);
-  }, [freshUser]);
+  }, [freshUser, setUser]);
 
   const { data: currentlyReading, isLoading: loadingBooks } = useQuery({
     queryKey: ["currentlyReading"],
@@ -136,14 +139,11 @@ export default function HomeScreen() {
   const greeting = getGreeting();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
       <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 10,
-          paddingHorizontal: 20,
-          paddingBottom: 48,
-        }}
+        contentContainerClassName="px-5 pb-12"
+        contentContainerStyle={{ paddingTop: insets.top + 10 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -156,15 +156,9 @@ export default function HomeScreen() {
         {/* ── Header: avatar + greeting + streak badge ──── */}
         <Animated.View
           entering={FadeIn.duration(400)}
-          style={{
-            paddingTop: 14,
-            paddingBottom: 24,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          className="flex-row justify-between items-center pt-3.5 pb-6"
         >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View className="flex-row items-center gap-3">
             {/* Avatar wrapped in XP ring */}
             {user && (
               <View>
@@ -194,22 +188,14 @@ export default function HomeScreen() {
 
             <View>
               <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "500",
-                  color: colors.textSecondary,
-                }}
+                className="font-medium text-xs"
+                style={{ color: colors.textSecondary }}
               >
                 {greeting}, Curator
               </Text>
               <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: "700",
-                  color: colors.primary,
-                  letterSpacing: -0.5,
-                  marginTop: 1,
-                }}
+                className="mt-px font-bold text-xl"
+                style={{ color: colors.primary, letterSpacing: -0.5 }}
               >
                 @{user?.username ?? "reader"}
               </Text>
@@ -219,23 +205,13 @@ export default function HomeScreen() {
           {/* Streak pill */}
           {!loadingStreak && (
             <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 5,
-                backgroundColor: colors.secondary + "2E",
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 9999,
-              }}
+              className="flex-row items-center gap-1 px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: colors.secondary + "2E" }}
             >
-              <Text style={{ fontSize: 16 }}>{"\uD83D\uDD25"}</Text>
+              <Text className="text-base">{"\uD83D\uDD25"}</Text>
               <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: "700",
-                  color: colors.secondary,
-                }}
+                className="font-bold text-sm"
+                style={{ color: colors.secondary }}
               >
                 {currentStreak} days
               </Text>
@@ -243,7 +219,7 @@ export default function HomeScreen() {
           )}
         </Animated.View>
 
-        <View style={{ gap: 40 }}>
+        <View className="gap-10">
           {/* ── Currently Reading (horizontal scroll) ──── */}
           {loadingBooks ? (
             <View>
@@ -261,22 +237,17 @@ export default function HomeScreen() {
               <QuickStats dna={dna} streak={streak} />
             )}
             <TouchableOpacity
-              onPress={() => router.push('/analytics')}
-              style={{
-                marginTop: 16,
-                backgroundColor: colors.primary,
-                paddingVertical: 14,
-                borderRadius: 12,
-                alignItems: 'center',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 8
-              }}>
-              <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>View Complete Reading Analysis</Text>
-              <Text style={{ color: '#fff', fontSize: 16 }}>→</Text>
+              onPress={() => router.push("/analytics")}
+              className="flex-row justify-center items-center gap-2 mt-4 py-3.5 rounded-xl"
+              style={{ backgroundColor: colors.primary }}
+            >
+              <Text className="font-bold text-[15px] text-white">
+                View Complete Reading Analysis
+              </Text>
+              <Text className="text-white text-base">→</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={async () => {
                 try {
                   if (!user?.email) {
@@ -290,19 +261,20 @@ export default function HomeScreen() {
                   console.error(error);
                 }
               }}
+              className="items-center mt-3 py-3.5 border rounded-xl"
               style={{
-                marginTop: 12,
                 backgroundColor: colors.secondary + "20",
-                borderWidth: 1,
                 borderColor: colors.secondary,
-                paddingVertical: 14,
-                borderRadius: 12,
-                alignItems: 'center',
-              }}>
-              <Text style={{ color: colors.secondary, fontSize: 15, fontWeight: '700' }}>Send Test Email 📧</Text>
-            </TouchableOpacity>
+              }}
+            >
+              <Text
+                className="font-bold text-sm"
+                style={{ color: colors.secondary }}
+              >
+                Send Test Email 📧
+              </Text>
+            </TouchableOpacity> */}
           </View>
-
 
           {/* ── Reading Goal ─────────────────────────── */}
           <View>
