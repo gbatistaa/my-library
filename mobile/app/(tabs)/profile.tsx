@@ -250,156 +250,6 @@ function EditProfileModal({
   );
 }
 
-// ─── Confirm Revoke Modal ────────────────────────────────────────────────────
-
-function ConfirmRevokeModal({
-  device,
-  onClose,
-  onConfirm,
-  revoking,
-}: {
-  device: { id: string; name: string; deviceId: string } | null;
-  onClose: () => void;
-  onConfirm: () => void;
-  revoking: boolean;
-}) {
-  const { mode } = useAppTheme();
-  const visible = device !== null;
-
-  const fadeAnim = useRef(new RNAnimated.Value(0)).current;
-  const scaleAnim = useRef(new RNAnimated.Value(0.93)).current;
-
-  useEffect(() => {
-    if (visible) {
-      RNAnimated.parallel([
-        RNAnimated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 260,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-        RNAnimated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 260,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      RNAnimated.parallel([
-        RNAnimated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        RNAnimated.timing(scaleAnim, {
-          toValue: 0.93,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [visible, fadeAnim, scaleAnim]);
-
-  const closeIconColor = mode === "dark" ? "#94A3B8" : "#6b7280";
-
-  return (
-    <View
-      className="z-[1000] absolute inset-0"
-      pointerEvents={visible ? "auto" : "none"}
-    >
-      {/* Backdrop */}
-      <RNAnimated.View
-        className="absolute inset-0 bg-black/55"
-        style={{ opacity: fadeAnim }}
-      >
-        <Pressable className="flex-1" onPress={onClose} />
-      </RNAnimated.View>
-
-      {/* Centered card */}
-      <View
-        className="absolute inset-0 justify-center items-center px-6"
-        pointerEvents="box-none"
-      >
-        <RNAnimated.View
-          className="bg-white dark:bg-slate-900 rounded-2xl w-full overflow-hidden"
-          style={{
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 16 },
-            shadowOpacity: 0.22,
-            shadowRadius: 32,
-            elevation: 20,
-          }}
-        >
-          {/* Header */}
-          <View className="flex-row justify-between items-center px-5 pt-5 pb-1">
-            <Text className="font-extrabold text-[#111c2d] text-[18px] dark:text-[#F8FAFC] tracking-[-0.3px]">
-              Disconnect Device
-            </Text>
-            <TouchableOpacity
-              onPress={onClose}
-              className="justify-center items-center bg-[#f0f3ff] dark:bg-[#334155] rounded-full w-8 h-8"
-            >
-              <Ionicons name="close" size={15} color={closeIconColor} />
-            </TouchableOpacity>
-          </View>
-
-          <View className="px-5 pt-4 pb-5">
-            {/* Warning card */}
-            <View className="flex-row items-start gap-3 bg-amber-500/10 dark:bg-amber-500/10 mb-5 p-4 border border-amber-500/40 dark:border-amber-500/20 rounded-xl">
-              <Ionicons
-                name="warning"
-                size={18}
-                color="#f59e0b"
-                style={{ marginTop: 1 }}
-              />
-              <View className="flex-1">
-                <Text className="text-[13px] text-slate-600 dark:text-slate-400 leading-[18px]">
-                  You will need to sign in again on:
-                </Text>
-                <Text
-                  className="mt-1 font-bold text-[14px] text-slate-900 dark:text-slate-50"
-                  numberOfLines={1}
-                >
-                  {device?.name}
-                </Text>
-              </View>
-            </View>
-
-            {/* Buttons */}
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={onClose}
-                disabled={revoking}
-                className="flex-1 justify-center items-center bg-slate-100 dark:bg-slate-800 active:opacity-60 rounded-xl h-11"
-              >
-                <Text className="font-bold text-slate-600 dark:text-slate-400 text-sm">
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={onConfirm}
-                disabled={revoking}
-                className="flex-1 justify-center items-center bg-red-500 active:opacity-80 shadow-sm rounded-xl h-11"
-                style={{ shadowColor: "#ef4444" }}
-              >
-                {revoking ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text className="font-bold text-white text-sm">
-                    Disconnect
-                  </Text>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </RNAnimated.View>
-      </View>
-    </View>
-  );
-}
 
 // ─── Device Card ─────────────────────────────────────────────────────────────
 
@@ -524,12 +374,6 @@ export default function ProfileScreen() {
   const openProfilePicPicker = useProfilePicture();
   const [refreshing, setRefreshing] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
-  const [revokeTarget, setRevokeTarget] = useState<{
-    id: string;
-    name: string;
-    deviceId: string;
-  } | null>(null);
-  const [revoking, setRevoking] = useState(false);
 
   // Always fetch fresh user data
   const { data: freshUser } = useQuery({
@@ -564,31 +408,34 @@ export default function ProfileScreen() {
 
   const openRevokeModal = useCallback(
     (id: string, name: string, deviceId: string) => {
-      setRevokeTarget({ id, name, deviceId });
+      Alert.alert(
+        "Disconnect Device",
+        `You will need to sign in again on:\n${name}`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Disconnect",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                if (deviceId === currentDeviceId) {
+                  await logout();
+                  setUser(null);
+                  router.replace("/(auth)/login");
+                  return;
+                }
+                await revokeDevice(id);
+                queryClient.invalidateQueries({ queryKey: ["myDevices"] });
+              } catch (err: unknown) {
+                showApiError("Failed to disconnect device", err);
+              }
+            },
+          },
+        ],
+      );
     },
-    [],
+    [currentDeviceId, queryClient, setUser, router],
   );
-
-  const handleRevokeConfirm = useCallback(async () => {
-    if (!revokeTarget) return;
-    setRevoking(true);
-    try {
-      if (revokeTarget.deviceId === currentDeviceId) {
-        await logout();
-        setUser(null);
-        setRevokeTarget(null);
-        router.replace("/(auth)/login");
-        return;
-      }
-      await revokeDevice(revokeTarget.id);
-      queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-      setRevokeTarget(null);
-    } catch (err: unknown) {
-      showApiError("Failed to disconnect device", err);
-    } finally {
-      setRevoking(false);
-    }
-  }, [revokeTarget, currentDeviceId, queryClient, setUser, router]);
 
   const handleProfileSaved = useCallback(
     (updated: UserDTO) => {
@@ -791,13 +638,6 @@ export default function ProfileScreen() {
         onSave={handleProfileSaved}
       />
 
-      {/* Revoke Confirmation Modal */}
-      <ConfirmRevokeModal
-        device={revokeTarget}
-        onClose={() => setRevokeTarget(null)}
-        onConfirm={handleRevokeConfirm}
-        revoking={revoking}
-      />
     </View>
   );
 }

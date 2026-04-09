@@ -32,7 +32,7 @@ public class BookClubEntity extends BaseEntity {
   private String description;
 
   @Column(nullable = true, name = "max_members")
-  @Min(3)
+  @Min(value = 3, message = "O clube deve ter pelo menos 3 membros")
   private Integer maxMembers;
 
   @ManyToOne
