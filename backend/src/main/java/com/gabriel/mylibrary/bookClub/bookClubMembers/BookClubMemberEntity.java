@@ -1,5 +1,7 @@
 package com.gabriel.mylibrary.bookClub.bookClubMembers;
 
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus;
 import com.gabriel.mylibrary.bookClub.clubs.BookClubEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
@@ -24,9 +26,12 @@ public class BookClubMemberEntity extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private BookClubMemberRole role;
 
+  @Enumerated(EnumType.STRING)
+  private BookClubMemberStatus status;
+
   @ManyToOne
   @JoinColumn(name = "book_club_id")
-  private BookClubEntity club;
+  private BookClubEntity bookClub;
 
   @ManyToOne
   @JoinColumn(name = "user_id")

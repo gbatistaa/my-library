@@ -39,6 +39,6 @@ public class BookClubEntity extends BaseEntity {
   @JoinColumn(name = "admin_id", nullable = false)
   private UserEntity admin;
 
-  @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "bookClub", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookClubMemberEntity> members;
 }
