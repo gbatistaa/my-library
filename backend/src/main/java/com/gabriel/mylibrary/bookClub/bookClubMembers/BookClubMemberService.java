@@ -27,10 +27,9 @@ public class BookClubMemberService {
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
     BookClubMemberEntity bookClubMemberEntity = bookClubMemberMapper.toEntity(bookClubMember);
-
     validateBookClubMemberInsertion(bookClubMemberEntity);
-
     BookClubMemberDTO result = bookClubMemberMapper.toDto(bookClubMemberRepository.save(bookClubMemberEntity));
+
     return result;
   }
 
