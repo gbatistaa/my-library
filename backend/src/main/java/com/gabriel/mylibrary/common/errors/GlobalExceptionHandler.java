@@ -115,6 +115,18 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 
+  @ExceptionHandler(UnprocessableContentException.class)
+  public ResponseEntity<ErrorResponse> handleUnprocessableContent(
+      UnprocessableContentException ex,
+      HttpServletRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.UNPROCESSABLE_CONTENT.value(), "Unprocessable Content", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
+
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGeneric(
       Exception ex,
