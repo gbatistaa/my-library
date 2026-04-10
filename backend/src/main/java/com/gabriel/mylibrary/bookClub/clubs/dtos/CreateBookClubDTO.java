@@ -2,6 +2,8 @@ package com.gabriel.mylibrary.bookClub.clubs.dtos;
 
 import java.util.UUID;
 
+import com.gabriel.mylibrary.bookClub.clubs.enums.BookClubStatus;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,4 +28,7 @@ public class CreateBookClubDTO {
 
   @NotNull(message = "Admin id is required")
   private UUID adminId;
+
+  @NotNull(message = "Status is required")
+  private BookClubStatus status;
 }

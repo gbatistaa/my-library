@@ -14,7 +14,6 @@ public interface BookClubMapper {
   BookClubEntity toEntity(CreateBookClubDTO createBookClubDTO);
 
   @Mapping(target = "adminId", source = "admin.id")
-  @Mapping(target = "currentMembers", expression = "java(bookClubEntity.getMembers() != null ? bookClubEntity.getMembers().size() : 0)")
   BookClubDTO toDto(BookClubEntity bookClubEntity);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

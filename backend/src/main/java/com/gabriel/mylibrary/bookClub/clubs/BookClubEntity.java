@@ -3,12 +3,15 @@ package com.gabriel.mylibrary.bookClub.clubs;
 import java.util.List;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberEntity;
+import com.gabriel.mylibrary.bookClub.clubs.enums.BookClubStatus;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -32,8 +35,12 @@ public class BookClubEntity extends BaseEntity {
   private String description;
 
   @Column(nullable = true, name = "max_members")
-  @Min(value = 3, message = "O clube deve ter pelo menos 3 membros")
+  @Min(3)
   private Integer maxMembers;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private BookClubStatus status;
 
   @ManyToOne
   @JoinColumn(name = "admin_id", nullable = false)

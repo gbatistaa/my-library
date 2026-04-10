@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException.UnprocessableContent;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
@@ -67,15 +66,34 @@ public class BookClubMemberService {
     bookClubMemberRepository.delete(existingBookClubMember);
   }
 
-  private void validateBookClubMemberInsertion(BookClubMemberEntity bookClubMember) throws ResourceConflictException,
-      UnprocessableContentException {
-    if (bookClubMemberRepository.existsByBookClubIdAndUserId(bookClubMember.getBookClub().getId(),
-        bookClubMember.getUser().getId())) {
-      throw new ResourceConflictException("User is already a member of this book club");
+  private void validateBookClubMemberInsertion(BookClubMemberEntity bookClubMember) {
+    if (isFirstMember(bookClubMember)) {
+      return;
     }
 
-    if (bookClubMemberRepository.countAllByBookClubId(bookClubMember.getBookClub().getId()) >= bookClubMember
-        .getBookClub().getMaxMembers()) {
+    validateUserMembership(bookClubMember);
+    validateClubCapacity(bookClubMember);
+  }
+
+  private boolean isFirstMember(BookClubMemberEntity bookClubMember) {
+    return bookClubMemberRepository.countByBookClubId(bookClubMember.getBookClub().getId()) == 0;
+  }
+
+  private void validateUserMembership(BookClubMemberEntity bookClubMember) {
+    boolean alreadyMember = bookClubMemberRepository.existsByBookClubIdAndUserId(
+        bookClubMember.getBookClub().getId(),
+        bookClubMember.getUser().getId());
+
+    if (alreadyMember) {
+      throw new ResourceConflictException("User is already a member of this book club");
+    }
+  }
+
+  private void validateClubCapacity(BookClubMemberEntity bookClubMember) {
+    long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubMember.getBookClub().getId());
+    int capacity = bookClubMember.getBookClub().getMaxMembers();
+
+    if (currentMembers >= capacity) {
       throw new UnprocessableContentException("Book club is full");
     }
   }

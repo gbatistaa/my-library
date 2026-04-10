@@ -2,8 +2,12 @@ package com.gabriel.mylibrary.bookClub.bookClubMembers.dtos;
 
 import java.util.UUID;
 
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus;
+
 public record CreateBookClubMemberDTO(
     UUID bookClubId,
     UUID userId,
-    String role
-) {}
+    BookClubMemberRole role,
+    BookClubMemberStatus status) {
+}

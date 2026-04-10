@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.gabriel.mylibrary.bookClub.clubs.dtos.BookClubDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.CreateBookClubDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.UpdateBookClubDTO;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,9 @@ public class BookClubController {
   }
 
   @PostMapping
-  public ResponseEntity<BookClubDTO> create(@RequestBody @Valid CreateBookClubDTO bookClub) {
-    return ResponseEntity.ok(bookClubService.create(bookClub));
+  public ResponseEntity<BookClubDTO> create(@RequestBody @Valid CreateBookClubDTO bookClub,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookClubService.create(bookClub, user.getId()));
   }
 
   @PutMapping("/{id}")

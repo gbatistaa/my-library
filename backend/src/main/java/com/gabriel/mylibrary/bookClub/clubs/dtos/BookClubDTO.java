@@ -4,12 +4,14 @@ import java.util.UUID;
 
 import com.gabriel.mylibrary.bookClub.clubs.enums.BookClubStatus;
 
-public record BookClubDTO(
-    UUID id,
-    String name,
-    String description,
-    Integer maxMembers,
-    Integer currentMembers,
-    UUID adminId,
-    BookClubStatus status) {
+import lombok.Data;
+
+@Data
+public class BookClubDTO {
+  private UUID id;
+  private String name;
+  private String description;
+  private Integer maxMembers;
+  private UUID adminId;
+  private BookClubStatus status;
 }
