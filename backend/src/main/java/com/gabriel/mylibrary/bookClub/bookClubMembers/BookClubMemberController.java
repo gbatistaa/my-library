@@ -1,0 +1,56 @@
+package com.gabriel.mylibrary.bookClub.bookClubMembers;
+
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
+import com.gabriel.mylibrary.bookClub.clubs.dtos.CreateBookClubDTO;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/members")
+@RequiredArgsConstructor
+public class BookClubMemberController {
+
+  private final BookClubMemberService bookClubMemberService;
+
+  @PostMapping
+  public BookClubMemberDTO createBookClubMember(@RequestBody @Valid CreateBookClubMemberDTO bookClubMember) {
+    return bookClubMemberService.create(bookClubMember);
+  }
+
+  @GetMapping
+  public Page<BookClubMemberDTO> getAllBookClubMembers(Pageable pageable) {
+    return bookClubMemberService.findAll(pageable);
+  }
+
+  @GetMapping("/{id}")
+  public BookClubMemberDTO getBookClubMemberById(@PathVariable UUID id) {
+    return bookClubMemberService.findById(id);
+  }
+
+  @PatchMapping("/{id}")
+  public BookClubMemberDTO updateBookClubMember(@PathVariable UUID id,
+      @RequestBody @Valid UpdateBookClubMemberDTO bookClubMember) {
+    return bookClubMemberService.update(id, bookClubMember);
+  }
+
+  @DeleteMapping("/{id}")
+  public void deleteBookClubMember(@PathVariable UUID id) {
+    bookClubMemberService.delete(id);
+  }
+}
