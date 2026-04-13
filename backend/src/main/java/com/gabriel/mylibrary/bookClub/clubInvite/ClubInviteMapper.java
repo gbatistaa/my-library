@@ -7,6 +7,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.gabriel.mylibrary.bookClub.clubInvite.dtos.ClubInviteDTO;
 import com.gabriel.mylibrary.bookClub.clubInvite.dtos.CreateClubInviteDTO;
+import com.gabriel.mylibrary.bookClub.clubInvite.projections.AcceptedClubInviteProjection;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ClubInviteMapper {
@@ -27,4 +28,9 @@ public interface ClubInviteMapper {
   @Mapping(target = "inviteeName", source = "invitee.name")
   @Mapping(target = "clubName", source = "bookClub.name")
   ClubInviteDTO toDto(ClubInviteEntity entity);
+
+  @Mapping(target = "inviterName", source = "inviter.name")
+  @Mapping(target = "inviteeName", source = "invitee.name")
+  @Mapping(target = "clubName", source = "bookClub.name")
+  AcceptedClubInviteProjection toAcceptedClubInviteProjection(ClubInviteEntity entity);
 }

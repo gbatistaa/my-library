@@ -1,6 +1,7 @@
 package com.gabriel.mylibrary.bookClub.clubInvite;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.gabriel.mylibrary.bookClub.clubs.BookClubEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
@@ -47,4 +48,8 @@ public class ClubInviteEntity extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "invitee_id")
   private UserEntity invitee;
+
+  public UUID getInviteeId() {
+    return this.getInvitee().getId();
+  }
 }
