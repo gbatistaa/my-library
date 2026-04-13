@@ -15,16 +15,16 @@ public interface ClubInviteMapper {
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "status", constant = "PENDING")
-  @Mapping(target = "club", ignore = true)
+  @Mapping(target = "bookClub", ignore = true)
   @Mapping(target = "inviter", ignore = true)
   @Mapping(target = "invitee", ignore = true)
   @Mapping(target = "token", ignore = true)
   @Mapping(target = "expiresAt", ignore = true)
   ClubInviteEntity toEntity(CreateClubInviteDTO dto);
 
-  @Mapping(target = "clubId", source = "club.id")
+  @Mapping(target = "clubId", source = "bookClub.id")
   @Mapping(target = "inviterName", source = "inviter.name")
   @Mapping(target = "inviteeName", source = "invitee.name")
-  @Mapping(target = "clubName", source = "club.name")
+  @Mapping(target = "clubName", source = "bookClub.name")
   ClubInviteDTO toDto(ClubInviteEntity entity);
 }

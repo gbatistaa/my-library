@@ -8,9 +8,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClubInviteRepository extends JpaRepository<ClubInviteEntity, UUID> {
-  Boolean existsByBookClubIdAndInviteeId(UUID bookClubId, UUID inviteeId);
+Boolean existsByBookClubIdAndInviteeId(UUID clubId, UUID inviteeId);
 
-  Boolean existsByBookClubIdAndInviteeIdAndStatus(UUID bookClubId, UUID inviteeId, InviteStatus status);
+Boolean existsByBookClubIdAndInviteeIdAndStatus(UUID clubId, UUID inviteeId, InviteStatus status);
 
   Boolean existsByStatusIn(List<InviteStatus> statuses);
 }

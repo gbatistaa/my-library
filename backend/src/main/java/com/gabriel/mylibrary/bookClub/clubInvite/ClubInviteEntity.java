@@ -37,8 +37,8 @@ public class ClubInviteEntity extends BaseEntity {
   private InviteStatus status;
 
   @ManyToOne
-  @JoinColumn(name = "club_id")
-  private BookClubEntity club;
+  @JoinColumn(name = "book_club_id")
+  private BookClubEntity bookClub;
 
   @ManyToOne
   @JoinColumn(name = "inviter_id")
