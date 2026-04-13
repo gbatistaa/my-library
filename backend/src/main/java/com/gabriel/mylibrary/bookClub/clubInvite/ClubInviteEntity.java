@@ -13,12 +13,15 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "club_invites")
+@Table(name = "club_invites", uniqueConstraints = @UniqueConstraint(columnNames = {
+    "inviter_id", "invitee_id", "club_id"
+}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,9 +31,6 @@ public class ClubInviteEntity extends BaseEntity {
 
   @Column(name = "expires_at", nullable = false)
   private LocalDate expiresAt;
-
-  @Column(name = "is_used", nullable = false)
-  private Boolean isUsed;
 
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)

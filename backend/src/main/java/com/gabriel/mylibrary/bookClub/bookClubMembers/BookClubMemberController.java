@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
-import com.gabriel.mylibrary.bookClub.clubs.dtos.CreateBookClubDTO;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -25,8 +25,9 @@ public class BookClubMemberService {
 
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
+    validateBookClubMemberInsertion(bookClubMember.getBookClubId(), bookClubMember.getUserId());
+
     BookClubMemberEntity bookClubMemberEntity = bookClubMemberMapper.toEntity(bookClubMember);
-    validateBookClubMemberInsertion(bookClubMemberEntity);
     BookClubMemberDTO result = bookClubMemberMapper.toDto(bookClubMemberRepository.save(bookClubMemberEntity));
 
     return result;
@@ -66,35 +67,36 @@ public class BookClubMemberService {
     bookClubMemberRepository.delete(existingBookClubMember);
   }
 
-  private void validateBookClubMemberInsertion(BookClubMemberEntity bookClubMember) {
-    if (isFirstMember(bookClubMember)) {
+  private void validateBookClubMemberInsertion(UUID bookClubId, UUID userId)
+      throws ResourceConflictException, UnprocessableContentException {
+    if (isFirstMember(bookClubId)) {
       return;
     }
 
-    validateUserMembership(bookClubMember);
-    validateClubCapacity(bookClubMember);
-  }
-
-  private boolean isFirstMember(BookClubMemberEntity bookClubMember) {
-    return bookClubMemberRepository.countByBookClubId(bookClubMember.getBookClub().getId()) == 0;
-  }
-
-  private void validateUserMembership(BookClubMemberEntity bookClubMember) {
-    boolean alreadyMember = bookClubMemberRepository.existsByBookClubIdAndUserId(
-        bookClubMember.getBookClub().getId(),
-        bookClubMember.getUser().getId());
-
-    if (alreadyMember) {
+    if (isUserAlreadyAMember(bookClubId, userId)) {
       throw new ResourceConflictException("User is already a member of this book club");
     }
-  }
 
-  private void validateClubCapacity(BookClubMemberEntity bookClubMember) {
-    long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubMember.getBookClub().getId());
-    int capacity = bookClubMember.getBookClub().getMaxMembers();
-
-    if (currentMembers >= capacity) {
+    if (isClubFull(bookClubId)) {
       throw new UnprocessableContentException("Book club is full");
     }
+  }
+
+  private Boolean isFirstMember(UUID bookClubId) {
+    return bookClubMemberRepository.countByBookClubId(bookClubId) == 0;
+  }
+
+  public Boolean isUserAlreadyAMember(UUID bookClubId, UUID userId) {
+    Boolean alreadyMember = bookClubMemberRepository.existsByBookClubIdAndUserId(bookClubId, userId);
+
+    return alreadyMember;
+  }
+
+  private Boolean isClubFull(UUID bookClubId) {
+    long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubId);
+    int capacity = bookClubMemberRepository.findById(bookClubId).get().getBookClub().getMaxMembers();
+
+    return currentMembers >= capacity;
+
   }
 }
