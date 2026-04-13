@@ -1,8 +1,10 @@
 package com.gabriel.mylibrary.bookClub.clubInvite;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.gabriel.mylibrary.bookClub.clubInvite.enums.InviteStatus;
 import com.gabriel.mylibrary.bookClub.clubs.BookClubEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
@@ -29,6 +31,9 @@ import lombok.Setter;
 public class ClubInviteEntity extends BaseEntity {
   @Column(name = "token", nullable = false)
   private String token;
+
+  @Column(name = "accepted_at", nullable = false)
+  private LocalDateTime acceptedAt;
 
   @Column(name = "expires_at", nullable = false)
   private LocalDate expiresAt;

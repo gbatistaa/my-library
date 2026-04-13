@@ -18,5 +18,5 @@ public class CreateBookClubMemberDTO {
   private UUID bookClubId;
   private UUID userId;
   private BookClubMemberRole role;
-  private BookClubMemberStatus status;
+  private BookClubMemberStatus status = BookClubMemberStatus.ACTIVE;
 }

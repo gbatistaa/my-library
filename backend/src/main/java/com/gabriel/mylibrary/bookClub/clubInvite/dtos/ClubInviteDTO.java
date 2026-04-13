@@ -1,6 +1,7 @@
 package com.gabriel.mylibrary.bookClub.clubInvite.dtos;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record ClubInviteDTO(
@@ -10,5 +11,6 @@ public record ClubInviteDTO(
     String inviteeName,
     String clubName,
     LocalDate expiresAt,
-    LocalDate createdAt) {
+    LocalDate createdAt,
+    LocalDateTime acceptedAt) {
 }

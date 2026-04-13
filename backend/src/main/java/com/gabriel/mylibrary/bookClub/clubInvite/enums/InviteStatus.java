@@ -1,4 +1,4 @@
-package com.gabriel.mylibrary.bookClub.clubInvite;
+package com.gabriel.mylibrary.bookClub.clubInvite.enums;
 
 public enum InviteStatus {
   PENDING,
