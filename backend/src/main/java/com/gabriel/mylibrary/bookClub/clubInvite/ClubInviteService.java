@@ -103,17 +103,23 @@ public class ClubInviteService {
         clubInvite.getInviteeId(), InviteStatus.PENDING)) {
       throw new ResourceConflictException("The user already has a pending invitation to this book club.");
     }
+
+    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviterId())) {
+      throw new ForbiddenException("")
+    }
   }
 
   private void validateClubInviteRevocation(ClubInviteEntity invite, UUID loggedUserId) {
     if (invite.getStatus() != InviteStatus.PENDING) {
-      throw new ResourceConflictException("This invitation has already been " + invite.getStatus().name().toLowerCase() + " and cannot be modified.");
+      throw new ResourceConflictException(
+          "This invitation has already been " + invite.getStatus().name().toLowerCase() + " and cannot be modified.");
     }
 
     boolean isInviter = invite.getInviterId().equals(loggedUserId);
     boolean isClubAdmin = bookClubMemberService.isUserAdminOfClub(invite.getBookClub().getId(), loggedUserId);
     if (!isInviter && !isClubAdmin) {
-      throw new ForbiddenException("Insufficient permissions. Only the original inviter or a club administrator can revoke this invitation.");
+      throw new ForbiddenException(
+          "Insufficient permissions. Only the original inviter or a club administrator can revoke this invitation.");
     }
   }
 

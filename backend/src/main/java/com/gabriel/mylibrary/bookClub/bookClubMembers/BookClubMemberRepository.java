@@ -28,4 +28,9 @@ public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEn
         AND m.club.id = :clubId
       """)
   BookClubMemberRole getBookClubMemberRoleById(@Param("inviterId") UUID inviterId, @Param("clubId") UUID clubId);
+
+  @Query("""
+
+      """)
+  Boolean isClubMemberBannedOrInactive(@Param("clubId") UUID clubId, @Param("memberId") UUID memberId);
 }

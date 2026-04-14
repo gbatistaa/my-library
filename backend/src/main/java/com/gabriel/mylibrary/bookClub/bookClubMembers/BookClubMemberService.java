@@ -68,18 +68,34 @@ public class BookClubMemberService {
     bookClubMemberRepository.delete(existingBookClubMember);
   }
 
+  /* Validations */
+
+  @Transactional(readOnly = true)
   public Boolean isMemberAdmin(UUID clubId, UUID memberId) {
     return bookClubMemberRepository.getBookClubMemberRoleById(memberId, clubId).equals(BookClubMemberRole.ADMIN);
   }
 
+  @Transactional(readOnly = true)
   public Boolean isUserAlreadyAMember(UUID bookClubId, UUID userId) {
     return bookClubMemberRepository.existsByBookClubIdAndUserId(bookClubId, userId);
   }
 
+  @Transactional(readOnly = true)
   public Boolean isUserAdminOfClub(UUID bookClubId, UUID userId) {
     return bookClubMemberRepository.existsByBookClubIdAndUserIdAndRole(bookClubId, userId, BookClubMemberRole.ADMIN);
   }
 
+  @Transactional(readOnly = true)
+  public Boolean isFirstMember(UUID bookClubId) {
+    return bookClubMemberRepository.countByBookClubId(bookClubId) == 0;
+  }
+
+  @Transactional(readOnly = true)
+  public Boolean isClubMemberBannedOrInactive(UUID clubId, UUID memberId) {
+    return !bookClubMemberRepository.isClubMemberBannedOrInactive(clubId, memberId);
+  }
+
+  @Transactional(readOnly = true)
   private void validateBookClubMemberInsertion(UUID bookClubId, UUID userId)
       throws ResourceConflictException, UnprocessableContentException {
     if (isFirstMember(bookClubId)) {
@@ -95,10 +111,7 @@ public class BookClubMemberService {
     }
   }
 
-  private Boolean isFirstMember(UUID bookClubId) {
-    return bookClubMemberRepository.countByBookClubId(bookClubId) == 0;
-  }
-
+  @Transactional(readOnly = true)
   private Boolean isClubFull(UUID bookClubId) {
     long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubId);
     int capacity = bookClubMemberRepository.findById(bookClubId).get().getBookClub().getMaxMembers();
