@@ -21,6 +21,7 @@ public interface ClubInviteMapper {
   @Mapping(target = "invitee", ignore = true)
   @Mapping(target = "token", ignore = true)
   @Mapping(target = "expiresAt", ignore = true)
+  @Mapping(target = "acceptedAt", ignore = true)
   ClubInviteEntity toEntity(CreateClubInviteDTO dto);
 
   @Mapping(target = "clubId", source = "bookClub.id")

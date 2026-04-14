@@ -43,9 +43,9 @@ public class ClubInviteController {
   }
 
   @PostMapping("/{inviteId}/reject")
-  public ResponseEntity<Void> reject(@PathVariable UUID inviteId)
+  public ResponseEntity<Void> reject(@PathVariable UUID inviteId, @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
-    this.clubInviteService.reject(inviteId);
+    this.clubInviteService.reject(inviteId, user);
     return ResponseEntity.noContent().build();
   }
 

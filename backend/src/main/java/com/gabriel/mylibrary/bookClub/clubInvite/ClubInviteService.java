@@ -1,6 +1,5 @@
 package com.gabriel.mylibrary.bookClub.clubInvite;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +17,7 @@ import com.gabriel.mylibrary.bookClub.clubInvite.projections.AcceptedClubInviteP
 import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,7 +45,7 @@ public class ClubInviteService {
     ClubInviteEntity clubInviteEntity = this.clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("Invite not found"));
 
-    validateClubInviteAcceptance(clubInviteEntity.getInviteeId(), loggedUserId);
+    validateClubInviteAcceptance(clubInviteEntity, loggedUserId);
     clubInviteEntity.setStatus(InviteStatus.ACCEPTED);
     createInviteeMember(clubInviteEntity);
     this.clubInviteRepository.save(clubInviteEntity);
@@ -54,9 +54,11 @@ public class ClubInviteService {
   }
 
   @Transactional
-  public void reject(UUID inviteId) throws ResourceNotFoundException {
+  public void reject(UUID inviteId, UserEntity loggedUser) throws ResourceNotFoundException {
     ClubInviteEntity clubInviteEntity = this.clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("Invite not found"));
+
+    validateClubInviteReject(clubInviteEntity, inviteId);
     this.clubInviteRepository.delete(clubInviteEntity);
   }
 
@@ -89,9 +91,13 @@ public class ClubInviteService {
     }
   }
 
-  private void validateClubInviteAcceptance(UUID inviteeId, UUID loggedUserId) {
-    if (!inviteeId.equals(loggedUserId)) {
-      throw new ForbiddenException("You cannot accept somebody else's invite");
+  private void validateClubInviteAcceptance(ClubInviteEntity invite, UUID loggedUserId) {
+    if (!invite.getStatus().equals(InviteStatus.PENDING)) {
+      throw new ResourceConflictException("The invite acceptance is only for pending invites");
+    }
+
+    if (!invite.getInviteeId().equals(loggedUserId)) {
+      throw new ForbiddenException("You cannot accept somebody else's invite.");
     }
   }
 
@@ -103,4 +109,62 @@ public class ClubInviteService {
         BookClubMemberStatus.ACTIVE);
     this.bookClubMemberService.create(createBookClubMemberDTO);
   }
+
+  private void validateClubInviteReject(ClubInviteEntity invite, UUID loggedUserId) {
+    if (!invite.getInviteeId().equals(loggedUserId)) {
+      throw new ForbiddenException("You cannot reject somebody else's invite.");
+    }
+
+    if (!invite.getStatus().equals(InviteStatus.PENDING)) {
+      throw new ResourceConflictException("You cannot reject a non-pendent invite.");
+    }
+  }
 }
+
+// Analisando o `ClubInviteService`, algumas validações importantes que estão
+// faltando:
+
+// ---
+
+// TODO: **No método `create`**
+// - Verificar se o **invitee existe** no sistema antes de criar o convite
+// - Verificar se o **club existe** antes de criar o convite
+// - Verificar se o **inviter é realmente membro/admin do clube** (qualquer um
+// pode convidar agora)
+// - Verificar se o **invitee não está banido/inativo** do clube
+
+// ---
+
+// TODO: **No método `accept`**
+// - Verificar se o convite ainda está com status `PENDING` antes de aceitar —
+// hoje você consegue aceitar um convite já aceito, pois não há essa checagem
+// - Verificar se o convite não está **expirado** (caso você venha a adicionar
+// um `expiresAt`)
+
+// ---
+
+// TODO: **No método `reject`**
+// - Verificar se quem está rejeitando é realmente o **invitee** (igual ao
+// `accept`, mas falta aqui)
+// - Verificar se o convite está `PENDING` antes de rejeitar
+
+// ---
+
+// TODO: **No método `revoke`**
+// - Verificar se quem está revogando é o **inviter ou um admin do clube** —
+// hoje qualquer um pode revogar qualquer convite
+
+// ---
+
+// TODO: **Estrutural/transversal**
+// - O `validateClubInviteRevocation` faz **duas queries** para o mesmo
+// `inviteId` (uma no validate, outra no `revoke`). Você poderia buscar a
+// entidade uma vez só e passar adiante
+// - Ausência de validação de **convite para si mesmo** (`inviterId ==
+// inviteeId`)
+
+// ---
+
+// A mais crítica no momento é provavelmente a **falta de verificação de
+// permissão no `reject` e no `revoke`**, pois expõe operações destrutivas sem
+// controle de quem é o dono da ação.
