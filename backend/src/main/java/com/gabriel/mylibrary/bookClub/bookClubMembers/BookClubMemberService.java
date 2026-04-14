@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.mappers.BookClubMemberMapper;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -87,9 +88,11 @@ public class BookClubMemberService {
   }
 
   public Boolean isUserAlreadyAMember(UUID bookClubId, UUID userId) {
-    Boolean alreadyMember = bookClubMemberRepository.existsByBookClubIdAndUserId(bookClubId, userId);
+    return bookClubMemberRepository.existsByBookClubIdAndUserId(bookClubId, userId);
+  }
 
-    return alreadyMember;
+  public Boolean isUserAdminOfClub(UUID bookClubId, UUID userId) {
+    return bookClubMemberRepository.existsByBookClubIdAndUserIdAndRole(bookClubId, userId, BookClubMemberRole.ADMIN);
   }
 
   private Boolean isClubFull(UUID bookClubId) {

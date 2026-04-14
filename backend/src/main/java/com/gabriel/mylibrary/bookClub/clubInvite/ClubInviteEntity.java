@@ -57,4 +57,8 @@ public class ClubInviteEntity extends BaseEntity {
   public UUID getInviteeId() {
     return this.getInvitee().getId();
   }
+
+  public UUID getInviterId() {
+    return this.getInviter().getId();
+  }
 }

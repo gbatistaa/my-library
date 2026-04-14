@@ -50,9 +50,9 @@ public class ClubInviteController {
   }
 
   @PostMapping("/{inviteId}/revoke")
-  public ResponseEntity<Void> revoke(@PathVariable UUID inviteId)
+  public ResponseEntity<Void> revoke(@PathVariable UUID inviteId, @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
-    this.clubInviteService.revoke(inviteId);
+    this.clubInviteService.revoke(inviteId, user.getId());
     return ResponseEntity.noContent().build();
   }
 }
