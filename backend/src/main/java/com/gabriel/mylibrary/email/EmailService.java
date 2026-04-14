@@ -46,7 +46,7 @@ public class EmailService {
 
     } catch (MessagingException e) {
       log.error("Failed to send email to: {}. Error: {}", to, e.getMessage());
-      throw new RuntimeException("Failed to send HTML email", e);
+      throw new RuntimeException("Failed to deliver email to '" + to + "'. Please verify the address and mail server configuration.", e);
     }
   }
 }

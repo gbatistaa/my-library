@@ -21,8 +21,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class BookClubMemberService {
-  private final BookClubMemberRepository bookClubMemberRepository;
   private final BookClubMemberMapper bookClubMemberMapper;
+  private final BookClubMemberRepository bookClubMemberRepository;
 
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
@@ -48,13 +48,13 @@ public class BookClubMemberService {
   public BookClubMemberDTO findById(UUID id) throws ResourceNotFoundException {
     return bookClubMemberRepository.findById(id)
         .map(bookClubMemberMapper::toDto)
-        .orElseThrow(() -> new ResourceNotFoundException("Book club member not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
   }
 
   @Transactional
   public BookClubMemberDTO update(UUID id, UpdateBookClubMemberDTO bookClubMemberDto) throws ResourceNotFoundException {
     BookClubMemberEntity existingBookClubMember = bookClubMemberRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Book club member not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
 
     bookClubMemberMapper.updateEntityFromDto(bookClubMemberDto, existingBookClubMember);
 
@@ -64,27 +64,12 @@ public class BookClubMemberService {
   @Transactional
   public void delete(UUID id) throws ResourceNotFoundException {
     BookClubMemberEntity existingBookClubMember = bookClubMemberRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Book club member not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
     bookClubMemberRepository.delete(existingBookClubMember);
   }
 
-  private void validateBookClubMemberInsertion(UUID bookClubId, UUID userId)
-      throws ResourceConflictException, UnprocessableContentException {
-    if (isFirstMember(bookClubId)) {
-      return;
-    }
-
-    if (isUserAlreadyAMember(bookClubId, userId)) {
-      throw new ResourceConflictException("User is already a member of this book club");
-    }
-
-    if (isClubFull(bookClubId)) {
-      throw new UnprocessableContentException("Book club is full");
-    }
-  }
-
-  private Boolean isFirstMember(UUID bookClubId) {
-    return bookClubMemberRepository.countByBookClubId(bookClubId) == 0;
+  public Boolean isMemberAdmin(UUID clubId, UUID memberId) {
+    return bookClubMemberRepository.getBookClubMemberRoleById(memberId, clubId).equals(BookClubMemberRole.ADMIN);
   }
 
   public Boolean isUserAlreadyAMember(UUID bookClubId, UUID userId) {
@@ -95,11 +80,29 @@ public class BookClubMemberService {
     return bookClubMemberRepository.existsByBookClubIdAndUserIdAndRole(bookClubId, userId, BookClubMemberRole.ADMIN);
   }
 
+  private void validateBookClubMemberInsertion(UUID bookClubId, UUID userId)
+      throws ResourceConflictException, UnprocessableContentException {
+    if (isFirstMember(bookClubId)) {
+      return;
+    }
+
+    if (isUserAlreadyAMember(bookClubId, userId)) {
+      throw new ResourceConflictException("The user is already a member of this book club.");
+    }
+
+    if (isClubFull(bookClubId)) {
+      throw new UnprocessableContentException("This book club has reached its maximum member capacity.");
+    }
+  }
+
+  private Boolean isFirstMember(UUID bookClubId) {
+    return bookClubMemberRepository.countByBookClubId(bookClubId) == 0;
+  }
+
   private Boolean isClubFull(UUID bookClubId) {
     long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubId);
     int capacity = bookClubMemberRepository.findById(bookClubId).get().getBookClub().getMaxMembers();
 
     return currentMembers >= capacity;
-
   }
 }

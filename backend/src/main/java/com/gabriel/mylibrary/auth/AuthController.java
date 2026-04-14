@@ -30,7 +30,7 @@ public class AuthController {
   public ResponseEntity<UserSummary> getMe(@AuthenticationPrincipal UserEntity user) {
     return userRepository.findSummaryById(user.getId())
         .map(ResponseEntity::ok)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Authenticated user profile could not be found."));
   }
 
   @PostMapping("/register")

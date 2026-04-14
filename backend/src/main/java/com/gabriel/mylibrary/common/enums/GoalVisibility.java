@@ -13,6 +13,6 @@ public enum GoalVisibility {
         return v;
       }
     }
-    throw new IllegalArgumentException("Invalid visibility. Allowed values: PUBLIC, PRIVATE");
+    throw new IllegalArgumentException("Invalid visibility value '" + value + "'. Accepted values are: PUBLIC, PRIVATE.");
   }
 }

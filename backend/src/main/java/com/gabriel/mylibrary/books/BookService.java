@@ -64,7 +64,7 @@ public class BookService {
   public BookDTO findOne(UUID id, UUID userId) throws ResourceNotFoundException {
     return bookRepository.findByIdAndUserId(id, userId)
         .map(bookMapper::toDto)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
   }
 
   @Transactional(readOnly = true)
@@ -80,24 +80,24 @@ public class BookService {
     BookEntity newBook = bookMapper.toEntity(dto);
 
     if (bookRepository.existsByIsbnAndUserId(newBook.getIsbn(), userId)) {
-      throw new ResourceConflictException("Book with this ISBN already exists in your library: " + newBook.getIsbn());
+      throw new ResourceConflictException("A book with ISBN '" + newBook.getIsbn() + "' already exists in your library.");
     }
 
     if (newBook.getStatus() == BookStatus.COMPLETED && newBook.getRating() == null) {
-      throw new ResourceConflictException("Rating is required when status is COMPLETED");
+      throw new ResourceConflictException("A rating is required when marking a book as completed.");
     }
 
     if (newBook.getStatus() != BookStatus.COMPLETED && newBook.getRating() != null) {
-      throw new ResourceConflictException("Rating is not allowed when status is not COMPLETED");
+      throw new ResourceConflictException("A rating can only be assigned to books with a 'COMPLETED' status.");
     }
 
     if (newBook.getStartDate() != null && newBook.getFinishDate() != null
         && newBook.getFinishDate().isBefore(newBook.getStartDate())) {
-      throw new ResourceConflictException("Finish date cannot be before start date");
+      throw new ResourceConflictException("The finish date cannot be set before the start date.");
     }
 
     if (newBook.getPagesRead() != null && newBook.getPagesRead() > newBook.getPages()) {
-      throw new ResourceConflictException("Pages read cannot exceed total pages");
+      throw new ResourceConflictException("The number of pages read cannot exceed the total page count of the book.");
     }
 
     if (newBook.getStatus() == BookStatus.COMPLETED) {
@@ -110,7 +110,7 @@ public class BookService {
     if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
       Set<CategoryEntity> categories = dto.getCategoryIds().stream()
           .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
-              .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + catId)))
+              .orElseThrow(() -> new ResourceNotFoundException("Category not found or does not belong to this user.")))
           .collect(Collectors.toSet());
       newBook.setCategories(categories);
     }
@@ -132,13 +132,13 @@ public class BookService {
   public BookDTO update(UUID id, UUID userId, UpdateBookDTO dto)
       throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
 
     BookStatus previousStatus = book.getStatus();
 
     if (dto.getIsbn() != null && !dto.getIsbn().equals(book.getIsbn())) {
       if (bookRepository.existsByIsbnAndUserId(dto.getIsbn(), userId)) {
-        throw new ResourceConflictException("Book with this ISBN already exists in your library: " + dto.getIsbn());
+        throw new ResourceConflictException("A book with ISBN '" + dto.getIsbn() + "' already exists in your library.");
       }
     }
 
@@ -147,26 +147,26 @@ public class BookService {
     if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
       Set<CategoryEntity> categories = dto.getCategoryIds().stream()
           .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
-              .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + catId)))
+              .orElseThrow(() -> new ResourceNotFoundException("Category not found or does not belong to this user.")))
           .collect(Collectors.toSet());
       book.setCategories(categories);
     }
 
     if (book.getPagesRead() != null && book.getPagesRead() > book.getPages()) {
-      throw new ResourceConflictException("Pages read cannot exceed total pages");
+      throw new ResourceConflictException("The number of pages read cannot exceed the total page count of the book.");
     }
 
     if (book.getStatus() == BookStatus.COMPLETED && book.getRating() == null) {
-      throw new ResourceConflictException("Rating is required when status is COMPLETED");
+      throw new ResourceConflictException("A rating is required when marking a book as completed.");
     }
 
     if (book.getStatus() != BookStatus.COMPLETED && book.getRating() != null) {
-      throw new ResourceConflictException("Rating is not allowed when status is not COMPLETED");
+      throw new ResourceConflictException("A rating can only be assigned to books with a 'COMPLETED' status.");
     }
 
     if (book.getStartDate() != null && book.getFinishDate() != null
         && book.getFinishDate().isBefore(book.getStartDate())) {
-      throw new ResourceConflictException("Finish date cannot be before start date");
+      throw new ResourceConflictException("The finish date cannot be set before the start date.");
     }
 
     if (book.getStatus() == BookStatus.COMPLETED) {
@@ -189,10 +189,10 @@ public class BookService {
   @Transactional
   public BookDTO resetForReread(UUID id, UUID userId) throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
 
     if (book.getStatus() != BookStatus.COMPLETED) {
-      throw new ResourceConflictException("Only completed books can be reset for re-reading");
+      throw new ResourceConflictException("Only books with a 'COMPLETED' status can be reset for re-reading.");
     }
 
     book.setStatus(BookStatus.READING);
@@ -216,7 +216,7 @@ public class BookService {
   @Transactional
   public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
     BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
     bookRepository.delete(book);
   }
 }

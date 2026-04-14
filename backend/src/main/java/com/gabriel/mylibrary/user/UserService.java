@@ -35,17 +35,17 @@ public class UserService {
   @Transactional(readOnly = true)
   public UserDTO getUserById(UUID id) throws ResourceNotFoundException {
     UserEntity user = userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No user found with the provided ID."));
     return userMapper.toDTO(user);
   }
 
   @Transactional
   public UserDTO createUser(CreateUserDTO createUserDTO) throws ResourceConflictException {
     if (userRepository.existsByUsername(createUserDTO.getUsername())) {
-      throw new ResourceConflictException("Username already exists: " + createUserDTO.getUsername());
+      throw new ResourceConflictException("The username '" + createUserDTO.getUsername() + "' is already taken. Please choose a different one.");
     }
     if (userRepository.existsByEmail(createUserDTO.getEmail())) {
-      throw new ResourceConflictException("Email already exists: " + createUserDTO.getEmail());
+      throw new ResourceConflictException("An account with the email '" + createUserDTO.getEmail() + "' already exists.");
     }
 
     UserEntity user = userMapper.toEntity(createUserDTO);
@@ -62,17 +62,17 @@ public class UserService {
   @Transactional
   public UserDTO updateUser(UUID id, UpdateUserDTO updateUserDTO) throws ResourceNotFoundException {
     UserEntity user = userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No user found with the provided ID."));
 
     if (updateUserDTO.getUsername() != null && !updateUserDTO.getUsername().equals(user.getUsername())) {
       if (userRepository.existsByUsername(updateUserDTO.getUsername())) {
-        throw new ResourceConflictException("Username already exists: " + updateUserDTO.getUsername());
+        throw new ResourceConflictException("The username '" + updateUserDTO.getUsername() + "' is already taken. Please choose a different one.");
       }
     }
 
     if (updateUserDTO.getEmail() != null && !updateUserDTO.getEmail().equals(user.getEmail())) {
       if (userRepository.existsByEmail(updateUserDTO.getEmail())) {
-        throw new ResourceConflictException("Email already exists: " + updateUserDTO.getEmail());
+        throw new ResourceConflictException("An account with the email '" + updateUserDTO.getEmail() + "' already exists.");
       }
     }
 
@@ -89,7 +89,7 @@ public class UserService {
   @Transactional
   public void deleteUser(UUID id) throws ResourceNotFoundException {
     if (!userRepository.existsById(id)) {
-      throw new ResourceNotFoundException("User not found with id: " + id);
+      throw new ResourceNotFoundException("No user found with the provided ID.");
     }
     userRepository.deleteById(id);
   }

@@ -55,13 +55,13 @@ public class SagaService {
   public SagaDTO findOne(UUID id, UUID userId) throws ResourceNotFoundException {
     return sagaRepository.findByIdAndUserId(id, userId)
         .map(sagaMapper::toDto)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
   }
 
   @Transactional(readOnly = true)
   public List<BookSummary> getBooks(UUID sagaId, UUID userId) throws ResourceNotFoundException {
     SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
 
     return sagaEntity.getBooks().stream()
         .map(bookMapper::toSummaryDto)
@@ -71,7 +71,7 @@ public class SagaService {
   @Transactional
   public SagaDTO create(UUID userId, CreateSagaDTO dto) {
     if (sagaRepository.existsByNameAndUserId(dto.getName(), userId)) {
-      throw new ResourceConflictException("Saga with this name already exists: " + dto.getName());
+      throw new ResourceConflictException("A saga named '" + dto.getName() + "' already exists in your library.");
     }
 
     SagaEntity sagaEntity = sagaMapper.toEntity(dto);
@@ -83,7 +83,7 @@ public class SagaService {
   @Transactional
   public SagaDTO update(UUID id, UpdateSagaDTO dto, UUID userId) throws ResourceNotFoundException {
     SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
 
     sagaMapper.updateEntityFromDto(dto, sagaEntity);
 
@@ -93,10 +93,10 @@ public class SagaService {
   @Transactional
   public SagaDTO addBookToSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
     SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
 
     BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
 
     sagaEntity.addBook(book);
 
@@ -106,10 +106,10 @@ public class SagaService {
   @Transactional
   public void removeBookFromSaga(UUID sagaId, UUID bookId, UUID userId) throws ResourceNotFoundException {
     SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(sagaId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + sagaId));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
 
     BookEntity book = bookRepository.findByIdAndUserId(bookId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + bookId));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
 
     sagaEntity.removeBook(book);
   }
@@ -117,7 +117,7 @@ public class SagaService {
   @Transactional(readOnly = true)
   public double getProgress(UUID sagaId, UUID userId) throws ResourceNotFoundException {
     if (sagaRepository.findByIdAndUserId(sagaId, userId).isEmpty()) {
-      throw new ResourceNotFoundException("Saga not found with id: " + sagaId);
+      throw new ResourceNotFoundException("No saga found with the provided ID.");
     }
 
     long totalBooks = sagaRepository.countBooksBySagaId(sagaId);
@@ -129,7 +129,7 @@ public class SagaService {
   @Transactional
   public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
     SagaEntity sagaEntity = sagaRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Saga not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No saga found with the provided ID."));
 
     sagaRepository.delete(sagaEntity);
   }

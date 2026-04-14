@@ -59,11 +59,11 @@ public class ReadingSessionService {
   public ReadingSessionDTO create(UUID userId, CreateReadingSessionDTO dto)
       throws ResourceNotFoundException, ResourceConflictException {
     BookEntity book = bookRepository.findByIdAndUserId(dto.getBookId(), userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + dto.getBookId()));
+        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
 
     if (dto.getPagesRead() > book.getPages()) {
       throw new ResourceConflictException(
-          "Pages read cannot be greater than the total number of pages in the book (" + book.getPages() + ")");
+          "Pages read (" + dto.getPagesRead() + ") exceeds the total page count of this book (" + book.getPages() + ").");
     }
 
     ReadingSessionEntity session = readingSessionMapper.toEntity(dto);
@@ -92,7 +92,7 @@ public class ReadingSessionService {
   @Transactional
   public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
     ReadingSessionEntity session = readingSessionRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Reading session not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No reading session found with the provided ID."));
     readingSessionRepository.delete(session);
   }
 }

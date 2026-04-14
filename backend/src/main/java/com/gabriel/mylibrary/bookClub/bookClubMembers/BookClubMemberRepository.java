@@ -5,6 +5,8 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
@@ -18,4 +20,12 @@ public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEn
   Boolean existsByBookClubIdAndUserIdAndRole(UUID bookClubId, UUID userId, BookClubMemberRole role);
 
   long countByBookClubId(UUID bookClubId);
+
+  @Query("""
+      SELECT m.role AS role
+        FROM BookClubMemberEntity m
+      WHERE m.id = :inviterId
+        AND m.club.id = :clubId
+      """)
+  BookClubMemberRole getBookClubMemberRoleById(@Param("inviterId") UUID inviterId, @Param("clubId") UUID clubId);
 }

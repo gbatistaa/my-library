@@ -42,7 +42,7 @@ public class AuthService {
     UserDTO createdUser = userService.createUser(dto.toCreateUserDTO());
 
     if (createdUser == null) {
-      throw new IllegalArgumentException("User not created");
+      throw new IllegalArgumentException("User registration failed. Please verify your data and try again.");
     }
 
     if (refreshTokenService.existsByUserIdAndDeviceId(createdUser.getId(), dto.getDeviceId())) {
@@ -63,10 +63,10 @@ public class AuthService {
   @Transactional
   public AuthResponseDTO login(LoginDTO dto) throws ResourceNotFoundException {
     UserEntity userEntity = userRepository.findByUsername(dto.getUsername())
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("No account found with the provided credentials."));
 
     if (!passwordEncoder.matches(dto.getPassword(), userEntity.getPassword())) {
-      throw new IllegalArgumentException("Invalid credentials");
+      throw new IllegalArgumentException("Invalid username or password. Please check your credentials and try again.");
     }
 
     UserDTO user = userMapper.toDTO(userEntity);
@@ -86,13 +86,13 @@ public class AuthService {
   @Transactional
   public AuthResponseDTO refresh(UUID userId, String deviceId) throws ResourceNotFoundException, UnauthorizedException {
     RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
-        .orElseThrow(() -> new ResourceNotFoundException("No session found for this device"));
+        .orElseThrow(() -> new ResourceNotFoundException("No active session found for this device. Please log in again."));
 
     String refreshToken = refreshTokenEntity.getToken();
 
     if (!jwtService.isTokenValid(refreshToken)) {
       refreshTokenService.deleteById(refreshTokenEntity.getId());
-      throw new UnauthorizedException("Session expired, please login again");
+      throw new UnauthorizedException("Your session has expired. Please log in again to continue.");
     }
 
     UserDTO user = userMapper.toDTO(refreshTokenEntity.getUser());

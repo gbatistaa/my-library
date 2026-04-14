@@ -26,7 +26,7 @@ public class ExperienceService {
   @Transactional
   public void rewardActivity(UUID userId, XpType type, int amount) {
     UserEntity user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        .orElseThrow(() -> new ResourceNotFoundException("Unable to process XP reward. No user found with the provided ID."));
 
     long xpGain = calculateXp(type, amount);
     user.setTotalExperience(user.getTotalExperience() + xpGain);

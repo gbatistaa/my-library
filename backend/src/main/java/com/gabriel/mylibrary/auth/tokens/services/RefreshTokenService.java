@@ -45,14 +45,14 @@ public class RefreshTokenService {
   public RefreshTokenDTO findById(UUID id) throws ResourceNotFoundException {
     return refreshTokenRepository.findById(id)
         .map(refreshTokenMapper::toDTO)
-        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found with id: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("No active refresh token found for the provided ID."));
   }
 
   @Transactional(readOnly = true)
   public RefreshTokenDTO findByUserIdAndDeviceId(UUID userId, String deviceId) throws ResourceNotFoundException {
     return refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
         .map(refreshTokenMapper::toDTO)
-        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found for user id: " + userId));
+        .orElseThrow(() -> new ResourceNotFoundException("No active session found for this user and device. Please log in again."));
   }
 
   @Transactional(readOnly = true)
@@ -65,7 +65,7 @@ public class RefreshTokenService {
       throws ResourceConflictException {
 
     if (refreshTokenRepository.existsByUserIdAndDeviceId(userId, deviceId)) {
-      throw new ResourceConflictException("A refresh token already exists for this device.");
+      throw new ResourceConflictException("An active session already exists for this device. Please log out before creating a new one.");
     }
 
     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
@@ -79,7 +79,7 @@ public class RefreshTokenService {
   @Transactional
   public void deleteById(UUID id) throws ResourceNotFoundException {
     if (!refreshTokenRepository.existsById(id)) {
-      throw new ResourceNotFoundException("Refresh token not found with id: " + id);
+      throw new ResourceNotFoundException("No active refresh token found for the provided ID.");
     }
     refreshTokenRepository.deleteById(id);
   }
@@ -87,7 +87,7 @@ public class RefreshTokenService {
   @Transactional
   public void deleteByUserIdAndDeviceId(UUID userId, String deviceId) throws ResourceNotFoundException {
     RefreshTokenEntity entity = refreshTokenRepository.findByUserIdAndDeviceId(userId, deviceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found for user id: " + userId));
+        .orElseThrow(() -> new ResourceNotFoundException("No active session found for this user and device. Please log in again."));
     refreshTokenRepository.delete(entity);
   }
 }

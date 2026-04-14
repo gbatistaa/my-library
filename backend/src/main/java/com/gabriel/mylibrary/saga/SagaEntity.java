@@ -47,7 +47,7 @@ public class SagaEntity extends BaseEntity {
         .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
 
     if (alreadyExists) {
-      throw new ResourceConflictException("Book already exists in saga: " + book.getTitle());
+      throw new ResourceConflictException("'" + book.getTitle() + "' is already part of this saga.");
     }
 
     book.setSaga(this);
@@ -59,7 +59,7 @@ public class SagaEntity extends BaseEntity {
         .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
 
     if (!alreadyExists) {
-      throw new ResourceConflictException("Book does not exist in saga: " + book.getTitle());
+      throw new ResourceConflictException("'" + book.getTitle() + "' could not be removed because it does not belong to this saga.");
     }
 
     book.setSaga(null);
