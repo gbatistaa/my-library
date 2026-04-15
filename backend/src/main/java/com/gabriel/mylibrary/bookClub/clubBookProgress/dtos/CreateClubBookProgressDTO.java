@@ -13,5 +13,5 @@ public class CreateClubBookProgressDTO {
   private Integer rating;
 
   @NotNull
-  private Integer currentPage = 0;
+  private Integer currentPage = 1;
 }

@@ -26,6 +26,19 @@ public interface ClubBookRepository extends JpaRepository<ClubBookEntity, UUID> 
   int findMaxOrderIndexByClubId(@Param("clubId") UUID clubId);
 
   @Modifying
-  @Query("UPDATE ClubBookEntity cb SET cb.isCurrent = false WHERE cb.club.id = :clubId AND cb.isCurrent = true")
+  @Query("""
+      UPDATE ClubBookEntity cb
+      SET cb.isCurrent = false
+      WHERE cb.club.id = :clubId
+        AND cb.isCurrent = true
+        AND cb.finishedAt IS NULL
+      """)
   void clearCurrentForClub(@Param("clubId") UUID clubId);
+
+  @Query("""
+      SELECT cb.isFinished FROM ClubBookEntity cb
+      WHERE cb.club.id = :clubId AND cb.book.id = :bookId
+        AND cb.finishedAt IS NOT NULL
+      """)
+  Boolean isClubBookFinished(@Param("clubId") UUID clubId, @Param("bookId") UUID bookId);
 }

@@ -27,6 +27,9 @@ public class ClubBookProgressEntity extends BaseEntity {
   @Column(name = "finished_at")
   private LocalDate finishedAt;
 
+  @Column(name = "started_at")
+  private LocalDate startedAt;
+
   @ManyToOne
   @JoinColumn(name = "member_id")
   private BookClubMemberEntity member;

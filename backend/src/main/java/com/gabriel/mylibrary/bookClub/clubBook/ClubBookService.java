@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.bookClub.clubBook;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,7 +71,10 @@ public class ClubBookService {
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found"));
 
     clubBookRepository.clearCurrentForClub(clubId);
+
+    entity.setStartedAt(LocalDate.now());
     entity.setIsCurrent(true);
+
     return clubBookMapper.toDto(clubBookRepository.save(entity));
   }
 
@@ -93,6 +97,10 @@ public class ClubBookService {
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found"));
 
     clubBookRepository.delete(entity);
+  }
+
+  private Boolean isClubBookFinished(UUID clubId, UUID bookId) {
+    return clubBookRepository.isClubBookFinished(clubId, bookId);
   }
 
   private void requireAdmin(UUID clubId, UUID userId) {
