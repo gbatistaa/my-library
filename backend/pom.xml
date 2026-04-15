@@ -185,6 +185,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <systemPropertiesFile>${project.basedir}/.env</systemPropertiesFile>
+        </configuration>
       </plugin>
     </plugins>
   </build>
