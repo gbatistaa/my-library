@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberRepository;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberService;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
@@ -33,7 +32,6 @@ public class ClubInviteService {
   private final ClubInviteRepository clubInviteRepository;
   private final UserRepository userRepository;
   private final BookClubRepository bookClubRepository;
-  private final BookClubMemberRepository bookClubMemberRepository;
   private final BookClubMemberService bookClubMemberService;
 
   @Transactional
@@ -78,34 +76,49 @@ public class ClubInviteService {
     clubInviteRepository.delete(clubInviteEntity);
   }
 
-  private void validateBookClubInvite(CreateClubInviteDTO clubInvite) throws ResourceConflictException {
+  private void validateBookClubInvite(CreateClubInviteDTO clubInvite) {
+    validateInviterPermissions(clubInvite);
+    validateEntitiesExist(clubInvite);
+    validateInviteConstraints(clubInvite);
+  }
+
+  private void validateInviterPermissions(CreateClubInviteDTO clubInvite) throws ForbiddenException {
     if (!bookClubMemberService.isMemberAdmin(clubInvite.getClubId(), clubInvite.getInviterId())) {
       throw new ForbiddenException("Insufficient permissions to invite members. Admin role required.");
     }
 
-    if (clubInvite.getInviterId().equals(clubInvite.getInviteeId())) {
-      throw new ResourceConflictException("You cannot invite yourself to a book club.");
+    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviterId())) {
+      throw new ForbiddenException("Your account status does not allow you to send invitations.");
     }
+  }
 
-    if (bookClubRepository.existsById(clubInvite.getClubId())) {
+  private void validateEntitiesExist(CreateClubInviteDTO clubInvite) throws ResourceNotFoundException {
+    if (!bookClubRepository.existsById(clubInvite.getClubId())) {
       throw new ResourceNotFoundException("The book club associated with this invitation no longer exists.");
     }
 
     if (!userRepository.existsById(clubInvite.getInviteeId())) {
       throw new ResourceNotFoundException("The user you are trying to invite does not exist.");
     }
+  }
+
+  private void validateInviteConstraints(CreateClubInviteDTO clubInvite) {
+    if (clubInvite.getInviterId().equals(clubInvite.getInviteeId())) {
+      throw new ResourceConflictException("You cannot invite yourself to a book club.");
+    }
 
     if (bookClubMemberService.isUserAlreadyAMember(clubInvite.getClubId(), clubInvite.getInviteeId())) {
       throw new ResourceConflictException("The user is already a member of this book club.");
     }
 
+    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviteeId())) {
+      throw new ResourceConflictException(
+          "The user you are trying to invite has been banned or is inactive in this club.");
+    }
+
     if (clubInviteRepository.existsByBookClubIdAndInviteeIdAndStatus(clubInvite.getClubId(),
         clubInvite.getInviteeId(), InviteStatus.PENDING)) {
       throw new ResourceConflictException("The user already has a pending invitation to this book club.");
-    }
-
-    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviterId())) {
-      throw new ForbiddenException("")
     }
   }
 
@@ -128,14 +141,14 @@ public class ClubInviteService {
       throw new ForbiddenException("Access denied. You can only accept invitations addressed to you.");
     }
 
-    Boolean isInviteExpired = invite.getExpiresAt() != null || invite.getExpiresAt().isBefore(LocalDate.now())
-        || invite.getStatus().equals(InviteStatus.EXPIRED);
-    if (isInviteExpired) {
-      throw new ResourceConflictException("This invitation has expired and is no longer valid.");
-    }
-
     if (!invite.getStatus().equals(InviteStatus.PENDING)) {
       throw new ResourceConflictException("Only pending invitations can be accepted.");
+    }
+
+    boolean isInviteExpired = invite.getStatus().equals(InviteStatus.EXPIRED)
+        || (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(LocalDate.now()));
+    if (isInviteExpired) {
+      throw new ResourceConflictException("This invitation has expired and is no longer valid.");
     }
   }
 
@@ -158,14 +171,3 @@ public class ClubInviteService {
     }
   }
 }
-
-// TODO: **No método `create`**
-// - Verificar se o **inviter é realmente membro/admin do clube** (qualquer um
-// pode convidar agora)
-// - Verificar se o **invitee não está banido/inativo** do clube
-
-// ---
-
-// TODO: **No método `accept`**
-// - Verificar se o convite ainda está com status `PENDING` antes de aceitar —
-// hoje você consegue aceitar um convite já aceito, pois não há essa checagem

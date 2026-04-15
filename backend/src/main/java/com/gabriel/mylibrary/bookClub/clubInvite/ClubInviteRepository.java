@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.gabriel.mylibrary.bookClub.clubInvite.projections.AcceptedClubInviteProjection;
-import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
 import com.gabriel.mylibrary.bookClub.clubInvite.enums.InviteStatus;
 
 @Repository
