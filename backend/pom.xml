@@ -155,6 +155,27 @@
 
   <build>
     <plugins>
+      <!-- Carrega o .env como propriedades Maven antes de qualquer goal -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>load-env</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${project.basedir}/.env</file>
+              </files>
+              <quiet>true</quiet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -187,6 +208,15 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <systemPropertiesFile>${project.basedir}/.env</systemPropertiesFile>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-maven-plugin</artifactId>
+        <configuration>
+          <configFiles>
+            <configFile>${project.basedir}/flyway.conf</configFile>
+          </configFiles>
         </configuration>
       </plugin>
     </plugins>
