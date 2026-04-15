@@ -1,6 +1,6 @@
 package com.gabriel.mylibrary.achievement;
 
-import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.userBook.UserBookRepository;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import com.gabriel.mylibrary.streak.StreakEntity;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class AchievementService {
 
   private final UserAchievementRepository achievementRepository;
-  private final BookRepository bookRepository;
+  private final UserBookRepository userBookRepository;
   private final ReadingSessionRepository readingSessionRepository;
   private final StreakRepository streakRepository;
 
@@ -69,11 +69,11 @@ public class AchievementService {
     boolean needsAuthors = !earned.contains(AchievementDefinition.NEW_VOICE);
 
     return new AchievementContext(
-        needsBooks ? bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED) : 0,
+        needsBooks ? userBookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED) : 0,
         needsPages ? readingSessionRepository.sumAllPagesReadByUserId(userId) : 0,
         needsStreak ? streakRepository.findByUserId(userId).map(StreakEntity::getCurrentStreak).orElse(0) : 0,
-        needsCategories ? bookRepository.countDistinctCategoriesByUserId(userId) : 0,
-        needsAuthors ? bookRepository.countDistinctAuthorsByUserId(userId) : 0
+        needsCategories ? userBookRepository.countDistinctCategoriesByUserId(userId) : 0,
+        needsAuthors ? userBookRepository.countDistinctAuthorsByUserId(userId) : 0
     );
   }
 

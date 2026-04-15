@@ -1,6 +1,6 @@
 package com.gabriel.mylibrary.readingGoal;
 
-import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.userBook.UserBookRepository;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -37,7 +37,7 @@ public class ReadingGoalService {
       Locale.of("pt", "BR"));
 
   private final ReadingGoalRepository readingGoalRepository;
-  private final BookRepository bookRepository;
+  private final UserBookRepository userBookRepository;
   private final ReadingSessionRepository readingSessionRepository;
   private final ReadingGoalMapper mapper;
   private final EntityManager entityManager;
@@ -94,7 +94,7 @@ public class ReadingGoalService {
     LocalDateTime startOfYearTime = startOfYear.atStartOfDay();
     LocalDateTime endOfYearTime = endOfYear.atTime(23, 59, 59);
 
-    int booksRead = bookRepository.countByUserIdAndStatusAndFinishDateBetween(userId, BookStatus.COMPLETED, startOfYear,
+    int booksRead = userBookRepository.countByUserIdAndStatusAndFinishDateBetween(userId, BookStatus.COMPLETED, startOfYear,
         endOfYear);
     int pagesRead = readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(userId, startOfYearTime,
         endOfYearTime);
@@ -141,11 +141,11 @@ public class ReadingGoalService {
     StreakDTO streakData = streakService.getStreak(userId);
 
     // Diversity (filtered to goal year)
-    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserIdAndFinishDateBetween(userId, startOfYear,
+    long uniqueAuthors = userBookRepository.countDistinctAuthorsByUserIdAndFinishDateBetween(userId, startOfYear,
         endOfYear);
-    long uniqueGenres = bookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear,
+    long uniqueGenres = userBookRepository.countDistinctCategoriesByUserIdAndFinishDateBetween(userId, startOfYear,
         endOfYear);
-    String topGenre = bookRepository.findTopCategoryByUserId(userId).orElse("Nenhum");
+    String topGenre = userBookRepository.findTopCategoryByUserId(userId).orElse("Nenhum");
 
     // Authors/genres goal tracking
     boolean authorsGoalMet = goal.getTargetAuthors() != null && uniqueAuthors >= goal.getTargetAuthors();

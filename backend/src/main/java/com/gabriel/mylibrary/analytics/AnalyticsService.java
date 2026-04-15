@@ -5,7 +5,7 @@ import com.gabriel.mylibrary.analytics.dtos.AnalyticsTrendDTO;
 import com.gabriel.mylibrary.analytics.dtos.AnalyticsDistributionDTO;
 import com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO;
 import com.gabriel.mylibrary.stats.dtos.HeatmapDTO;
-import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.userBook.UserBookRepository;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class AnalyticsService {
 
   private final ReadingSessionRepository readingSessionRepository;
-  private final BookRepository bookRepository;
+  private final UserBookRepository userBookRepository;
 
   public AnalyticsSummaryDTO getSummary(UUID userId, String period) {
     LocalDateTime startDate = calculateStartDate(period);
@@ -168,9 +168,9 @@ public class AnalyticsService {
   }
 
   public AnalyticsDistributionDTO getDistribution(UUID userId) {
-    List<Object[]> genreData = bookRepository.countBooksByCategory(userId);
+    List<Object[]> genreData = userBookRepository.countBooksByCategory(userId);
 
-    long totalBooks = bookRepository.countByUserId(userId);
+    long totalBooks = userBookRepository.countByUserId(userId);
 
     List<AnalyticsDistributionDTO.DistributionItem> genres = new ArrayList<>();
 

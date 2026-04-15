@@ -22,7 +22,10 @@ import com.gabriel.mylibrary.books.googleBooks.dto.GoogleVolumeResponse.VolumeIn
 import com.gabriel.mylibrary.common.errors.GoogleBooksException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class DefaultGoogleBooksClientService implements GoogleBooksClientService {
 
   private static final Logger log = LoggerFactory.getLogger(DefaultGoogleBooksClientService.class);
@@ -30,11 +33,6 @@ public class DefaultGoogleBooksClientService implements GoogleBooksClientService
 
   private final RestClient googleBooksRestClient;
   private final GoogleBooksProperties props;
-
-  public DefaultGoogleBooksClientService(RestClient googleBooksRestClient, GoogleBooksProperties props) {
-    this.googleBooksRestClient = googleBooksRestClient;
-    this.props = props;
-  }
 
   @Override
   public Optional<GoogleBookVolumeDTO> fetchByVolumeId(String googleBooksId) {

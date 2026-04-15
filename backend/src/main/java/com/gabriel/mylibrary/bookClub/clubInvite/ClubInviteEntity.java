@@ -23,7 +23,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "club_invites", uniqueConstraints = @UniqueConstraint(columnNames = {
-    "inviter_id", "invitee_id", "club_id"
+    "inviter_id", "invitee_id", "book_club_id"
 }))
 @Getter
 @Setter
