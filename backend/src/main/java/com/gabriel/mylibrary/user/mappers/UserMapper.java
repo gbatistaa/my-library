@@ -7,7 +7,7 @@ import com.gabriel.mylibrary.user.dtos.CreateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UpdateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
   UserDTO toDTO(UserEntity user);
 

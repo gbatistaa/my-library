@@ -38,8 +38,11 @@ public class ClubBookEntity extends BaseEntity {
   @Column(name = "finished_at")
   private LocalDate finishedAt;
 
-  @Column(name = "current_page")
-  private Integer currentPage;
+  @Column(name = "deadline")
+  private LocalDate deadline;
+
+  @Column(name = "deadline_extended_at")
+  private LocalDate deadlineExtendedAt;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "club_id", nullable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_club_books_club"))
