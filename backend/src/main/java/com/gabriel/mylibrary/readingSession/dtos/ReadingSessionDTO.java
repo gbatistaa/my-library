@@ -14,6 +14,7 @@ public class ReadingSessionDTO {
   private UUID id;
   private Integer pagesRead;
   private Long durationSeconds;
+  private UUID userBookId;
   private UUID bookId;
   private String bookTitle;
   private String bookCoverUrl;

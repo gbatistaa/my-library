@@ -1,222 +1,78 @@
 package com.gabriel.mylibrary.books;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gabriel.mylibrary.books.projections.BookSummary;
-import com.gabriel.mylibrary.books.dtos.BookAuthorDTO;
 import com.gabriel.mylibrary.books.dtos.BookDTO;
-import com.gabriel.mylibrary.books.dtos.CreateBookDTO;
-import com.gabriel.mylibrary.books.dtos.UpdateBookDTO;
+import com.gabriel.mylibrary.books.googleBooks.GoogleBooksClientService;
+import com.gabriel.mylibrary.books.googleBooks.dto.GoogleBookVolumeDTO;
 import com.gabriel.mylibrary.books.mappers.BookMapper;
-import com.gabriel.mylibrary.categories.CategoryEntity;
-import com.gabriel.mylibrary.categories.CategoryRepository;
-import com.gabriel.mylibrary.common.enums.BookStatus;
-import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
-import com.gabriel.mylibrary.achievement.AchievementEvaluator;
-import com.gabriel.mylibrary.gamification.ExperienceService;
-import com.gabriel.mylibrary.gamification.XpType;
-import com.gabriel.mylibrary.user.UserEntity;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
-  private final BookMapper bookMapper;
   private final BookRepository bookRepository;
-  private final EntityManager entityManager;
-  private final CategoryRepository categoryRepository;
-  private final AchievementEvaluator achievementEvaluator;
-  private final ExperienceService experienceService;
+  private final BookMapper bookMapper;
+  private final GoogleBooksClientService googleBooksClientService;
 
   @Transactional(readOnly = true)
-  public Page<BookSummary> findAll(UUID userId, Pageable pageable) {
-    return bookRepository.findSummariesByUserId(userId, pageable);
-  }
-
-  @Transactional(readOnly = true)
-  public Page<BookSummary> findWithFilters(UUID userId, BookStatus status, Integer minRating,
-      UUID categoryId, String author, Integer year, Pageable pageable) {
-    // For complex filters with Specifications, we fetch entities and map to summary
-    // projection/dto
-    // Mapping to an interface projection from an entity is not directly supported
-    // by MapStruct easily for Page.map
-    // So we'll use a DTO or just map to the existing DTO and let the controller
-    // handle it?
-    // Actually, to follow the projection rule, I'll create a BookSummaryDTO record.
-    return bookRepository
-        .findAll(BookSpecification.withFilters(userId, status, minRating, categoryId, author, year), pageable)
-        .map(bookMapper::toSummaryDto);
-  }
-
-  @Transactional(readOnly = true)
-  public BookDTO findOne(UUID id, UUID userId) throws ResourceNotFoundException {
-    return bookRepository.findByIdAndUserId(id, userId)
+  public BookDTO findById(UUID id) {
+    return bookRepository.findById(id)
         .map(bookMapper::toDto)
         .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
   }
 
   @Transactional(readOnly = true)
-  public Page<BookSummary> findByTitle(String title, UUID userId, Pageable pageable) {
-    if (title == null || title.isBlank()) {
-      return findAll(userId, pageable);
-    }
-    return bookRepository.findSummariesByUserIdAndTitle(userId, title, pageable);
-  }
-
-  @Transactional
-  public BookDTO create(CreateBookDTO dto, UUID userId) throws ResourceConflictException {
-    BookEntity newBook = bookMapper.toEntity(dto);
-
-    if (bookRepository.existsByIsbnAndUserId(newBook.getIsbn(), userId)) {
-      throw new ResourceConflictException("A book with ISBN '" + newBook.getIsbn() + "' already exists in your library.");
-    }
-
-    if (newBook.getStatus() == BookStatus.COMPLETED && newBook.getRating() == null) {
-      throw new ResourceConflictException("A rating is required when marking a book as completed.");
-    }
-
-    if (newBook.getStatus() != BookStatus.COMPLETED && newBook.getRating() != null) {
-      throw new ResourceConflictException("A rating can only be assigned to books with a 'COMPLETED' status.");
-    }
-
-    if (newBook.getStartDate() != null && newBook.getFinishDate() != null
-        && newBook.getFinishDate().isBefore(newBook.getStartDate())) {
-      throw new ResourceConflictException("The finish date cannot be set before the start date.");
-    }
-
-    if (newBook.getPagesRead() != null && newBook.getPagesRead() > newBook.getPages()) {
-      throw new ResourceConflictException("The number of pages read cannot exceed the total page count of the book.");
-    }
-
-    if (newBook.getStatus() == BookStatus.COMPLETED) {
-      newBook.setPagesRead(newBook.getPages());
-      if (newBook.getFinishDate() == null) {
-        newBook.setFinishDate(java.time.LocalDate.now());
-      }
-    }
-
-    if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
-      Set<CategoryEntity> categories = dto.getCategoryIds().stream()
-          .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
-              .orElseThrow(() -> new ResourceNotFoundException("Category not found or does not belong to this user.")))
-          .collect(Collectors.toSet());
-      newBook.setCategories(categories);
-    }
-
-    UserEntity userRef = entityManager.getReference(UserEntity.class, userId);
-    newBook.setUser(userRef);
-
-    BookDTO result = bookMapper.toDto(bookRepository.save(newBook));
-
-    if (newBook.getStatus() == BookStatus.COMPLETED) {
-      experienceService.rewardActivity(userId, XpType.BOOK_COMPLETED, 0);
-    }
-
-    achievementEvaluator.evaluate(userId);
-    return result;
-  }
-
-  @Transactional
-  public BookDTO update(UUID id, UUID userId, UpdateBookDTO dto)
-      throws ResourceNotFoundException, ResourceConflictException {
-    BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
-
-    BookStatus previousStatus = book.getStatus();
-
-    if (dto.getIsbn() != null && !dto.getIsbn().equals(book.getIsbn())) {
-      if (bookRepository.existsByIsbnAndUserId(dto.getIsbn(), userId)) {
-        throw new ResourceConflictException("A book with ISBN '" + dto.getIsbn() + "' already exists in your library.");
-      }
-    }
-
-    bookMapper.updateEntityFromDto(dto, book);
-
-    if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
-      Set<CategoryEntity> categories = dto.getCategoryIds().stream()
-          .map(catId -> categoryRepository.findByIdAndUserId(catId, userId)
-              .orElseThrow(() -> new ResourceNotFoundException("Category not found or does not belong to this user.")))
-          .collect(Collectors.toSet());
-      book.setCategories(categories);
-    }
-
-    if (book.getPagesRead() != null && book.getPagesRead() > book.getPages()) {
-      throw new ResourceConflictException("The number of pages read cannot exceed the total page count of the book.");
-    }
-
-    if (book.getStatus() == BookStatus.COMPLETED && book.getRating() == null) {
-      throw new ResourceConflictException("A rating is required when marking a book as completed.");
-    }
-
-    if (book.getStatus() != BookStatus.COMPLETED && book.getRating() != null) {
-      throw new ResourceConflictException("A rating can only be assigned to books with a 'COMPLETED' status.");
-    }
-
-    if (book.getStartDate() != null && book.getFinishDate() != null
-        && book.getFinishDate().isBefore(book.getStartDate())) {
-      throw new ResourceConflictException("The finish date cannot be set before the start date.");
-    }
-
-    if (book.getStatus() == BookStatus.COMPLETED) {
-      book.setPagesRead(book.getPages());
-      if (book.getFinishDate() == null) {
-        book.setFinishDate(java.time.LocalDate.now());
-      }
-    }
-
-    BookDTO result = bookMapper.toDto(bookRepository.save(book));
-
-    if (book.getStatus() == BookStatus.COMPLETED && previousStatus != BookStatus.COMPLETED) {
-      experienceService.rewardActivity(userId, XpType.BOOK_COMPLETED, 0);
-    }
-
-    achievementEvaluator.evaluate(userId);
-    return result;
-  }
-
-  @Transactional
-  public BookDTO resetForReread(UUID id, UUID userId) throws ResourceNotFoundException, ResourceConflictException {
-    BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
-
-    if (book.getStatus() != BookStatus.COMPLETED) {
-      throw new ResourceConflictException("Only books with a 'COMPLETED' status can be reset for re-reading.");
-    }
-
-    book.setStatus(BookStatus.READING);
-    book.setPagesRead(0);
-    book.setRating(null);
-    book.setFinishDate(null);
-    book.setStartDate(java.time.LocalDate.now());
-
-    BookDTO result = bookMapper.toDto(bookRepository.save(book));
-    achievementEvaluator.evaluate(userId);
-    return result;
+  public BookDTO findByGoogleBooksId(String googleBooksId) {
+    return bookRepository.findByGoogleBooksId(googleBooksId)
+        .map(bookMapper::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "No book found with Google Books id '" + googleBooksId + "'."));
   }
 
   @Transactional(readOnly = true)
-  public List<BookAuthorDTO> getAuthors(UUID userId) {
-    return bookRepository.countBooksByAuthor(userId).stream()
-        .map(row -> new BookAuthorDTO((String) row[0], (Long) row[1]))
-        .toList();
+  public Page<BookDTO> searchCatalog(String title, Pageable pageable) {
+    String query = title == null ? "" : title;
+    return bookRepository.findByTitleContainingIgnoreCase(query, pageable)
+        .map(bookMapper::toDto);
+  }
+
+  /**
+   * Returns the catalog entry for a Google Books id, fetching from Google and
+   * persisting it on first access. Safe under concurrent first-time inserts —
+   * the losing thread re-reads the winner's row.
+   */
+  @Transactional
+  public BookEntity findOrFetchByGoogleBooksId(String googleBooksId) {
+    return bookRepository.findByGoogleBooksId(googleBooksId)
+        .orElseGet(() -> fetchAndPersist(googleBooksId));
   }
 
   @Transactional
-  public void delete(UUID id, UUID userId) throws ResourceNotFoundException {
-    BookEntity book = bookRepository.findByIdAndUserId(id, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("No book found with the provided ID."));
-    bookRepository.delete(book);
+  public BookDTO findOrFetchDtoByGoogleBooksId(String googleBooksId) {
+    return bookMapper.toDto(findOrFetchByGoogleBooksId(googleBooksId));
+  }
+
+  private BookEntity fetchAndPersist(String googleBooksId) {
+    GoogleBookVolumeDTO volume = googleBooksClientService.fetchByVolumeId(googleBooksId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "Google Books has no volume with id '" + googleBooksId + "'."));
+
+    BookEntity entity = bookMapper.toEntity(volume);
+    try {
+      return bookRepository.saveAndFlush(entity);
+    } catch (DataIntegrityViolationException race) {
+      return bookRepository.findByGoogleBooksId(googleBooksId)
+          .orElseThrow(() -> race);
+    }
   }
 }

@@ -1,6 +1,6 @@
 package com.gabriel.mylibrary.readingSession;
 
-import com.gabriel.mylibrary.books.BookEntity;
+import com.gabriel.mylibrary.books.userBook.UserBookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
 
@@ -32,8 +32,8 @@ public class ReadingSessionEntity extends BaseEntity {
   private UserEntity user;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "book_id", nullable = false)
-  private BookEntity book;
+  @JoinColumn(name = "user_book_id", nullable = false)
+  private UserBookEntity userBook;
 
   @Column(name = "xp_gained", nullable = false, columnDefinition = "integer default 0")
   private Integer xpGained = 0;

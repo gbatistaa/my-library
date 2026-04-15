@@ -11,10 +11,12 @@ import com.gabriel.mylibrary.readingSession.dtos.ReadingSessionDTO;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ReadingSessionMapper {
 
+  @Mapping(target = "userBook", ignore = true)
   ReadingSessionEntity toEntity(CreateReadingSessionDTO createReadingSessionDTO);
 
-  @Mapping(source = "book.id", target = "bookId")
-  @Mapping(source = "book.title", target = "bookTitle")
-  @Mapping(source = "book.coverUrl", target = "bookCoverUrl")
+  @Mapping(source = "userBook.id", target = "userBookId")
+  @Mapping(source = "userBook.book.id", target = "bookId")
+  @Mapping(source = "userBook.book.title", target = "bookTitle")
+  @Mapping(source = "userBook.book.coverUrl", target = "bookCoverUrl")
   ReadingSessionDTO toDto(ReadingSessionEntity readingSessionEntity);
 }

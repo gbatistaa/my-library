@@ -1,10 +1,8 @@
-package com.gabriel.mylibrary.books.dtos;
+package com.gabriel.mylibrary.books.googleBooks.dto;
 
 import java.util.Set;
-import java.util.UUID;
 
-public record BookDTO(
-    UUID id,
+public record GoogleBookVolumeDTO(
     String googleBooksId,
     String title,
     String author,

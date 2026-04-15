@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gabriel.mylibrary.books.projections.BookSummary;
+import com.gabriel.mylibrary.books.userBook.dtos.UserBookDTO;
 import com.gabriel.mylibrary.saga.dtos.CreateSagaDTO;
 import com.gabriel.mylibrary.saga.dtos.SagaDTO;
 import com.gabriel.mylibrary.saga.dtos.UpdateSagaDTO;
@@ -43,7 +43,7 @@ public class SagaController {
   }
 
   @GetMapping("/{id}/books")
-  public ResponseEntity<List<BookSummary>> getBooks(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
+  public ResponseEntity<List<UserBookDTO>> getBooks(@PathVariable UUID id, @AuthenticationPrincipal UserEntity user) {
     return ResponseEntity.ok(sagaService.getBooks(id, user.getId()));
   }
 
@@ -73,20 +73,20 @@ public class SagaController {
     return ResponseEntity.noContent().build();
   }
 
-  @PatchMapping("/{id}/books/{bookId}")
-  public ResponseEntity<SagaDTO> addBookToSaga(
+  @PatchMapping("/{id}/books/{userBookId}")
+  public ResponseEntity<SagaDTO> addUserBookToSaga(
       @PathVariable UUID id,
-      @PathVariable UUID bookId,
+      @PathVariable UUID userBookId,
       @AuthenticationPrincipal UserEntity user) {
-    return ResponseEntity.ok(sagaService.addBookToSaga(id, bookId, user.getId()));
+    return ResponseEntity.ok(sagaService.addUserBookToSaga(id, userBookId, user.getId()));
   }
 
-  @DeleteMapping("/{id}/books/{bookId}")
-  public ResponseEntity<Void> removeBookFromSaga(
+  @DeleteMapping("/{id}/books/{userBookId}")
+  public ResponseEntity<Void> removeUserBookFromSaga(
       @PathVariable UUID id,
-      @PathVariable UUID bookId,
+      @PathVariable UUID userBookId,
       @AuthenticationPrincipal UserEntity user) {
-    sagaService.removeBookFromSaga(id, bookId, user.getId());
+    sagaService.removeUserBookFromSaga(id, userBookId, user.getId());
     return ResponseEntity.noContent().build();
   }
 }

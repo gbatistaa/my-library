@@ -16,13 +16,13 @@ import org.springframework.stereotype.Repository;
 public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEntity, UUID> {
   List<ReadingSessionEntity> findAllByUserId(UUID userId);
 
-  @EntityGraph(attributePaths = {"book"})
+  @EntityGraph(attributePaths = { "userBook", "userBook.book" })
   @Query("SELECT rs FROM ReadingSessionEntity rs WHERE rs.user.id = :userId ORDER BY rs.createdAt DESC")
   org.springframework.data.domain.Page<ReadingSessionEntity> findAllByUserIdOrderByCreatedAtDesc(
       @Param("userId") UUID userId,
       org.springframework.data.domain.Pageable pageable);
 
-  List<ReadingSessionEntity> findAllByBookIdAndUserId(UUID bookId, UUID userId);
+  List<ReadingSessionEntity> findAllByUserBookIdAndUserId(UUID userBookId, UUID userId);
 
   Optional<ReadingSessionEntity> findByIdAndUserId(UUID id, UUID userId);
 

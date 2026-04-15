@@ -1,7 +1,7 @@
 package com.gabriel.mylibrary.achievement;
 
-import com.gabriel.mylibrary.books.BookEntity;
-import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.userBook.UserBookEntity;
+import com.gabriel.mylibrary.books.userBook.UserBookRepository;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.readingGoal.ReadingGoalRepository;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
@@ -25,7 +25,7 @@ import java.util.UUID;
 public class AchievementEvaluator {
 
   private final UserAchievementRepository achievementRepository;
-  private final BookRepository bookRepository;
+  private final UserBookRepository userBookRepository;
   private final ReadingSessionRepository readingSessionRepository;
   private final ReadingGoalRepository readingGoalRepository;
   private final StreakRepository streakRepository;
@@ -98,7 +98,7 @@ public class AchievementEvaluator {
   // === Helper methods ===
 
   private long countCompletedBooks(UUID userId) {
-    return bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
+    return userBookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
   }
 
   private int totalPagesRead(UUID userId) {
@@ -112,12 +112,13 @@ public class AchievementEvaluator {
   }
 
   private boolean hasBookCompletedInDays(UUID userId, int maxDays) {
-    return bookRepository.findAllCompletedByUserId(userId).stream()
-        .anyMatch(book -> {
-          if (book.getStartDate() == null || book.getFinishDate() == null)
+    return userBookRepository.findAllCompletedByUserId(userId).stream()
+        .anyMatch(ub -> {
+          if (ub.getStartDate() == null || ub.getFinishDate() == null) {
             return false;
-          long days = ChronoUnit.DAYS.between(book.getStartDate(), book.getFinishDate());
-          return days <= maxDays && days >= 0;
+          }
+          long days = ChronoUnit.DAYS.between(ub.getStartDate(), ub.getFinishDate());
+          return days >= 0 && days <= maxDays;
         });
   }
 
@@ -128,36 +129,36 @@ public class AchievementEvaluator {
 
   private long booksCompletedInLastWeek(UUID userId) {
     LocalDate weekAgo = LocalDate.now().minusWeeks(1);
-    return bookRepository.countByUserIdAndStatusAndFinishDateBetween(
+    return userBookRepository.countByUserIdAndStatusAndFinishDateBetween(
         userId, BookStatus.COMPLETED, weekAgo, LocalDate.now());
   }
 
   private long countUniqueGenres(UUID userId) {
-    return bookRepository.countDistinctCategoriesByUserId(userId);
+    return userBookRepository.countDistinctCategoriesByUserId(userId);
   }
 
   private long countUniqueAuthors(UUID userId) {
-    return bookRepository.countDistinctAuthorsByUserId(userId);
+    return userBookRepository.countDistinctAuthorsByUserId(userId);
   }
 
   private boolean hasCompletedSaga(UUID userId) {
-    return bookRepository.hasCompletedSaga(userId);
+    return userBookRepository.hasCompletedSaga(userId);
   }
 
   private boolean hasContrarianRatings(UUID userId) {
     LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
     LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
-    List<BookEntity> monthBooks = bookRepository.findCompletedByUserIdAndFinishDateBetween(
+    List<UserBookEntity> monthBooks = userBookRepository.findCompletedByUserIdAndFinishDateBetween(
         userId, startOfMonth, endOfMonth);
-    boolean hasOne = monthBooks.stream().anyMatch(b -> b.getRating() != null && b.getRating() == 1);
-    boolean hasFive = monthBooks.stream().anyMatch(b -> b.getRating() != null && b.getRating() == 5);
+    boolean hasOne = monthBooks.stream().anyMatch(ub -> ub.getRating() != null && ub.getRating() == 1);
+    boolean hasFive = monthBooks.stream().anyMatch(ub -> ub.getRating() != null && ub.getRating() == 5);
     return hasOne && hasFive;
   }
 
   private boolean hasCrushedGoal(UUID userId, int year) {
     return readingGoalRepository.findByUserIdAndYear(userId, year)
         .map(goal -> {
-          int completed = bookRepository.countByUserIdAndStatusAndFinishDateBetween(
+          int completed = userBookRepository.countByUserIdAndStatusAndFinishDateBetween(
               userId, BookStatus.COMPLETED,
               LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31));
           return completed >= (goal.getTargetBooks() * 1.2);
@@ -168,8 +169,9 @@ public class AchievementEvaluator {
   private boolean hasComeback(UUID userId) {
     return streakRepository.findByUserId(userId)
         .map(streak -> {
-          if (streak.getLastReadingDate() == null)
+          if (streak.getLastReadingDate() == null) {
             return false;
+          }
           LocalDate today = LocalDate.now();
           return today.equals(streak.getLastReadingDate()) && streak.getCurrentStreak() == 1
               && streak.getTotalReadingDays() > 1;
@@ -178,9 +180,9 @@ public class AchievementEvaluator {
   }
 
   private boolean hasCleanYear(UUID userId, LocalDate startOfYear, LocalDate endOfYear) {
-    long dropped = bookRepository.countByUserIdAndStatusAndFinishDateBetween(
+    long dropped = userBookRepository.countByUserIdAndStatusAndFinishDateBetween(
         userId, BookStatus.DROPPED, startOfYear, endOfYear);
-    long completed = bookRepository.countByUserIdAndStatusAndFinishDateBetween(
+    long completed = userBookRepository.countByUserIdAndStatusAndFinishDateBetween(
         userId, BookStatus.COMPLETED, startOfYear, endOfYear);
     return dropped == 0 && completed > 0;
   }

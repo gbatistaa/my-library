@@ -127,6 +127,18 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
   }
 
+  @ExceptionHandler(GoogleBooksException.class)
+  public ResponseEntity<ErrorResponse> handleGoogleBooks(
+      GoogleBooksException ex,
+      HttpServletRequest request) {
+
+    ErrorResponse response = new ErrorResponse(
+        HttpStatus.BAD_GATEWAY.value(), "Bad Gateway", ex.getMessage(),
+        request.getRequestURI(), LocalDateTime.now(), null);
+
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(response);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGeneric(
       Exception ex,

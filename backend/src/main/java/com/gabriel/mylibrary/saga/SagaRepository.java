@@ -18,12 +18,14 @@ public interface SagaRepository extends JpaRepository<SagaEntity, UUID> {
 
   boolean existsByNameAndUserId(String name, UUID userId);
 
-  @Query("SELECT s.id, COUNT(b) FROM SagaEntity s LEFT JOIN s.books b WHERE s.user.id = :userId GROUP BY s.id")
+  @Query("SELECT s.id, COUNT(ub) FROM SagaEntity s LEFT JOIN s.userBooks ub "
+      + "WHERE s.user.id = :userId GROUP BY s.id")
   List<Object[]> countBooksBySagaIdForUser(@Param("userId") UUID userId);
 
-  @Query("SELECT COUNT(b) FROM SagaEntity s JOIN s.books b WHERE s.id = :sagaId")
+  @Query("SELECT COUNT(ub) FROM SagaEntity s JOIN s.userBooks ub WHERE s.id = :sagaId")
   long countBooksBySagaId(@Param("sagaId") UUID sagaId);
 
-  @Query("SELECT COUNT(b) FROM SagaEntity s JOIN s.books b WHERE s.id = :sagaId AND b.status = :status")
+  @Query("SELECT COUNT(ub) FROM SagaEntity s JOIN s.userBooks ub "
+      + "WHERE s.id = :sagaId AND ub.status = :status")
   long countBooksBySagaIdAndStatus(@Param("sagaId") UUID sagaId, @Param("status") BookStatus status);
 }

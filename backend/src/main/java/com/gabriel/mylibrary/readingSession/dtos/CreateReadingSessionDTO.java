@@ -22,5 +22,5 @@ public class CreateReadingSessionDTO {
   private Long durationSeconds;
 
   @NotNull
-  private UUID bookId;
+  private UUID userBookId;
 }

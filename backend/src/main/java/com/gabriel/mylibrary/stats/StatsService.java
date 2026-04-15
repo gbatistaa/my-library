@@ -1,7 +1,8 @@
 package com.gabriel.mylibrary.stats;
 
-import com.gabriel.mylibrary.books.BookEntity;
-import com.gabriel.mylibrary.books.BookRepository;
+import com.gabriel.mylibrary.books.userBook.UserBookEntity;
+import com.gabriel.mylibrary.books.userBook.UserBookRepository;
+import com.gabriel.mylibrary.books.userBook.projections.UserBookReadingProjection;
 import com.gabriel.mylibrary.common.enums.BookStatus;
 import com.gabriel.mylibrary.readingSession.ReadingSessionRepository;
 import com.gabriel.mylibrary.stats.dtos.*;
@@ -15,24 +16,29 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class StatsService {
 
-  private final BookRepository bookRepository;
+  private final UserBookRepository userBookRepository;
   private final ReadingSessionRepository readingSessionRepository;
   private final StreakRepository streakRepository;
 
   @Transactional(readOnly = true)
   public ReadingDnaDTO getDna(UUID userId) {
-    long totalCompleted = bookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
-    long totalBooks = bookRepository.countByUserId(userId);
-    long totalDropped = bookRepository.countByUserIdAndStatus(userId, BookStatus.DROPPED);
+    long totalCompleted = userBookRepository.countByUserIdAndStatus(userId, BookStatus.COMPLETED);
+    long totalBooks = userBookRepository.countByUserId(userId);
+    long totalDropped = userBookRepository.countByUserIdAndStatus(userId, BookStatus.DROPPED);
     int totalPages = readingSessionRepository.sumAllPagesReadByUserId(userId);
     long totalMinutes = readingSessionRepository.sumAllDurationByUserId(userId);
-    Double avgRating = bookRepository.avgRatingByUserId(userId);
+    Double avgRating = userBookRepository.avgRatingByUserId(userId);
     double avgPagesPerSession = readingSessionRepository.avgPagesPerSessionByUserId(userId);
     double avgDuration = readingSessionRepository.avgDurationPerSessionByUserId(userId);
 
@@ -40,8 +46,7 @@ public class StatsService {
     double dropRate = totalBooks == 0 ? 0 : (double) totalDropped / totalBooks * 100;
     double avgVelocity = totalMinutes == 0 ? 0 : (double) totalPages / (totalMinutes / 60.0);
 
-    // Genre breakdown
-    List<Object[]> genreData = bookRepository.countBooksByCategory(userId);
+    List<Object[]> genreData = userBookRepository.countBooksByCategory(userId);
     long totalGenreBooks = genreData.stream().mapToLong(g -> (Long) g[1]).sum();
     List<GenreShareDTO> genreBreakdown = genreData.stream()
         .map(g -> new GenreShareDTO(
@@ -50,12 +55,10 @@ public class StatsService {
             (Long) g[1]))
         .toList();
 
-    // Top author
-    List<Object[]> authorData = bookRepository.countBooksByAuthor(userId);
+    List<Object[]> authorData = userBookRepository.countBooksByAuthor(userId);
     String topAuthor = authorData.isEmpty() ? "Nenhum" : (String) authorData.get(0)[0];
-    long uniqueAuthors = bookRepository.countDistinctAuthorsByUserId(userId);
+    long uniqueAuthors = userBookRepository.countDistinctAuthorsByUserId(userId);
 
-    // Reader Archetype
     String archetype = determineArchetype(avgDuration, uniqueAuthors, genreBreakdown.size(), totalCompleted);
 
     return ReadingDnaDTO.builder()
@@ -106,7 +109,6 @@ public class StatsService {
   public VelocityDTO getVelocity(UUID userId) {
     LocalDate today = LocalDate.now();
 
-    // Weekly history (last 12 weeks)
     List<VelocityDTO.WeeklyPagesDTO> weeklyHistory = new ArrayList<>();
     for (int i = 11; i >= 0; i--) {
       LocalDate weekStart = today.minusWeeks(i).with(java.time.DayOfWeek.MONDAY);
@@ -117,26 +119,25 @@ public class StatsService {
       weeklyHistory.add(new VelocityDTO.WeeklyPagesDTO(label, pages));
     }
 
-    // Trend calculation
     double currentWeeklyAvg = weeklyHistory.subList(8, 12).stream()
         .mapToInt(VelocityDTO.WeeklyPagesDTO::getPagesRead).average().orElse(0);
     double previousWeeklyAvg = weeklyHistory.subList(4, 8).stream()
         .mapToInt(VelocityDTO.WeeklyPagesDTO::getPagesRead).average().orElse(0);
     double trend = previousWeeklyAvg == 0 ? 0 : ((currentWeeklyAvg - previousWeeklyAvg) / previousWeeklyAvg) * 100;
 
-    // Active book projections — use lightweight projection (id, title, pages, createdAt only)
-    var readingBooks = bookRepository.findProjectedByUserIdAndStatus(userId, BookStatus.READING);
+    List<UserBookReadingProjection> readingBooks = userBookRepository.findReadingProjectionsByUserIdAndStatus(userId,
+        BookStatus.READING);
     double avgPagesPerDay = Math.max(1, readingSessionRepository.avgPagesPerSessionByUserId(userId));
 
     List<VelocityDTO.BookProjectionDTO> projections = readingBooks.stream()
         .map(book -> {
-          int pagesRemaining = book.getPages() - readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(
-              userId, book.getCreatedAt(), LocalDateTime.now());
+          int pagesRemaining = book.pages() - readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(
+              userId, book.createdAt(), LocalDateTime.now());
           pagesRemaining = Math.max(0, pagesRemaining);
           int daysNeeded = (int) Math.ceil(pagesRemaining / avgPagesPerDay);
           LocalDate projected = today.plusDays(daysNeeded);
           return new VelocityDTO.BookProjectionDTO(
-              book.getTitle(), pagesRemaining,
+              book.title(), pagesRemaining,
               projected.format(DateTimeFormatter.ofPattern("dd 'de' MMMM")));
         })
         .toList();
@@ -150,7 +151,6 @@ public class StatsService {
         .build();
   }
 
-  @SuppressWarnings("null")
   @Transactional(readOnly = true)
   public YearInReviewDTO getYearInReview(UUID userId, int year) {
     LocalDate startOfYear = LocalDate.of(year, 1, 1);
@@ -158,43 +158,38 @@ public class StatsService {
     LocalDateTime startTime = startOfYear.atStartOfDay();
     LocalDateTime endTime = endOfYear.atTime(23, 59, 59);
 
-    List<BookEntity> completedBooks = bookRepository.findCompletedByUserIdAndFinishDateBetween(userId, startOfYear,
-        endOfYear);
+    List<UserBookEntity> completedBooks = userBookRepository
+        .findCompletedByUserIdAndFinishDateBetween(userId, startOfYear, endOfYear);
     int booksRead = completedBooks.size();
     int pagesRead = readingSessionRepository.sumPagesReadByUserIdAndCreatedAtBetween(userId, startTime, endTime);
 
-    // Pages equivalent (Lord of the Rings = ~1178 pages)
     String pagesEquiv = "equivalente a ler Senhor dos Anéis " + String.format("%.1f", pagesRead / 1178.0) + " vezes";
 
-    // Reading days and minutes — aggregate at DB level
-    long readingDays = readingSessionRepository.countDistinctReadingDaysByUserIdAndCreatedAtBetween(userId, startTime, endTime);
+    long readingDays = readingSessionRepository.countDistinctReadingDaysByUserIdAndCreatedAtBetween(userId, startTime,
+        endTime);
     long totalMinutes = readingSessionRepository.sumDurationByUserIdAndCreatedAtBetween(userId, startTime, endTime);
 
-    // Fastest book
     String fastestBook = completedBooks.stream()
-        .filter(b -> b.getStartDate() != null && b.getFinishDate() != null)
-        .min(Comparator.comparingLong(b -> ChronoUnit.DAYS.between(b.getStartDate(), b.getFinishDate())))
-        .map(b -> b.getTitle() + " (" + ChronoUnit.DAYS.between(b.getStartDate(), b.getFinishDate()) + " dias)")
+        .filter(ub -> ub.getStartDate() != null && ub.getFinishDate() != null)
+        .min(Comparator.comparingLong(ub -> ChronoUnit.DAYS.between(ub.getStartDate(), ub.getFinishDate())))
+        .map(ub -> ub.getBook().getTitle() + " ("
+            + ChronoUnit.DAYS.between(ub.getStartDate(), ub.getFinishDate()) + " dias)")
         .orElse("N/A");
 
-    // Longest book
     String longestBook = completedBooks.stream()
-        .max(Comparator.comparingInt(BookEntity::getPages))
-        .map(b -> b.getTitle() + " (" + b.getPages() + " páginas)")
+        .max(Comparator.comparingInt(ub -> ub.getBook().getPages()))
+        .map(ub -> ub.getBook().getTitle() + " (" + ub.getBook().getPages() + " páginas)")
         .orElse("N/A");
 
-    // Highest rated
     String highestRated = completedBooks.stream()
-        .filter(b -> b.getRating() != null)
-        .max(Comparator.comparingInt(BookEntity::getRating))
-        .map(b -> b.getTitle() + " (" + b.getRating() + "★)")
+        .filter(ub -> ub.getRating() != null)
+        .max(Comparator.comparingInt(UserBookEntity::getRating))
+        .map(ub -> ub.getBook().getTitle() + " (" + ub.getRating() + "★)")
         .orElse("N/A");
 
-    // Most rereadable genre (highest avg rating)
-    List<Object[]> genreRatings = bookRepository.avgRatingByCategory(userId);
+    List<Object[]> genreRatings = userBookRepository.avgRatingByCategory(userId);
     String mostRereadable = genreRatings.isEmpty() ? "N/A" : (String) genreRatings.get(0)[0];
 
-    // Best reading day — use already-aggregated daily data
     var dailyAgg = readingSessionRepository.findDailyAggregationByUserIdAndCreatedAtBetween(userId, startTime, endTime);
     var bestDayAgg = dailyAgg.stream()
         .max(Comparator.comparingLong(com.gabriel.mylibrary.analytics.dtos.DailySessionAggDTO::getTotalPages))
@@ -202,19 +197,17 @@ public class StatsService {
     LocalDate bestDay = bestDayAgg != null ? bestDayAgg.getSessionDate() : null;
     int bestDayPages = bestDayAgg != null ? (int) bestDayAgg.getTotalPages() : 0;
 
-    // Longest streak
     int longestStreak = streakRepository.findByUserId(userId)
         .map(StreakEntity::getBestStreak)
         .orElse(0);
 
-    // YoY comparison
     Integer booksVsPrevious = null;
     String growthInsight = null;
     int prevYear = year - 1;
     LocalDate prevStart = LocalDate.of(prevYear, 1, 1);
     LocalDate prevEnd = LocalDate.of(prevYear, 12, 31);
-    int prevBooks = bookRepository.countByUserIdAndStatusAndFinishDateBetween(userId, BookStatus.COMPLETED, prevStart,
-        prevEnd);
+    int prevBooks = userBookRepository.countByUserIdAndStatusAndFinishDateBetween(userId, BookStatus.COMPLETED,
+        prevStart, prevEnd);
     if (prevBooks > 0) {
       booksVsPrevious = booksRead - prevBooks;
       if (booksVsPrevious > 0) {

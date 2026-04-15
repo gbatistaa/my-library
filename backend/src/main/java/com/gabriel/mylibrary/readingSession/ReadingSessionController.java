@@ -41,11 +41,11 @@ public class ReadingSessionController {
     return ResponseEntity.ok(readingSessionService.getHistory(user.getId(), pageable));
   }
 
-  @GetMapping("/book/{bookId}")
-  public ResponseEntity<List<ReadingSessionDTO>> findAllByBook(
-      @PathVariable UUID bookId,
+  @GetMapping("/user-book/{userBookId}")
+  public ResponseEntity<List<ReadingSessionDTO>> findAllByUserBook(
+      @PathVariable UUID userBookId,
       @AuthenticationPrincipal UserEntity user) {
-    return ResponseEntity.ok(readingSessionService.findAllByBook(bookId, user.getId()));
+    return ResponseEntity.ok(readingSessionService.findAllByUserBook(userBookId, user.getId()));
   }
 
   @PostMapping

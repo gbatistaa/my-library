@@ -1,13 +1,23 @@
 package com.gabriel.mylibrary.saga;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import com.gabriel.mylibrary.books.BookEntity;
+import com.gabriel.mylibrary.books.userBook.UserBookEntity;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.user.UserEntity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,33 +46,35 @@ public class SagaEntity extends BaseEntity {
   private String coverUrl;
 
   @OneToMany(mappedBy = "saga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<BookEntity> books = new ArrayList<>();
+  private List<UserBookEntity> userBooks = new ArrayList<>();
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false, updatable = false)
   private UserEntity user;
 
-  public void addBook(BookEntity book) {
-    boolean alreadyExists = books.stream()
-        .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
+  public void addUserBook(UserBookEntity userBook) {
+    boolean alreadyExists = userBooks.stream()
+        .anyMatch(ub -> Objects.equals(ub.getId(), userBook.getId()));
 
     if (alreadyExists) {
-      throw new ResourceConflictException("'" + book.getTitle() + "' is already part of this saga.");
+      throw new ResourceConflictException(
+          "'" + userBook.getBook().getTitle() + "' is already part of this saga.");
     }
 
-    book.setSaga(this);
-    books.add(book);
+    userBook.setSaga(this);
+    userBooks.add(userBook);
   }
 
-  public void removeBook(BookEntity book) {
-    boolean alreadyExists = books.stream()
-        .anyMatch(b -> Objects.equals(b.getId(), book.getId()));
+  public void removeUserBook(UserBookEntity userBook) {
+    boolean alreadyExists = userBooks.stream()
+        .anyMatch(ub -> Objects.equals(ub.getId(), userBook.getId()));
 
     if (!alreadyExists) {
-      throw new ResourceConflictException("'" + book.getTitle() + "' could not be removed because it does not belong to this saga.");
+      throw new ResourceConflictException(
+          "'" + userBook.getBook().getTitle() + "' could not be removed because it does not belong to this saga.");
     }
 
-    book.setSaga(null);
-    books.remove(book);
+    userBook.setSaga(null);
+    userBooks.remove(userBook);
   }
 }
