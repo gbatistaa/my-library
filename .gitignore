@@ -41,3 +41,5 @@ stitch
 DNA.md
 VIRAL_ECOSYSTEM.md
 backend/BOOKS_SEARCH_FLOW.md
+backend/.env.production
+backend/.mcp.json
