@@ -14,6 +14,7 @@ public class UpdateClubBookDTO {
 
   private LocalDate finishedAt;
 
-  @Min(0)
-  private Integer currentPage;
+  private LocalDate deadline;
+
+  private LocalDate deadlineExtendedAt;
 }

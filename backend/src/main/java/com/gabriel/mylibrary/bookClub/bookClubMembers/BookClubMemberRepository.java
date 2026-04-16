@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.bookClub.bookClubMembers;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus;
 
 @Repository
 public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEntity, UUID> {
@@ -38,4 +40,6 @@ public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEn
                           com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus.INACTIVE)
       """)
   Boolean isClubMemberBannedOrInactive(@Param("clubId") UUID clubId, @Param("memberId") UUID memberId);
+
+  List<BookClubMemberEntity> findAllByBookClubIdAndStatus(UUID bookClubId, BookClubMemberStatus status);
 }

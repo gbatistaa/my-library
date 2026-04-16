@@ -1,15 +1,12 @@
 package com.gabriel.mylibrary.bookClub.clubBookProgress.dtos;
 
-import java.util.UUID;
-
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateClubBookProgressDTO {
+public class UpdateClubBookProgressDTO {
   @NotNull
-  private UUID memberId;
-
-  @NotNull
-  private UUID clubBookId;
+  @Min(0)
+  private Integer currentPage;
 }

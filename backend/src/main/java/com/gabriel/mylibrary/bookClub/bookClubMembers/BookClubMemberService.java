@@ -12,6 +12,8 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberD
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.mappers.BookClubMemberMapper;
+import com.gabriel.mylibrary.bookClub.clubBook.ClubBookRepository;
+import com.gabriel.mylibrary.bookClub.clubBookProgress.ClubBookProgressService;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
@@ -23,15 +25,20 @@ import lombok.RequiredArgsConstructor;
 public class BookClubMemberService {
   private final BookClubMemberMapper bookClubMemberMapper;
   private final BookClubMemberRepository bookClubMemberRepository;
+  private final ClubBookRepository clubBookRepository;
+  private final ClubBookProgressService clubBookProgressService;
 
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
     validateBookClubMemberInsertion(bookClubMember.getBookClubId(), bookClubMember.getUserId());
 
     BookClubMemberEntity bookClubMemberEntity = bookClubMemberMapper.toEntity(bookClubMember);
-    BookClubMemberDTO result = bookClubMemberMapper.toDto(bookClubMemberRepository.save(bookClubMemberEntity));
+    BookClubMemberEntity saved = bookClubMemberRepository.save(bookClubMemberEntity);
 
-    return result;
+    clubBookRepository.findByClubIdAndIsCurrentTrue(bookClubMember.getBookClubId())
+        .ifPresent(currentBook -> clubBookProgressService.initializeProgressForMember(saved, currentBook));
+
+    return bookClubMemberMapper.toDto(saved);
   }
 
   @Transactional(readOnly = true)

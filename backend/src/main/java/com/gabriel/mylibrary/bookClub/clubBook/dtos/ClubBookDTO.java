@@ -13,5 +13,6 @@ public record ClubBookDTO(
     Boolean isCurrent,
     LocalDate startedAt,
     LocalDate finishedAt,
-    Integer currentPage) {
+    LocalDate deadline,
+    LocalDate deadlineExtendedAt) {
 }

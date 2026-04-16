@@ -13,6 +13,7 @@ import com.gabriel.mylibrary.bookClub.clubBook.dtos.AddClubBookDTO;
 import com.gabriel.mylibrary.bookClub.clubBook.dtos.ClubBookDTO;
 import com.gabriel.mylibrary.bookClub.clubBook.dtos.UpdateClubBookDTO;
 import com.gabriel.mylibrary.bookClub.clubBook.mappers.ClubBookMapper;
+import com.gabriel.mylibrary.bookClub.clubBookProgress.ClubBookProgressService;
 import com.gabriel.mylibrary.bookClub.clubs.BookClubEntity;
 import com.gabriel.mylibrary.bookClub.clubs.BookClubRepository;
 import com.gabriel.mylibrary.books.BookEntity;
@@ -20,6 +21,7 @@ import com.gabriel.mylibrary.books.BookService;
 import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +34,7 @@ public class ClubBookService {
   private final BookClubRepository bookClubRepository;
   private final BookClubMemberRepository bookClubMemberRepository;
   private final BookService bookService;
+  private final ClubBookProgressService clubBookProgressService;
 
   @Transactional
   public ClubBookDTO addBookToClub(UUID clubId, AddClubBookDTO dto, UUID requesterId) {
@@ -75,7 +78,10 @@ public class ClubBookService {
     entity.setStartedAt(LocalDate.now());
     entity.setIsCurrent(true);
 
-    return clubBookMapper.toDto(clubBookRepository.save(entity));
+    ClubBookEntity saved = clubBookRepository.save(entity);
+    clubBookProgressService.initializeProgressForAllActiveMembers(saved);
+
+    return clubBookMapper.toDto(saved);
   }
 
   @Transactional
@@ -86,7 +92,33 @@ public class ClubBookService {
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found"));
 
     clubBookMapper.updateEntityFromDto(dto, entity);
+
+    validateDeadlineExtension(entity);
+
+    // Admin manually closing the book
+    if (entity.getFinishedAt() != null) {
+      entity.setIsCurrent(false);
+    }
+
     return clubBookMapper.toDto(clubBookRepository.save(entity));
+  }
+
+  private void validateDeadlineExtension(ClubBookEntity entity) {
+    LocalDate deadline = entity.getDeadline();
+    LocalDate extendedAt = entity.getDeadlineExtendedAt();
+
+    if (extendedAt == null) {
+      return;
+    }
+    if (deadline == null) {
+      throw new UnprocessableContentException("deadlineExtendedAt requires a deadline to be set.");
+    }
+    if (!extendedAt.isAfter(deadline)) {
+      throw new UnprocessableContentException("deadlineExtendedAt must be after the deadline.");
+    }
+    if (extendedAt.isAfter(deadline.plusDays(10))) {
+      throw new UnprocessableContentException("deadlineExtendedAt cannot exceed deadline + 10 days.");
+    }
   }
 
   @Transactional
@@ -97,10 +129,6 @@ public class ClubBookService {
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found"));
 
     clubBookRepository.delete(entity);
-  }
-
-  private Boolean isClubBookFinished(UUID clubId, UUID bookId) {
-    return clubBookRepository.isClubBookFinished(clubId, bookId);
   }
 
   private void requireAdmin(UUID clubId, UUID userId) {

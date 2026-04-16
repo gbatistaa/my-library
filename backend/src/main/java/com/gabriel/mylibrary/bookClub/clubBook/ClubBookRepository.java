@@ -35,10 +35,6 @@ public interface ClubBookRepository extends JpaRepository<ClubBookEntity, UUID> 
       """)
   void clearCurrentForClub(@Param("clubId") UUID clubId);
 
-  @Query("""
-      SELECT cb.isFinished FROM ClubBookEntity cb
-      WHERE cb.club.id = :clubId AND cb.book.id = :bookId
-        AND cb.finishedAt IS NOT NULL
-      """)
-  Boolean isClubBookFinished(@Param("clubId") UUID clubId, @Param("bookId") UUID bookId);
+  @EntityGraph(attributePaths = { "book" })
+  Optional<ClubBookEntity> findByClubIdAndIsCurrentTrue(UUID clubId);
 }

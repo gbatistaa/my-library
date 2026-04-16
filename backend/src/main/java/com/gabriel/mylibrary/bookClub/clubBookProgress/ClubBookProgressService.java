@@ -1,11 +1,23 @@
 package com.gabriel.mylibrary.bookClub.clubBookProgress;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberEntity;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberRepository;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus;
+import com.gabriel.mylibrary.bookClub.clubBook.ClubBookEntity;
+import com.gabriel.mylibrary.bookClub.clubBook.ClubBookRepository;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.dtos.ClubBookProgressDTO;
+import com.gabriel.mylibrary.bookClub.clubBookProgress.dtos.UpdateClubBookProgressDTO;
+import com.gabriel.mylibrary.bookClub.clubBookProgress.enums.MemberProgressStatus;
+import com.gabriel.mylibrary.bookClub.clubBookProgress.mappers.ClubBookProgressMapper;
+import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,30 +26,137 @@ import lombok.RequiredArgsConstructor;
 public class ClubBookProgressService {
 
   private final ClubBookProgressRepository repository;
+  private final ClubBookProgressMapper mapper;
+  private final ClubBookRepository clubBookRepository;
+  private final BookClubMemberRepository bookClubMemberRepository;
 
   @Transactional
-  public ClubBookProgressDTO create(ClubBookProgressEntity entity) {
-    return repository.save(entity);
+  public void initializeProgressForAllActiveMembers(ClubBookEntity clubBook) {
+    List<BookClubMemberEntity> activeMembers = bookClubMemberRepository
+        .findAllByBookClubIdAndStatus(clubBook.getClub().getId(), BookClubMemberStatus.ACTIVE);
+
+    for (BookClubMemberEntity member : activeMembers) {
+      if (!repository.existsByMemberIdAndClubBookId(member.getId(), clubBook.getId())) {
+        createProgressRecord(member, clubBook);
+      }
+    }
   }
 
   @Transactional
-  public ClubBookProgressDTO update(ClubBookProgressEntity entity) {
-    return repository.save(entity);
+  public void initializeProgressForMember(BookClubMemberEntity member, ClubBookEntity clubBook) {
+    if (!repository.existsByMemberIdAndClubBookId(member.getId(), clubBook.getId())) {
+      createProgressRecord(member, clubBook);
+    }
   }
 
   @Transactional
-  public void delete(ClubBookProgressEntity entity) {
-    repository.delete(entity);
+  public ClubBookProgressDTO updateProgress(UUID progressId, UpdateClubBookProgressDTO dto) {
+    ClubBookProgressEntity progress = repository.findById(progressId)
+        .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
+
+    ClubBookEntity clubBook = progress.getClubBook();
+
+    if (!Boolean.TRUE.equals(clubBook.getIsCurrent())) {
+      throw new UnprocessableContentException("Cannot update progress for a book that is not currently active.");
+    }
+
+    int newPage = dto.getCurrentPage();
+    int totalPages = clubBook.getBook().getPages();
+
+    if (newPage > totalPages) {
+      throw new UnprocessableContentException(
+          "Current page (" + newPage + ") exceeds total pages (" + totalPages + ").");
+    }
+
+    progress.setCurrentPage(newPage);
+
+    if (newPage >= totalPages) {
+      progress.setFinishedAt(LocalDate.now());
+      progress.setStatus(MemberProgressStatus.FINISHED);
+    } else if (progress.getFinishedAt() != null) {
+      // Regression: member went back below totalPages — clear completion
+      progress.setFinishedAt(null);
+      progress.setStatus(MemberProgressStatus.READING);
+    }
+
+    markOverdueProgressAsUnfinished(clubBook);
+
+    ClubBookProgressEntity saved = repository.save(progress);
+    checkAndAutoClose(clubBook);
+
+    return mapper.toDTO(saved);
   }
 
   @Transactional(readOnly = true)
   public ClubBookProgressDTO findById(UUID id) {
-    return repository.findById(id).orElseThrow(() -> new RuntimeException("Club book progress not found"));
+    return repository.findById(id)
+        .map(mapper::toDTO)
+        .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
   }
 
   @Transactional(readOnly = true)
   public ClubBookProgressDTO findByMemberAndClubBook(UUID memberId, UUID clubBookId) {
     return repository.findByMemberIdAndClubBookId(memberId, clubBookId)
-        .orElseThrow(() -> new RuntimeException("Club book progress not found"));
+        .map(mapper::toDTO)
+        .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
+  }
+
+  private void createProgressRecord(BookClubMemberEntity member, ClubBookEntity clubBook) {
+    ClubBookProgressEntity progress = new ClubBookProgressEntity();
+    progress.setMember(member);
+    progress.setClubBook(clubBook);
+    progress.setCurrentPage(1);
+    progress.setStartedAt(LocalDate.now());
+    progress.setStatus(MemberProgressStatus.READING);
+    repository.save(progress);
+  }
+
+  private void checkAndAutoClose(ClubBookEntity clubBook) {
+    markOverdueProgressAsUnfinished(clubBook);
+
+    List<BookClubMemberEntity> activeMembers = bookClubMemberRepository
+        .findAllByBookClubIdAndStatus(clubBook.getClub().getId(), BookClubMemberStatus.ACTIVE);
+
+    if (activeMembers.isEmpty()) {
+      return;
+    }
+
+    List<ClubBookProgressEntity> allProgress = repository.findAllByClubBookId(clubBook.getId());
+
+    boolean allDone = activeMembers.stream().allMatch(member ->
+        allProgress.stream()
+            .filter(p -> p.getMember().getId().equals(member.getId()))
+            .anyMatch(p -> p.getStatus() == MemberProgressStatus.FINISHED
+                || p.getStatus() == MemberProgressStatus.UNFINISHED));
+
+    if (allDone) {
+      clubBook.setFinishedAt(LocalDate.now());
+      clubBook.setIsCurrent(false);
+      clubBookRepository.save(clubBook);
+    }
+  }
+
+  private void markOverdueProgressAsUnfinished(ClubBookEntity clubBook) {
+    LocalDate effectiveDeadline = effectiveDeadline(clubBook);
+    if (effectiveDeadline == null || !effectiveDeadline.isBefore(LocalDate.now())) {
+      return;
+    }
+
+    List<ClubBookProgressEntity> overdueProgress = repository.findAllByClubBookId(clubBook.getId())
+        .stream()
+        .filter(p -> p.getStatus() == MemberProgressStatus.READING)
+        .toList();
+
+    for (ClubBookProgressEntity progress : overdueProgress) {
+      progress.setStatus(MemberProgressStatus.UNFINISHED);
+      repository.save(progress);
+    }
+  }
+
+  private LocalDate effectiveDeadline(ClubBookEntity clubBook) {
+    if (clubBook.getDeadlineExtendedAt() != null) {
+      return clubBook.getDeadlineExtendedAt();
+    }
+    return clubBook.getDeadline();
   }
 }
