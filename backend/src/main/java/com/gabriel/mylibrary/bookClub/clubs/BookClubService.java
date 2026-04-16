@@ -43,8 +43,8 @@ public class BookClubService {
 
   @Transactional
   public BookClubDTO create(CreateBookClubDTO bookClub, UUID adminId) {
-    bookClub.setAdminId(adminId);
     BookClubEntity bookClubEntity = bookClubMapper.toEntity(bookClub);
+    bookClubEntity.setAdminId(adminId);
     BookClubDTO createdBookClub = bookClubMapper.toDto(bookClubRepository.save(bookClubEntity));
 
     assignAdminAsMember(createdBookClub.getId(), adminId);
@@ -111,10 +111,9 @@ public class BookClubService {
   }
 
   private CurrentBookStatsDTO buildCurrentBookStats(UUID clubId, ClubBookEntity current) {
-    List<BookClubMemberEntity> activeMembers =
-        bookClubMemberRepository.findAllByBookClubIdAndStatus(clubId, BookClubMemberStatus.ACTIVE);
-    List<ClubBookProgressEntity> progressList =
-        clubBookProgressRepository.findAllByClubBookId(current.getId());
+    List<BookClubMemberEntity> activeMembers = bookClubMemberRepository.findAllByBookClubIdAndStatus(clubId,
+        BookClubMemberStatus.ACTIVE);
+    List<ClubBookProgressEntity> progressList = clubBookProgressRepository.findAllByClubBookId(current.getId());
 
     int totalPages = current.getBook().getPages();
 
@@ -130,7 +129,8 @@ public class BookClubService {
         .filter(p -> p.getStatus() == MemberProgressStatus.FINISHED).count();
     int pendingCount = (int) progressList.stream()
         .filter(p -> p.getStatus() == MemberProgressStatus.READING
-            || p.getStatus() == MemberProgressStatus.UNFINISHED).count();
+            || p.getStatus() == MemberProgressStatus.UNFINISHED)
+        .count();
     int avgPercent = progressList.isEmpty() ? 0
         : (int) Math.round(progressList.stream()
             .mapToInt(p -> (int) Math.round(p.getCurrentPage() * 100.0 / totalPages))
@@ -144,7 +144,8 @@ public class BookClubService {
         totalPages,
         current.getStartedAt(),
         current.getDeadline() != null ? current.getDeadlineExtendedAt() != null
-            ? current.getDeadlineExtendedAt() : current.getDeadline() : null,
+            ? current.getDeadlineExtendedAt()
+            : current.getDeadline() : null,
         activeMembers.size(),
         finishedCount,
         pendingCount,

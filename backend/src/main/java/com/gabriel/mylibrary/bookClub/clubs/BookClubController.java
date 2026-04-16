@@ -41,6 +41,7 @@ public class BookClubController {
     return ResponseEntity.ok(bookClubService.findById(id));
   }
 
+  // TODO: Inject the adminId from the authentication
   @PostMapping
   public ResponseEntity<BookClubDTO> create(@RequestBody @Valid CreateBookClubDTO bookClub,
       @AuthenticationPrincipal UserEntity user) {
