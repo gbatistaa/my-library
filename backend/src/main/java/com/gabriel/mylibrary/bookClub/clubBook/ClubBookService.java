@@ -24,7 +24,9 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClubBookService {
@@ -68,6 +70,7 @@ public class ClubBookService {
 
   @Transactional
   public ClubBookDTO setCurrent(UUID clubId, UUID clubBookId, UUID requesterId) {
+    log.info("[ClubBookService] activateBook | clubId={} bookId={} userId={}", clubId, clubBookId, requesterId);
     requireAdmin(clubId, requesterId);
 
     ClubBookEntity entity = clubBookRepository.findByIdAndClubId(clubBookId, clubId)
@@ -88,11 +91,13 @@ public class ClubBookService {
     ClubBookEntity saved = clubBookRepository.save(entity);
     clubBookProgressService.initializeProgressForAllActiveMembers(saved);
 
+    log.info("[ClubBookService] activateBook | complete clubId={} bookId={}", clubId, clubBookId);
     return clubBookMapper.toDto(saved);
   }
 
   @Transactional
   public ClubBookDTO updateClubBook(UUID clubId, UUID clubBookId, UpdateClubBookDTO dto, UUID requesterId) {
+    log.info("[ClubBookService] extendDeadline | clubId={} bookId={} userId={}", clubId, clubBookId, requesterId);
     requireAdmin(clubId, requesterId);
 
     ClubBookEntity entity = clubBookRepository.findByIdAndClubId(clubBookId, clubId)
@@ -107,6 +112,7 @@ public class ClubBookService {
       entity.setIsCurrent(false);
     }
 
+    log.info("[ClubBookService] extendDeadline | complete clubId={} bookId={}", clubId, clubBookId);
     return clubBookMapper.toDto(clubBookRepository.save(entity));
   }
 
@@ -135,6 +141,7 @@ public class ClubBookService {
    */
   @Transactional
   public ClubBookDTO advanceToNextBook(UUID clubId, UUID requesterId) {
+    log.info("[ClubBookService] advanceToNextBook | clubId={} userId={}", clubId, requesterId);
     requireAdmin(clubId, requesterId);
 
     // Close current book if it is still marked as active
@@ -156,6 +163,7 @@ public class ClubBookService {
     ClubBookEntity saved = clubBookRepository.save(next);
     clubBookProgressService.initializeProgressForAllActiveMembers(saved);
 
+    log.info("[ClubBookService] advanceToNextBook | complete clubId={} nextBookId={}", clubId, saved.getId());
     return clubBookMapper.toDto(saved);
   }
 

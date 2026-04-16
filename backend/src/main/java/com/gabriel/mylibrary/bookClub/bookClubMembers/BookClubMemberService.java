@@ -20,7 +20,9 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookClubMemberService {
@@ -31,6 +33,7 @@ public class BookClubMemberService {
 
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
+    log.info("[BookClubMemberService] addMember | clubId={} userId={}", bookClubMember.getBookClubId(), bookClubMember.getUserId());
     validateBookClubMemberInsertion(bookClubMember.getBookClubId(), bookClubMember.getUserId());
 
     BookClubMemberEntity bookClubMemberEntity = bookClubMemberMapper.toEntity(bookClubMember);
@@ -39,6 +42,7 @@ public class BookClubMemberService {
     clubBookRepository.findByClubIdAndIsCurrentTrue(bookClubMember.getBookClubId())
         .ifPresent(currentBook -> clubBookProgressService.initializeProgressForMember(saved, currentBook));
 
+    log.info("[BookClubMemberService] addMember | complete clubId={} memberId={}", bookClubMember.getBookClubId(), saved.getId());
     return bookClubMemberMapper.toDto(saved);
   }
 
@@ -75,6 +79,7 @@ public class BookClubMemberService {
 
   @Transactional
   public void delete(UUID id, UUID requesterId) throws ResourceNotFoundException {
+    log.info("[BookClubMemberService] removeMember | memberId={} requesterId={}", id, requesterId);
     BookClubMemberEntity existingBookClubMember = bookClubMemberRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
 
@@ -83,6 +88,7 @@ public class BookClubMemberService {
     requireAdminOrSelf(clubId, requesterId, targetUserId);
 
     bookClubMemberRepository.delete(existingBookClubMember);
+    log.info("[BookClubMemberService] removeMember | complete memberId={} clubId={}", id, clubId);
   }
 
   /* Validations */

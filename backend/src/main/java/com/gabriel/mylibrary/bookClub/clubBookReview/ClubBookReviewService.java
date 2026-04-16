@@ -23,7 +23,9 @@ import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClubBookReviewService {
@@ -36,6 +38,7 @@ public class ClubBookReviewService {
 
   @Transactional
   public ClubBookReviewDTO create(UUID clubId, UUID clubBookId, CreateClubBookReviewDTO dto, UUID requesterId) {
+    log.info("[ClubBookReviewService] createReview | clubId={} clubBookId={} userId={}", clubId, clubBookId, requesterId);
     requireMember(clubId, requesterId);
     ClubBookEntity clubBook = requireReviewableBook(clubId, clubBookId);
 
@@ -52,7 +55,9 @@ public class ClubBookReviewService {
     entity.setRating(dto.getRating());
     entity.setReviewText(dto.getReviewText());
 
-    return mapper.toDto(reviewRepository.save(entity));
+    ClubBookReviewDTO result = mapper.toDto(reviewRepository.save(entity));
+    log.info("[ClubBookReviewService] createReview | complete clubId={} clubBookId={} reviewId={}", clubId, clubBookId, result.id());
+    return result;
   }
 
   @Transactional(readOnly = true)
@@ -80,6 +85,7 @@ public class ClubBookReviewService {
 
   @Transactional
   public void delete(UUID clubId, UUID clubBookId, UUID reviewId, UUID requesterId) {
+    log.info("[ClubBookReviewService] deleteReview | clubId={} clubBookId={} reviewId={} userId={}", clubId, clubBookId, reviewId, requesterId);
     requireMember(clubId, requesterId);
     requireClubBookExists(clubId, clubBookId);
 
@@ -90,10 +96,12 @@ public class ClubBookReviewService {
     boolean isClubAdmin = memberRepository
         .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
     if (!isOwner && !isClubAdmin) {
+      log.warn("[ClubBookReviewService] deleteReview | unauthorized userId={} reviewId={}", requesterId, reviewId);
       throw new UnauthorizedException("Only the review owner or a club admin can delete this review.");
     }
 
     reviewRepository.delete(review);
+    log.info("[ClubBookReviewService] deleteReview | complete reviewId={}", reviewId);
   }
 
   // -------------------------------------------------------------------------

@@ -21,7 +21,9 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClubBookProgressService {
@@ -52,12 +54,14 @@ public class ClubBookProgressService {
 
   @Transactional
   public ClubBookProgressDTO updateProgress(UUID progressId, UpdateClubBookProgressDTO dto) {
+    log.info("[ClubBookProgressService] updateProgress | progressId={} newPage={}", progressId, dto.getCurrentPage());
     ClubBookProgressEntity progress = repository.findById(progressId)
         .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
 
     ClubBookEntity clubBook = progress.getClubBook();
 
     if (!Boolean.TRUE.equals(clubBook.getIsCurrent())) {
+      log.warn("[ClubBookProgressService] updateProgress | rejected, book not current progressId={}", progressId);
       throw new UnprocessableContentException("Cannot update progress for a book that is not currently active.");
     }
 
@@ -65,6 +69,7 @@ public class ClubBookProgressService {
     int totalPages = clubBook.getBook().getPages();
 
     if (newPage > totalPages) {
+      log.warn("[ClubBookProgressService] updateProgress | rejected, page exceeds total progressId={} page={} total={}", progressId, newPage, totalPages);
       throw new UnprocessableContentException(
           "Current page (" + newPage + ") exceeds total pages (" + totalPages + ").");
     }
@@ -85,6 +90,7 @@ public class ClubBookProgressService {
     ClubBookProgressEntity saved = repository.save(progress);
     checkAndAutoClose(clubBook);
 
+    log.info("[ClubBookProgressService] updateProgress | complete progressId={} status={}", progressId, saved.getStatus());
     return mapper.toDTO(saved);
   }
 
@@ -141,12 +147,14 @@ public class ClubBookProgressService {
   }
 
   private void checkAndAutoClose(ClubBookEntity clubBook) {
+    log.info("[ClubBookProgressService] checkAndAutoClose | clubBookId={}", clubBook.getId());
     markOverdueProgressAsUnfinished(clubBook);
 
     List<BookClubMemberEntity> activeMembers = bookClubMemberRepository
         .findAllByBookClubIdAndStatus(clubBook.getClub().getId(), BookClubMemberStatus.ACTIVE);
 
     if (activeMembers.isEmpty()) {
+      log.info("[ClubBookProgressService] checkAndAutoClose | no active members, skipping clubBookId={}", clubBook.getId());
       return;
     }
 
@@ -162,7 +170,9 @@ public class ClubBookProgressService {
       clubBook.setFinishedAt(LocalDate.now());
       clubBook.setIsCurrent(false);
       clubBookRepository.save(clubBook);
+      log.info("[ClubBookProgressService] checkAndAutoClose | auto-closed clubBookId={}", clubBook.getId());
     }
+    log.info("[ClubBookProgressService] checkAndAutoClose | complete clubBookId={} allDone={}", clubBook.getId(), allDone);
   }
 
   private void markOverdueProgressAsUnfinished(ClubBookEntity clubBook) {
@@ -212,6 +222,7 @@ public class ClubBookProgressService {
 
   @Transactional
   public int markAllOverdueAsUnfinished() {
+    log.info("[ClubBookProgressService] markAllOverdueAsUnfinished | starting");
     LocalDate today = LocalDate.now();
     // Fetch all READING progress records where clubBook.deadline is not null and < today
     List<ClubBookProgressEntity> overdue = repository.findAllOverdue(today);
@@ -220,6 +231,7 @@ public class ClubBookProgressService {
         // Do NOT set finishedAt — the member did not finish the book
     });
     repository.saveAll(overdue);
+    log.info("[ClubBookProgressService] markAllOverdueAsUnfinished | complete affected={}", overdue.size());
     return overdue.size();
   }
 }
