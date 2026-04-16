@@ -73,6 +73,13 @@ public class ClubBookService {
     ClubBookEntity entity = clubBookRepository.findByIdAndClubId(clubBookId, clubId)
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found"));
 
+    clubBookRepository.findByClubIdAndIsCurrentTrue(clubId).ifPresent(prev -> {
+      if (prev.getFinishedAt() == null) {
+        prev.setFinishedAt(LocalDate.now());
+        clubBookRepository.save(prev);
+      }
+    });
+
     clubBookRepository.clearCurrentForClub(clubId);
 
     entity.setStartedAt(LocalDate.now());

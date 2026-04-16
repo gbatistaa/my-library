@@ -31,14 +31,4 @@ public interface ClubInviteRepository extends JpaRepository<ClubInviteEntity, UU
       """)
   Optional<AcceptedClubInviteProjection> getAcceptedInviteData(@Param("inviteId") UUID inviteId);
 
-  @Query("""
-          SELECT CASE
-              WHEN EXISTS (SELECT 1 FROM BookClubMemberEntity m WHERE m.bookClub.id = ?1 AND m.user.id = ?2)
-                  THEN 'MEMBER'
-              WHEN EXISTS (SELECT 1 FROM ClubInviteEntity i WHERE i.bookClub.id = ?1 AND i.invitee.id = ?2 AND i.status = com.gabriel.mylibrary.bookClub.clubInvite.enums.InviteStatus.PENDING)
-                  THEN 'INVITED'
-              ELSE 'NONE'
-          END
-      """)
-  String getUserStatusInClub(UUID clubId, UUID inviteeId);
 }

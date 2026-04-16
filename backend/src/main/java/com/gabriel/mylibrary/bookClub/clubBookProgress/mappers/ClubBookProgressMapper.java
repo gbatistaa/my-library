@@ -14,7 +14,7 @@ public interface ClubBookProgressMapper {
   @Mapping(target = "clubBookId", source = "clubBook.id")
   @Mapping(target = "startedAt", source = "startedAt")
   @Mapping(target = "progressPercent",
-      expression = "java((int) Math.round(entity.getCurrentPage() * 100.0 / entity.getClubBook().getBook().getPages()))")
+      expression = "java(entity.getClubBook() != null && entity.getClubBook().getBook() != null && entity.getClubBook().getBook().getPages() != null && entity.getClubBook().getBook().getPages() > 0 ? (int) Math.round(entity.getCurrentPage() * 100.0 / entity.getClubBook().getBook().getPages()) : 0)")
   ClubBookProgressDTO toDTO(ClubBookProgressEntity entity);
 
   @Mapping(target = "member.id", source = "memberId")

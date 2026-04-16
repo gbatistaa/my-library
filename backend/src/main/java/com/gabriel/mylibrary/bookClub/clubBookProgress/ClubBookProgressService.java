@@ -166,6 +166,10 @@ public class ClubBookProgressService {
   }
 
   private void markOverdueProgressAsUnfinished(ClubBookEntity clubBook) {
+    if (clubBook.getDeadline() == null) {
+      return;
+    }
+
     LocalDate effectiveDeadline = effectiveDeadline(clubBook);
     if (effectiveDeadline == null || !effectiveDeadline.isBefore(LocalDate.now())) {
       return;
