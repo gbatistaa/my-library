@@ -39,6 +39,13 @@ public class BookClubMemberController {
     return bookClubMemberService.findAll(pageable);
   }
 
+  @GetMapping("/club/{clubId}")
+  public Page<BookClubMemberDTO> getMembersByClub(@PathVariable UUID clubId,
+      @AuthenticationPrincipal UserEntity user,
+      Pageable pageable) {
+    return bookClubMemberService.findAllByBookClubId(clubId, user.getId(), pageable);
+  }
+
   @GetMapping("/{id}")
   public BookClubMemberDTO getBookClubMemberById(@PathVariable UUID id) {
     return bookClubMemberService.findById(id);

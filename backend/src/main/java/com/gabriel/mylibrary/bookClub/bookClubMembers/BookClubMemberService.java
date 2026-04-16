@@ -52,7 +52,9 @@ public class BookClubMemberService {
   }
 
   @Transactional(readOnly = true)
-  public Page<BookClubMemberDTO> findAllByBookClubId(UUID bookClubId, Pageable pageable) {
+  public Page<BookClubMemberDTO> findAllByBookClubId(UUID bookClubId, UUID requesterId, Pageable pageable) {
+    log.info("[BookClubMemberService] listMembers | clubId={} requesterId={}", bookClubId, requesterId);
+    requireMember(bookClubId, requesterId);
     return bookClubMemberRepository.findAllByBookClubId(bookClubId, pageable).map(bookClubMemberMapper::toDto);
   }
 
@@ -158,6 +160,12 @@ public class BookClubMemberService {
         .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
     if (!isSelf && !isAdmin) {
       throw new ForbiddenException("Only the member themselves or a club admin can remove a member.");
+    }
+  }
+
+  private void requireMember(UUID clubId, UUID userId) {
+    if (!bookClubMemberRepository.existsByBookClubIdAndUserId(clubId, userId)) {
+      throw new ForbiddenException("Only club members can perform this action.");
     }
   }
 }
