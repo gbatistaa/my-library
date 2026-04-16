@@ -1,13 +1,11 @@
 -- =============================================================================
--- V1__init_schema.sql
--- Initial PostgreSQL schema for MyLibrary backend after the
--- "Global Catalog + User Library" refactor.
+-- V1__init_schema.sql (IDEMPOTENTE)
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- users
 -- -----------------------------------------------------------------------------
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id                UUID         PRIMARY KEY,
   created_at        TIMESTAMP    NOT NULL,
   updated_at        TIMESTAMP,
@@ -28,7 +26,7 @@ CREATE TABLE users (
 -- -----------------------------------------------------------------------------
 -- refresh_tokens
 -- -----------------------------------------------------------------------------
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
   id              UUID         PRIMARY KEY,
   created_at      TIMESTAMP    NOT NULL,
   updated_at      TIMESTAMP,
@@ -41,12 +39,13 @@ CREATE TABLE refresh_tokens (
   CONSTRAINT uk_refresh_tokens_device_id UNIQUE (device_id),
   CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_refresh_tokens_user ON refresh_tokens (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens (user_id);
 
 -- -----------------------------------------------------------------------------
 -- sagas
 -- -----------------------------------------------------------------------------
-CREATE TABLE sagas (
+CREATE TABLE IF NOT EXISTS sagas (
   id           UUID         PRIMARY KEY,
   created_at   TIMESTAMP    NOT NULL,
   updated_at   TIMESTAMP,
@@ -57,12 +56,13 @@ CREATE TABLE sagas (
   CONSTRAINT uk_sagas_user_name UNIQUE (user_id, name),
   CONSTRAINT fk_sagas_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_sagas_user ON sagas (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_sagas_user ON sagas (user_id);
 
 -- -----------------------------------------------------------------------------
--- books (global catalog)
+-- books
 -- -----------------------------------------------------------------------------
-CREATE TABLE books (
+CREATE TABLE IF NOT EXISTS books (
   id              UUID         PRIMARY KEY,
   created_at      TIMESTAMP    NOT NULL,
   updated_at      TIMESTAMP,
@@ -78,21 +78,25 @@ CREATE TABLE books (
   language        VARCHAR(16),
   CONSTRAINT uk_books_google_books_id UNIQUE (google_books_id)
 );
-CREATE INDEX idx_books_title  ON books (title);
-CREATE INDEX idx_books_author ON books (author);
 
--- book_categories is the @ElementCollection<String> on BookEntity.
-CREATE TABLE book_categories (
+CREATE INDEX IF NOT EXISTS idx_books_title  ON books (title);
+CREATE INDEX IF NOT EXISTS idx_books_author ON books (author);
+
+-- -----------------------------------------------------------------------------
+-- book_categories
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS book_categories (
   book_id  UUID        NOT NULL,
   category VARCHAR(80) NOT NULL,
   CONSTRAINT fk_book_categories_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_book_categories_category ON book_categories (category);
+
+CREATE INDEX IF NOT EXISTS idx_book_categories_category ON book_categories (category);
 
 -- -----------------------------------------------------------------------------
--- user_books (per-user reading state)
+-- user_books
 -- -----------------------------------------------------------------------------
-CREATE TABLE user_books (
+CREATE TABLE IF NOT EXISTS user_books (
   id          UUID         PRIMARY KEY,
   created_at  TIMESTAMP    NOT NULL,
   updated_at  TIMESTAMP,
@@ -110,16 +114,17 @@ CREATE TABLE user_books (
   CONSTRAINT fk_user_books_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE RESTRICT,
   CONSTRAINT fk_user_books_saga FOREIGN KEY (saga_id) REFERENCES sagas(id) ON DELETE SET NULL
 );
-CREATE INDEX idx_user_books_user        ON user_books (user_id);
-CREATE INDEX idx_user_books_book        ON user_books (book_id);
-CREATE INDEX idx_user_books_user_status ON user_books (user_id, status);
-CREATE INDEX idx_user_books_user_finish ON user_books (user_id, finish_date);
-CREATE INDEX idx_user_books_saga        ON user_books (saga_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_books_user        ON user_books (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_books_book        ON user_books (book_id);
+CREATE INDEX IF NOT EXISTS idx_user_books_user_status ON user_books (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_user_books_user_finish ON user_books (user_id, finish_date);
+CREATE INDEX IF NOT EXISTS idx_user_books_saga        ON user_books (saga_id);
 
 -- -----------------------------------------------------------------------------
 -- reading_sessions
 -- -----------------------------------------------------------------------------
-CREATE TABLE reading_sessions (
+CREATE TABLE IF NOT EXISTS reading_sessions (
   id               UUID      PRIMARY KEY,
   created_at       TIMESTAMP NOT NULL,
   updated_at       TIMESTAMP,
@@ -131,14 +136,15 @@ CREATE TABLE reading_sessions (
   CONSTRAINT fk_reading_sessions_user      FOREIGN KEY (user_id)      REFERENCES users(id)      ON DELETE CASCADE,
   CONSTRAINT fk_reading_sessions_user_book FOREIGN KEY (user_book_id) REFERENCES user_books(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_reading_sessions_user      ON reading_sessions (user_id);
-CREATE INDEX idx_reading_sessions_user_book ON reading_sessions (user_book_id);
-CREATE INDEX idx_reading_sessions_created   ON reading_sessions (created_at);
+
+CREATE INDEX IF NOT EXISTS idx_reading_sessions_user      ON reading_sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_reading_sessions_user_book ON reading_sessions (user_book_id);
+CREATE INDEX IF NOT EXISTS idx_reading_sessions_created   ON reading_sessions (created_at);
 
 -- -----------------------------------------------------------------------------
 -- reading_goals
 -- -----------------------------------------------------------------------------
-CREATE TABLE reading_goals (
+CREATE TABLE IF NOT EXISTS reading_goals (
   id             UUID        PRIMARY KEY,
   created_at     TIMESTAMP   NOT NULL,
   updated_at     TIMESTAMP,
@@ -153,12 +159,13 @@ CREATE TABLE reading_goals (
   CONSTRAINT uk_reading_goals_user_year UNIQUE (user_id, goal_year),
   CONSTRAINT fk_reading_goals_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_reading_goals_user ON reading_goals (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_reading_goals_user ON reading_goals (user_id);
 
 -- -----------------------------------------------------------------------------
--- streaks (one row per user)
+-- streaks
 -- -----------------------------------------------------------------------------
-CREATE TABLE streaks (
+CREATE TABLE IF NOT EXISTS streaks (
   id                  UUID      PRIMARY KEY,
   created_at          TIMESTAMP NOT NULL,
   updated_at          TIMESTAMP,
@@ -174,7 +181,7 @@ CREATE TABLE streaks (
 -- -----------------------------------------------------------------------------
 -- user_achievements
 -- -----------------------------------------------------------------------------
-CREATE TABLE user_achievements (
+CREATE TABLE IF NOT EXISTS user_achievements (
   id         UUID        PRIMARY KEY,
   created_at TIMESTAMP   NOT NULL,
   updated_at TIMESTAMP,
@@ -184,12 +191,13 @@ CREATE TABLE user_achievements (
   CONSTRAINT uk_user_achievement UNIQUE (user_id, code),
   CONSTRAINT fk_user_achievements_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_user_achievements_user ON user_achievements (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_achievements_user ON user_achievements (user_id);
 
 -- -----------------------------------------------------------------------------
--- book_club (clubs)
+-- book_club
 -- -----------------------------------------------------------------------------
-CREATE TABLE book_club (
+CREATE TABLE IF NOT EXISTS book_club (
   id          UUID         PRIMARY KEY,
   created_at  TIMESTAMP    NOT NULL,
   updated_at  TIMESTAMP,
@@ -200,12 +208,13 @@ CREATE TABLE book_club (
   admin_id    UUID         NOT NULL,
   CONSTRAINT fk_book_club_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE RESTRICT
 );
-CREATE INDEX idx_book_club_admin ON book_club (admin_id);
+
+CREATE INDEX IF NOT EXISTS idx_book_club_admin ON book_club (admin_id);
 
 -- -----------------------------------------------------------------------------
 -- book_club_members
 -- -----------------------------------------------------------------------------
-CREATE TABLE book_club_members (
+CREATE TABLE IF NOT EXISTS book_club_members (
   id            UUID        PRIMARY KEY,
   created_at    TIMESTAMP   NOT NULL,
   updated_at    TIMESTAMP,
@@ -217,13 +226,14 @@ CREATE TABLE book_club_members (
   CONSTRAINT fk_book_club_members_club FOREIGN KEY (book_club_id) REFERENCES book_club(id) ON DELETE CASCADE,
   CONSTRAINT fk_book_club_members_user FOREIGN KEY (user_id)      REFERENCES users(id)     ON DELETE CASCADE
 );
-CREATE INDEX idx_book_club_members_club ON book_club_members (book_club_id);
-CREATE INDEX idx_book_club_members_user ON book_club_members (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_book_club_members_club ON book_club_members (book_club_id);
+CREATE INDEX IF NOT EXISTS idx_book_club_members_user ON book_club_members (user_id);
 
 -- -----------------------------------------------------------------------------
 -- club_invites
 -- -----------------------------------------------------------------------------
-CREATE TABLE club_invites (
+CREATE TABLE IF NOT EXISTS club_invites (
   id           UUID         PRIMARY KEY,
   created_at   TIMESTAMP    NOT NULL,
   updated_at   TIMESTAMP,
@@ -239,13 +249,14 @@ CREATE TABLE club_invites (
   CONSTRAINT fk_club_invites_inviter FOREIGN KEY (inviter_id)   REFERENCES users(id)     ON DELETE SET NULL,
   CONSTRAINT fk_club_invites_invitee FOREIGN KEY (invitee_id)   REFERENCES users(id)     ON DELETE SET NULL
 );
-CREATE INDEX idx_club_invites_club    ON club_invites (book_club_id);
-CREATE INDEX idx_club_invites_invitee ON club_invites (invitee_id);
+
+CREATE INDEX IF NOT EXISTS idx_club_invites_club    ON club_invites (book_club_id);
+CREATE INDEX IF NOT EXISTS idx_club_invites_invitee ON club_invites (invitee_id);
 
 -- -----------------------------------------------------------------------------
 -- club_books
 -- -----------------------------------------------------------------------------
-CREATE TABLE club_books (
+CREATE TABLE IF NOT EXISTS club_books (
   id           UUID      PRIMARY KEY,
   created_at   TIMESTAMP NOT NULL,
   updated_at   TIMESTAMP,
@@ -260,13 +271,14 @@ CREATE TABLE club_books (
   CONSTRAINT fk_club_books_club FOREIGN KEY (club_id) REFERENCES book_club(id) ON DELETE CASCADE,
   CONSTRAINT fk_club_books_book FOREIGN KEY (book_id) REFERENCES books(id)     ON DELETE RESTRICT
 );
-CREATE INDEX idx_club_books_club ON club_books (club_id);
-CREATE INDEX idx_club_books_book ON club_books (book_id);
+
+CREATE INDEX IF NOT EXISTS idx_club_books_club ON club_books (club_id);
+CREATE INDEX IF NOT EXISTS idx_club_books_book ON club_books (book_id);
 
 -- -----------------------------------------------------------------------------
 -- club_book_progress
 -- -----------------------------------------------------------------------------
-CREATE TABLE club_book_progress (
+CREATE TABLE IF NOT EXISTS club_book_progress (
   id            UUID      PRIMARY KEY,
   created_at    TIMESTAMP NOT NULL,
   updated_at    TIMESTAMP,
@@ -277,13 +289,14 @@ CREATE TABLE club_book_progress (
   CONSTRAINT fk_club_book_progress_member    FOREIGN KEY (member_id)    REFERENCES book_club_members(id) ON DELETE CASCADE,
   CONSTRAINT fk_club_book_progress_club_book FOREIGN KEY (club_book_id) REFERENCES club_books(id)        ON DELETE CASCADE
 );
-CREATE INDEX idx_club_book_progress_member    ON club_book_progress (member_id);
-CREATE INDEX idx_club_book_progress_club_book ON club_book_progress (club_book_id);
+
+CREATE INDEX IF NOT EXISTS idx_club_book_progress_member    ON club_book_progress (member_id);
+CREATE INDEX IF NOT EXISTS idx_club_book_progress_club_book ON club_book_progress (club_book_id);
 
 -- -----------------------------------------------------------------------------
 -- club_book_reviews
 -- -----------------------------------------------------------------------------
-CREATE TABLE club_book_reviews (
+CREATE TABLE IF NOT EXISTS club_book_reviews (
   id           UUID         PRIMARY KEY,
   created_at   TIMESTAMP    NOT NULL,
   updated_at   TIMESTAMP,
@@ -294,5 +307,6 @@ CREATE TABLE club_book_reviews (
   CONSTRAINT fk_club_book_reviews_club_book FOREIGN KEY (club_book_id) REFERENCES club_books(id) ON DELETE CASCADE,
   CONSTRAINT fk_club_book_reviews_user      FOREIGN KEY (user_id)      REFERENCES users(id)      ON DELETE SET NULL
 );
-CREATE INDEX idx_club_book_reviews_club_book ON club_book_reviews (club_book_id);
-CREATE INDEX idx_club_book_reviews_user      ON club_book_reviews (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_club_book_reviews_club_book ON club_book_reviews (club_book_id);
+CREATE INDEX IF NOT EXISTS idx_club_book_reviews_user      ON club_book_reviews (user_id);
