@@ -34,6 +34,7 @@ public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEn
       """)
   BookClubMemberRole getBookClubMemberRoleById(@Param("userId") UUID userId, @Param("clubId") UUID clubId);
 
+  // TODO: Consertar o erro 403 (Forbidden) quando o admin faz um convite
   @Query("""
       SELECT CASE WHEN COUNT(m) > 0 THEN TRUE ELSE FALSE END
         FROM BookClubMemberEntity m
