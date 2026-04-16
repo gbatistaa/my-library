@@ -121,6 +121,37 @@ public class ClubBookService {
     }
   }
 
+  /**
+   * Closes the current book (if still open) and activates the next one in queue
+   * by order_index. Returns the newly activated book.
+   * Throws UnprocessableContentException if there is no next book in the queue.
+   */
+  @Transactional
+  public ClubBookDTO advanceToNextBook(UUID clubId, UUID requesterId) {
+    requireAdmin(clubId, requesterId);
+
+    // Close current book if it is still marked as active
+    clubBookRepository.findByClubIdAndIsCurrentTrue(clubId).ifPresent(current -> {
+      current.setIsCurrent(false);
+      if (current.getFinishedAt() == null) {
+        current.setFinishedAt(LocalDate.now());
+      }
+      clubBookRepository.save(current);
+    });
+
+    // Pick the next unread book by order_index
+    ClubBookEntity next = clubBookRepository
+        .findFirstByClubIdAndIsCurrentFalseAndFinishedAtIsNullOrderByOrderIndexAsc(clubId)
+        .orElseThrow(() -> new UnprocessableContentException("No next book in the club's reading queue."));
+
+    next.setIsCurrent(true);
+    next.setStartedAt(LocalDate.now());
+    ClubBookEntity saved = clubBookRepository.save(next);
+    clubBookProgressService.initializeProgressForAllActiveMembers(saved);
+
+    return clubBookMapper.toDto(saved);
+  }
+
   @Transactional
   public void removeBookFromClub(UUID clubId, UUID clubBookId, UUID requesterId) {
     requireAdmin(clubId, requesterId);

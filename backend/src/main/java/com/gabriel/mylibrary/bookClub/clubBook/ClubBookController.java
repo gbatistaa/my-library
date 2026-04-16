@@ -57,6 +57,12 @@ public class ClubBookController {
     return ResponseEntity.ok(clubBookService.setCurrent(clubId, id, user.getId()));
   }
 
+  @PostMapping("/advance")
+  public ResponseEntity<ClubBookDTO> advance(@PathVariable UUID clubId,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(clubBookService.advanceToNextBook(clubId, user.getId()));
+  }
+
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> remove(@PathVariable UUID clubId,
       @PathVariable UUID id,

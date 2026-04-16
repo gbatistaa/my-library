@@ -1,6 +1,7 @@
 package com.gabriel.mylibrary.bookClub.bookClubMembers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,8 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus
 @Repository
 public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEntity, UUID> {
   Page<BookClubMemberEntity> findAllByBookClubId(UUID bookClubId, Pageable pageable);
+
+  Optional<BookClubMemberEntity> findByBookClubIdAndUserId(UUID bookClubId, UUID userId);
 
   Boolean existsByBookClubIdAndUserId(UUID bookClubId, UUID userId);
 

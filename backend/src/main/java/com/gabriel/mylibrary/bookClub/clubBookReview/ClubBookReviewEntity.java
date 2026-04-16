@@ -26,7 +26,7 @@ public class ClubBookReviewEntity extends BaseEntity {
   private String reviewText;
 
   @ManyToOne
-  @JoinColumn(name = "club_book_id")
+  @JoinColumn(name = "club_book_id", nullable = false)
   private ClubBookEntity clubBook;
 
   @ManyToOne

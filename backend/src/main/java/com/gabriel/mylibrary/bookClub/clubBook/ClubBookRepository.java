@@ -37,4 +37,7 @@ public interface ClubBookRepository extends JpaRepository<ClubBookEntity, UUID> 
 
   @EntityGraph(attributePaths = { "book" })
   Optional<ClubBookEntity> findByClubIdAndIsCurrentTrue(UUID clubId);
+
+  @EntityGraph(attributePaths = { "book" })
+  Optional<ClubBookEntity> findFirstByClubIdAndIsCurrentFalseAndFinishedAtIsNullOrderByOrderIndexAsc(UUID clubId);
 }

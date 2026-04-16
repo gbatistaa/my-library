@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gabriel.mylibrary.bookClub.clubs.dtos.BookClubDTO;
+import com.gabriel.mylibrary.bookClub.clubs.dtos.ClubDashboardDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.CreateBookClubDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.UpdateBookClubDTO;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -55,6 +56,13 @@ public class BookClubController {
   @GetMapping("/admin/{adminId}")
   public ResponseEntity<Page<BookClubDTO>> findAllByAdminId(@PathVariable UUID adminId, Pageable pageable) {
     return ResponseEntity.ok(bookClubService.findAllByAdminId(adminId, pageable));
+  }
+
+  @GetMapping("/{id}/dashboard")
+  public ResponseEntity<ClubDashboardDTO> getDashboard(
+      @PathVariable UUID id,
+      @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookClubService.getDashboard(id, user.getId()));
   }
 
   @DeleteMapping("/{id}")

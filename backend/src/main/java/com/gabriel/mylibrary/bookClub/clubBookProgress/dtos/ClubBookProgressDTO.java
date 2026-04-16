@@ -10,6 +10,7 @@ public record ClubBookProgressDTO(
     UUID memberId,
     UUID clubBookId,
     Integer currentPage,
+    Integer progressPercent,
     MemberProgressStatus status,
     LocalDate startedAt,
     LocalDate finishedAt) {

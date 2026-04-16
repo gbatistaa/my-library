@@ -16,6 +16,7 @@ import com.gabriel.mylibrary.bookClub.clubBookProgress.dtos.ClubBookProgressDTO;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.dtos.UpdateClubBookProgressDTO;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.enums.MemberProgressStatus;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.mappers.ClubBookProgressMapper;
+import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 
@@ -101,6 +102,34 @@ public class ClubBookProgressService {
         .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
   }
 
+  @Transactional(readOnly = true)
+  public List<ClubBookProgressDTO> listProgressForClubBook(UUID clubId, UUID clubBookId, UUID requesterId) {
+    requireMember(clubId, requesterId);
+    requireClubBookExists(clubId, clubBookId);
+    return repository.findAllByClubBookId(clubBookId).stream()
+        .map(mapper::toDTO)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public ClubBookProgressDTO getMyProgress(UUID clubId, UUID clubBookId, UUID requesterId) {
+    BookClubMemberEntity member = requireActiveMember(clubId, requesterId);
+    requireClubBookExists(clubId, clubBookId);
+    return repository.findByMemberIdAndClubBookId(member.getId(), clubBookId)
+        .map(mapper::toDTO)
+        .orElseThrow(() -> new ResourceNotFoundException("Progress record not found for this member and book."));
+  }
+
+  @Transactional
+  public ClubBookProgressDTO updateMyProgress(UUID clubId, UUID clubBookId, UpdateClubBookProgressDTO dto,
+      UUID requesterId) {
+    BookClubMemberEntity member = requireActiveMember(clubId, requesterId);
+    requireClubBookExists(clubId, clubBookId);
+    ClubBookProgressEntity progress = repository.findByMemberIdAndClubBookId(member.getId(), clubBookId)
+        .orElseThrow(() -> new ResourceNotFoundException("Progress record not found for this member and book."));
+    return updateProgress(progress.getId(), dto);
+  }
+
   private void createProgressRecord(BookClubMemberEntity member, ClubBookEntity clubBook) {
     ClubBookProgressEntity progress = new ClubBookProgressEntity();
     progress.setMember(member);
@@ -158,5 +187,22 @@ public class ClubBookProgressService {
       return clubBook.getDeadlineExtendedAt();
     }
     return clubBook.getDeadline();
+  }
+
+  private BookClubMemberEntity requireActiveMember(UUID clubId, UUID userId) {
+    return bookClubMemberRepository.findByBookClubIdAndUserId(clubId, userId)
+        .filter(m -> m.getStatus() == BookClubMemberStatus.ACTIVE)
+        .orElseThrow(() -> new ForbiddenException("You are not an active member of this club."));
+  }
+
+  private void requireMember(UUID clubId, UUID userId) {
+    if (!bookClubMemberRepository.existsByBookClubIdAndUserId(clubId, userId)) {
+      throw new ForbiddenException("Only club members can view progress.");
+    }
+  }
+
+  private void requireClubBookExists(UUID clubId, UUID clubBookId) {
+    clubBookRepository.findByIdAndClubId(clubBookId, clubId)
+        .orElseThrow(() -> new ResourceNotFoundException("Club book not found."));
   }
 }
