@@ -209,4 +209,18 @@ public class ClubBookProgressService {
     clubBookRepository.findByIdAndClubId(clubBookId, clubId)
         .orElseThrow(() -> new ResourceNotFoundException("Club book not found."));
   }
+
+  @Transactional
+  public int markAllOverdueAsUnfinished() {
+    LocalDate today = LocalDate.now();
+    // Fetch all READING progress records where clubBook.deadline is not null and < today
+    List<ClubBookProgressEntity> overdue = repository.findAllOverdue(today);
+    overdue.forEach(p -> {
+        p.setStatus(MemberProgressStatus.UNFINISHED);
+        // Do NOT set finishedAt — the member did not finish the book
+    });
+    repository.saveAll(overdue);
+    return overdue.size();
+  }
 }
+

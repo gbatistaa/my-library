@@ -36,6 +36,6 @@ public class BookClubMemberEntity extends BaseEntity {
   private BookClubEntity bookClub;
 
   @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id", nullable = false, updatable = false)
   private UserEntity user;
 }
