@@ -14,6 +14,7 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.mappers.BookClubMemberMapper;
 import com.gabriel.mylibrary.bookClub.clubBook.ClubBookRepository;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.ClubBookProgressService;
+import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
@@ -59,9 +60,13 @@ public class BookClubMemberService {
   }
 
   @Transactional
-  public BookClubMemberDTO update(UUID id, UpdateBookClubMemberDTO bookClubMemberDto) throws ResourceNotFoundException {
+  public BookClubMemberDTO update(UUID id, UpdateBookClubMemberDTO bookClubMemberDto, UUID requesterId)
+      throws ResourceNotFoundException {
     BookClubMemberEntity existingBookClubMember = bookClubMemberRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
+
+    UUID clubId = existingBookClubMember.getBookClub().getId();
+    requireAdmin(clubId, requesterId);
 
     bookClubMemberMapper.updateEntityFromDto(bookClubMemberDto, existingBookClubMember);
 
@@ -69,9 +74,14 @@ public class BookClubMemberService {
   }
 
   @Transactional
-  public void delete(UUID id) throws ResourceNotFoundException {
+  public void delete(UUID id, UUID requesterId) throws ResourceNotFoundException {
     BookClubMemberEntity existingBookClubMember = bookClubMemberRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("No book club member found with the provided ID."));
+
+    UUID clubId = existingBookClubMember.getBookClub().getId();
+    UUID targetUserId = existingBookClubMember.getUser().getId();
+    requireAdminOrSelf(clubId, requesterId, targetUserId);
+
     bookClubMemberRepository.delete(existingBookClubMember);
   }
 
@@ -124,5 +134,24 @@ public class BookClubMemberService {
     int capacity = bookClubMemberRepository.findById(bookClubId).get().getBookClub().getMaxMembers();
 
     return currentMembers >= capacity;
+  }
+
+  /* Authorization helpers */
+
+  private void requireAdmin(UUID clubId, UUID requesterId) {
+    boolean isAdmin = bookClubMemberRepository
+        .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
+    if (!isAdmin) {
+      throw new ForbiddenException("Only a club admin can perform this action.");
+    }
+  }
+
+  private void requireAdminOrSelf(UUID clubId, UUID requesterId, UUID targetUserId) {
+    boolean isSelf = requesterId.equals(targetUserId);
+    boolean isAdmin = bookClubMemberRepository
+        .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
+    if (!isSelf && !isAdmin) {
+      throw new ForbiddenException("Only the member themselves or a club admin can remove a member.");
+    }
   }
 }

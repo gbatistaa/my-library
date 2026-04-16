@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +46,14 @@ public class BookClubMemberController {
 
   @PatchMapping("/{id}")
   public BookClubMemberDTO updateBookClubMember(@PathVariable UUID id,
-      @RequestBody @Valid UpdateBookClubMemberDTO bookClubMember) {
-    return bookClubMemberService.update(id, bookClubMember);
+      @RequestBody @Valid UpdateBookClubMemberDTO bookClubMember,
+      @AuthenticationPrincipal UserEntity user) {
+    return bookClubMemberService.update(id, bookClubMember, user.getId());
   }
 
   @DeleteMapping("/{id}")
-  public void deleteBookClubMember(@PathVariable UUID id) {
-    bookClubMemberService.delete(id);
+  public void deleteBookClubMember(@PathVariable UUID id,
+      @AuthenticationPrincipal UserEntity user) {
+    bookClubMemberService.delete(id, user.getId());
   }
 }

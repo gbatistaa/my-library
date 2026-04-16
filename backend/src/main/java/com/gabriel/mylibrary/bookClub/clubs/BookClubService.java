@@ -70,7 +70,9 @@ public class BookClubService {
   }
 
   @Transactional
-  public BookClubDTO update(UUID id, UpdateBookClubDTO bookClubDto) throws ResourceNotFoundException {
+  public BookClubDTO update(UUID id, UpdateBookClubDTO bookClubDto, UUID requesterId) throws ResourceNotFoundException {
+    requireAdmin(id, requesterId);
+
     BookClubEntity existingBookClub = bookClubRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Book club not found"));
 
@@ -80,7 +82,9 @@ public class BookClubService {
   }
 
   @Transactional
-  public void delete(UUID id) throws ResourceNotFoundException {
+  public void delete(UUID id, UUID requesterId) throws ResourceNotFoundException {
+    requireAdmin(id, requesterId);
+
     BookClubEntity existingBookClub = bookClubRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Book club not found"));
     bookClubRepository.delete(existingBookClub);
@@ -152,5 +156,13 @@ public class BookClubService {
     CreateBookClubMemberDTO bookClubMember = new CreateBookClubMemberDTO(bookClubId, adminId,
         BookClubMemberRole.ADMIN, BookClubMemberStatus.ACTIVE);
     bookClubMemberService.create(bookClubMember);
+  }
+
+  private void requireAdmin(UUID clubId, UUID requesterId) {
+    boolean isAdmin = bookClubMemberRepository
+        .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
+    if (!isAdmin) {
+      throw new ForbiddenException("Only a club admin can perform this action.");
+    }
   }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberRepository;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
 import com.gabriel.mylibrary.bookClub.clubBook.ClubBookEntity;
 import com.gabriel.mylibrary.bookClub.clubBook.ClubBookRepository;
 import com.gabriel.mylibrary.bookClub.clubBookReview.dtos.ClubBookReviewDTO;
@@ -16,6 +17,7 @@ import com.gabriel.mylibrary.bookClub.clubBookReview.mappers.ClubBookReviewMappe
 import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.common.errors.UnauthorizedException;
 import com.gabriel.mylibrary.common.errors.UnprocessableContentException;
 import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
@@ -84,7 +86,13 @@ public class ClubBookReviewService {
     ClubBookReviewEntity review = reviewRepository.findById(reviewId)
         .orElseThrow(() -> new ResourceNotFoundException("Review not found."));
 
-    requireOwner(review, requesterId);
+    boolean isOwner = review.getUser() != null && review.getUser().getId().equals(requesterId);
+    boolean isClubAdmin = memberRepository
+        .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
+    if (!isOwner && !isClubAdmin) {
+      throw new UnauthorizedException("Only the review owner or a club admin can delete this review.");
+    }
+
     reviewRepository.delete(review);
   }
 

@@ -48,9 +48,10 @@ public class BookClubController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<BookClubDTO> update(@PathVariable UUID id, @RequestBody @Valid UpdateBookClubDTO bookClub)
+  public ResponseEntity<BookClubDTO> update(@PathVariable UUID id, @RequestBody @Valid UpdateBookClubDTO bookClub,
+      @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException {
-    return ResponseEntity.ok(bookClubService.update(id, bookClub));
+    return ResponseEntity.ok(bookClubService.update(id, bookClub, user.getId()));
   }
 
   @GetMapping("/admin/{adminId}")
@@ -66,8 +67,9 @@ public class BookClubController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable UUID id) throws ResourceNotFoundException {
-    bookClubService.delete(id);
+  public ResponseEntity<Void> delete(@PathVariable UUID id,
+      @AuthenticationPrincipal UserEntity user) throws ResourceNotFoundException {
+    bookClubService.delete(id, user.getId());
     return ResponseEntity.noContent().build();
   }
 }
