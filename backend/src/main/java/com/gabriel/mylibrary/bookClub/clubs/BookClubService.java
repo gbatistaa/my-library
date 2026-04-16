@@ -25,9 +25,11 @@ import com.gabriel.mylibrary.bookClub.clubs.dtos.CreateBookClubDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.CurrentBookStatsDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.MemberProgressSummaryDTO;
 import com.gabriel.mylibrary.bookClub.clubs.dtos.UpdateBookClubDTO;
+import com.gabriel.mylibrary.bookClub.clubs.enums.BookClubStatus;
 import com.gabriel.mylibrary.bookClub.clubs.mappers.BookClubMapper;
 import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
+import com.gabriel.mylibrary.user.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,12 +44,13 @@ public class BookClubService {
   private final ClubBookProgressRepository clubBookProgressRepository;
 
   @Transactional
-  public BookClubDTO create(CreateBookClubDTO bookClub, UUID adminId) {
+  public BookClubDTO create(CreateBookClubDTO bookClub, UserEntity admin) {
     BookClubEntity bookClubEntity = bookClubMapper.toEntity(bookClub);
-    bookClubEntity.setAdminId(adminId);
-    BookClubDTO createdBookClub = bookClubMapper.toDto(bookClubRepository.save(bookClubEntity));
+    bookClubEntity.setAdmin(admin);
+    bookClubEntity.setStatus(BookClubStatus.ACTIVE);
 
-    assignAdminAsMember(createdBookClub.getId(), adminId);
+    BookClubDTO createdBookClub = bookClubMapper.toDto(bookClubRepository.save(bookClubEntity));
+    assignAdminAsMember(createdBookClub.getId(), admin.getId());
 
     return createdBookClub;
   }

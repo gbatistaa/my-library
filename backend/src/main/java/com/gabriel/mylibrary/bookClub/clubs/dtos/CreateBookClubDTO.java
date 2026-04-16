@@ -1,7 +1,5 @@
 package com.gabriel.mylibrary.bookClub.clubs.dtos;
 
-import java.util.UUID;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +21,4 @@ public class CreateBookClubDTO {
   @NotNull(message = "Max members is required")
   @Min(value = 3, message = "Max members must be at least 3")
   private Integer maxMembers;
-
-  @NotNull(message = "Admin id is required")
-  private UUID adminId;
 }

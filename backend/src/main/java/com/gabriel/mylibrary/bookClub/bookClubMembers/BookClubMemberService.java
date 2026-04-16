@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.bookClub.bookClubMembers;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -11,9 +12,11 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberRole;
+import com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.mappers.BookClubMemberMapper;
 import com.gabriel.mylibrary.bookClub.clubBook.ClubBookRepository;
 import com.gabriel.mylibrary.bookClub.clubBookProgress.ClubBookProgressService;
+import com.gabriel.mylibrary.bookClub.clubs.BookClubRepository;
 import com.gabriel.mylibrary.common.errors.ForbiddenException;
 import com.gabriel.mylibrary.common.errors.ResourceConflictException;
 import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
@@ -28,12 +31,14 @@ import lombok.extern.slf4j.Slf4j;
 public class BookClubMemberService {
   private final BookClubMemberMapper bookClubMemberMapper;
   private final BookClubMemberRepository bookClubMemberRepository;
+  private final BookClubRepository bookClubRepository;
   private final ClubBookRepository clubBookRepository;
   private final ClubBookProgressService clubBookProgressService;
 
   @Transactional
   public BookClubMemberDTO create(CreateBookClubMemberDTO bookClubMember) throws ResourceConflictException {
-    log.info("[BookClubMemberService] addMember | clubId={} userId={}", bookClubMember.getBookClubId(), bookClubMember.getUserId());
+    log.info("[BookClubMemberService] addMember | clubId={} userId={}", bookClubMember.getBookClubId(),
+        bookClubMember.getUserId());
     validateBookClubMemberInsertion(bookClubMember.getBookClubId(), bookClubMember.getUserId());
 
     BookClubMemberEntity bookClubMemberEntity = bookClubMemberMapper.toEntity(bookClubMember);
@@ -42,7 +47,8 @@ public class BookClubMemberService {
     clubBookRepository.findByClubIdAndIsCurrentTrue(bookClubMember.getBookClubId())
         .ifPresent(currentBook -> clubBookProgressService.initializeProgressForMember(saved, currentBook));
 
-    log.info("[BookClubMemberService] addMember | complete clubId={} memberId={}", bookClubMember.getBookClubId(), saved.getId());
+    log.info("[BookClubMemberService] addMember | complete clubId={} memberId={}", bookClubMember.getBookClubId(),
+        saved.getId());
     return bookClubMemberMapper.toDto(saved);
   }
 
@@ -96,8 +102,8 @@ public class BookClubMemberService {
   /* Validations */
 
   @Transactional(readOnly = true)
-  public Boolean isMemberAdmin(UUID clubId, UUID memberId) {
-    return bookClubMemberRepository.getBookClubMemberRoleById(memberId, clubId).equals(BookClubMemberRole.ADMIN);
+  public Boolean isMemberAdmin(UUID clubId, UUID userId) {
+    return Objects.equals(bookClubMemberRepository.getBookClubMemberRoleById(userId, clubId), BookClubMemberRole.ADMIN);
   }
 
   @Transactional(readOnly = true)
@@ -116,8 +122,8 @@ public class BookClubMemberService {
   }
 
   @Transactional(readOnly = true)
-  public Boolean isClubMemberBannedOrInactive(UUID clubId, UUID memberId) {
-    return !bookClubMemberRepository.isClubMemberBannedOrInactive(clubId, memberId);
+  public Boolean isClubMemberActive(UUID clubId, UUID memberId) {
+    return !bookClubMemberRepository.isClubMemberBannedOrInactive(clubId, memberId, BookClubMemberStatus.ACTIVE);
   }
 
   @Transactional(readOnly = true)
@@ -139,7 +145,9 @@ public class BookClubMemberService {
   @Transactional(readOnly = true)
   private Boolean isClubFull(UUID bookClubId) {
     long currentMembers = bookClubMemberRepository.countByBookClubId(bookClubId);
-    int capacity = bookClubMemberRepository.findById(bookClubId).get().getBookClub().getMaxMembers();
+    int capacity = bookClubRepository.findById(bookClubId)
+        .orElseThrow(() -> new ResourceNotFoundException("Book club not found"))
+        .getMaxMembers();
 
     return currentMembers >= capacity;
   }

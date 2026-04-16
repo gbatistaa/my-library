@@ -11,8 +11,7 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface BookClubMemberMapper {
 
   @Mapping(target = "bookClubId", source = "bookClub.id")
@@ -22,7 +21,6 @@ public interface BookClubMemberMapper {
 
   @Mapping(target = "bookClub.id", source = "bookClubId")
   @Mapping(target = "user.id", source = "userId")
-  @Mapping(target = "status", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
@@ -33,6 +31,5 @@ public interface BookClubMemberMapper {
   @Mapping(target = "user", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
-  @Mapping(target = "status", ignore = true)
   void updateEntityFromDto(UpdateBookClubMemberDTO dto, @MappingTarget BookClubMemberEntity entity);
 }

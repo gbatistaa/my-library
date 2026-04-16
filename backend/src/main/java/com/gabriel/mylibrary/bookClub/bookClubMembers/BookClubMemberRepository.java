@@ -29,20 +29,20 @@ public interface BookClubMemberRepository extends JpaRepository<BookClubMemberEn
   @Query("""
       SELECT m.role
         FROM BookClubMemberEntity m
-       WHERE m.id = :inviterId
+       WHERE m.user.id = :userId
          AND m.bookClub.id = :clubId
       """)
-  BookClubMemberRole getBookClubMemberRoleById(@Param("inviterId") UUID inviterId, @Param("clubId") UUID clubId);
+  BookClubMemberRole getBookClubMemberRoleById(@Param("userId") UUID userId, @Param("clubId") UUID clubId);
 
   @Query("""
       SELECT CASE WHEN COUNT(m) > 0 THEN TRUE ELSE FALSE END
         FROM BookClubMemberEntity m
        WHERE m.bookClub.id = :clubId
-         AND m.id = :memberId
-         AND m.status IN (com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus.BANNED,
-                          com.gabriel.mylibrary.bookClub.bookClubMembers.enums.BookClubMemberStatus.INACTIVE)
+         AND m.user.id = :userId
+         AND m.status = :status
       """)
-  Boolean isClubMemberBannedOrInactive(@Param("clubId") UUID clubId, @Param("memberId") UUID memberId);
+  Boolean isClubMemberActive(@Param("clubId") UUID clubId, @Param("userId") UUID userId,
+      @Param("status") BookClubMemberStatus status);
 
   List<BookClubMemberEntity> findAllByBookClubIdAndStatus(UUID bookClubId, BookClubMemberStatus status);
 }

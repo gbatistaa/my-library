@@ -28,9 +28,10 @@ public class ClubInviteController {
   private final ClubInviteService clubInviteService;
 
   @PostMapping
-  public ResponseEntity<ClubInviteDTO> create(@RequestBody @Valid CreateClubInviteDTO clubInvite)
+  public ResponseEntity<ClubInviteDTO> create(@RequestBody @Valid CreateClubInviteDTO clubInvite,
+      @AuthenticationPrincipal UserEntity user)
       throws ResourceConflictException {
-    ClubInviteDTO clubInviteDTO = this.clubInviteService.create(clubInvite);
+    ClubInviteDTO clubInviteDTO = this.clubInviteService.create(clubInvite, user.getId());
     return ResponseEntity.ok(clubInviteDTO);
   }
 

@@ -45,7 +45,7 @@ public class BookClubController {
   @PostMapping
   public ResponseEntity<BookClubDTO> create(@RequestBody @Valid CreateBookClubDTO bookClub,
       @AuthenticationPrincipal UserEntity user) {
-    return ResponseEntity.ok(bookClubService.create(bookClub, user.getId()));
+    return ResponseEntity.ok(bookClubService.create(bookClub, user));
   }
 
   @PutMapping("/{id}")

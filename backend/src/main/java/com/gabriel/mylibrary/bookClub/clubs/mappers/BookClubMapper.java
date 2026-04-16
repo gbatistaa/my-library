@@ -9,8 +9,9 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BookClubMapper {
 
-  @Mapping(target = "admin.id", source = "adminId")
   @Mapping(target = "members", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "admin", ignore = true)
   BookClubEntity toEntity(CreateBookClubDTO createBookClubDTO);
 
   @Mapping(target = "adminId", source = "admin.id")

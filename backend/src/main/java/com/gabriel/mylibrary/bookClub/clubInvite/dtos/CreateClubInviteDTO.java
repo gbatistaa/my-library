@@ -14,10 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateClubInviteDTO {
   @NotNull(message = "Club ID is required")
-  private UUID clubId;
-
-  @NotNull(message = "Inviter ID is required")
-  private UUID inviterId;
+  private UUID bookClubId;
 
   @NotNull(message = "Invitee ID is required")
   private UUID inviteeId;

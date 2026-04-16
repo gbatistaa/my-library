@@ -35,10 +35,15 @@ public class ClubInviteService {
   private final BookClubMemberService bookClubMemberService;
 
   @Transactional
-  public ClubInviteDTO create(CreateClubInviteDTO clubInvite) {
-    validateBookClubInvite(clubInvite);
+  public ClubInviteDTO create(CreateClubInviteDTO clubInvite, UUID inviterId) {
+
+    validateBookClubInvite(clubInvite, inviterId);
 
     ClubInviteEntity clubInviteEntity = clubInviteMapper.toEntity(clubInvite);
+
+    clubInviteEntity.setInviter(userRepository.getReferenceById(inviterId));
+    clubInviteEntity.setInvitee(userRepository.getReferenceById(clubInvite.getInviteeId()));
+    clubInviteEntity.setBookClub(bookClubRepository.getReferenceById(clubInvite.getBookClubId()));
     clubInviteRepository.save(clubInviteEntity);
 
     return clubInviteMapper.toDto(clubInviteEntity);
@@ -63,7 +68,7 @@ public class ClubInviteService {
     ClubInviteEntity clubInviteEntity = clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("The specified invitation could not be found."));
 
-    validateClubInviteReject(clubInviteEntity, inviteId);
+    validateClubInviteReject(clubInviteEntity, loggedUser.getId());
     clubInviteRepository.delete(clubInviteEntity);
   }
 
@@ -76,24 +81,24 @@ public class ClubInviteService {
     clubInviteRepository.delete(clubInviteEntity);
   }
 
-  private void validateBookClubInvite(CreateClubInviteDTO clubInvite) {
-    validateInviterPermissions(clubInvite);
+  private void validateBookClubInvite(CreateClubInviteDTO clubInvite, UUID inviterId) {
+    validateInviterPermissions(clubInvite, inviterId);
     validateEntitiesExist(clubInvite);
-    validateInviteConstraints(clubInvite);
+    validateInviteConstraints(clubInvite, inviterId);
   }
 
-  private void validateInviterPermissions(CreateClubInviteDTO clubInvite) throws ForbiddenException {
-    if (!bookClubMemberService.isMemberAdmin(clubInvite.getClubId(), clubInvite.getInviterId())) {
+  private void validateInviterPermissions(CreateClubInviteDTO clubInvite, UUID inviterId) throws ForbiddenException {
+    if (!bookClubMemberService.isMemberAdmin(clubInvite.getBookClubId(), inviterId)) {
       throw new ForbiddenException("Insufficient permissions to invite members. Admin role required.");
     }
 
-    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviterId())) {
+    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getBookClubId(), inviterId)) {
       throw new ForbiddenException("Your account status does not allow you to send invitations.");
     }
   }
 
   private void validateEntitiesExist(CreateClubInviteDTO clubInvite) throws ResourceNotFoundException {
-    if (!bookClubRepository.existsById(clubInvite.getClubId())) {
+    if (!bookClubRepository.existsById(clubInvite.getBookClubId())) {
       throw new ResourceNotFoundException("The book club associated with this invitation no longer exists.");
     }
 
@@ -102,21 +107,21 @@ public class ClubInviteService {
     }
   }
 
-  private void validateInviteConstraints(CreateClubInviteDTO clubInvite) {
-    if (clubInvite.getInviterId().equals(clubInvite.getInviteeId())) {
+  private void validateInviteConstraints(CreateClubInviteDTO clubInvite, UUID inviterId) {
+    if (inviterId.equals(clubInvite.getInviteeId())) {
       throw new ResourceConflictException("You cannot invite yourself to a book club.");
     }
 
-    if (bookClubMemberService.isUserAlreadyAMember(clubInvite.getClubId(), clubInvite.getInviteeId())) {
+    if (bookClubMemberService.isUserAlreadyAMember(clubInvite.getBookClubId(), clubInvite.getInviteeId())) {
       throw new ResourceConflictException("The user is already a member of this book club.");
     }
 
-    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getClubId(), clubInvite.getInviteeId())) {
+    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getBookClubId(), clubInvite.getInviteeId())) {
       throw new ResourceConflictException(
           "The user you are trying to invite has been banned or is inactive in this club.");
     }
 
-    if (clubInviteRepository.existsByBookClubIdAndInviteeIdAndStatus(clubInvite.getClubId(),
+    if (clubInviteRepository.existsByBookClubIdAndInviteeIdAndStatus(clubInvite.getBookClubId(),
         clubInvite.getInviteeId(), InviteStatus.PENDING)) {
       throw new ResourceConflictException("The user already has a pending invitation to this book club.");
     }
