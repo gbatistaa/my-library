@@ -1,0 +1,31 @@
+$kind: http-request
+name: 'REVIEW-02 - Joao Submete Review'
+method: POST
+url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/reviews'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{joaoToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "rating": 4,
+      "comment": "Excelente livro, mas a densidade da narrativa exige paciência. Vale muito a pena."
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json.id) {
+        pm.environment.set("review2Id", json.id);
+        console.log("review2Id salvo:", json.id);
+      }
+      pm.test("Review criado (200)", () => pm.response.to.have.status(200));
+      pm.test("Rating correto", () => pm.expect(json.rating).to.eql(4));

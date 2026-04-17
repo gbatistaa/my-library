@@ -1,0 +1,16 @@
+$kind: http-request
+name: 'CYCLE-03 - Encerrar Ciclo'
+method: POST
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/{{cycleId}}/close'
+order: 8000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Ciclo encerrado (200)", () => pm.response.to.have.status(200));
+      pm.test("Status é CLOSED", () => pm.expect(pm.response.json().status).to.eql("CLOSED"));

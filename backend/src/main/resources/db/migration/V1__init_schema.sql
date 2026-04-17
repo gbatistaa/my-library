@@ -5,6 +5,8 @@
 -- -----------------------------------------------------------------------------
 -- users
 -- -----------------------------------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS public;
+
 CREATE TABLE IF NOT EXISTS users (
   id                UUID         PRIMARY KEY,
   created_at        TIMESTAMP    NOT NULL,
@@ -238,7 +240,7 @@ CREATE TABLE IF NOT EXISTS club_invites (
   created_at   TIMESTAMP    NOT NULL,
   updated_at   TIMESTAMP,
   token        VARCHAR(255) NOT NULL,
-  accepted_at  TIMESTAMP    NOT NULL,
+  accepted_at  TIMESTAMP,
   expires_at   DATE         NOT NULL,
   status       VARCHAR(16)  NOT NULL,
   book_club_id UUID,

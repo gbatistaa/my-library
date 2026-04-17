@@ -14,6 +14,7 @@ import com.gabriel.mylibrary.bookClub.clubBookReview.dtos.UpdateClubBookReviewDT
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ClubBookReviewMapper {
 
+  @Mapping(target = "id", source = "id")
   @Mapping(target = "clubBookId", source = "clubBook.id")
   @Mapping(target = "userId", source = "user.id")
   ClubBookReviewDTO toDto(ClubBookReviewEntity entity);

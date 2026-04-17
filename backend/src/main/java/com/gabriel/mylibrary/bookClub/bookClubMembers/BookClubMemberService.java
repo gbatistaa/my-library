@@ -1,6 +1,5 @@
 package com.gabriel.mylibrary.bookClub.bookClubMembers;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -103,7 +102,8 @@ public class BookClubMemberService {
 
   @Transactional(readOnly = true)
   public Boolean isMemberAdmin(UUID clubId, UUID userId) {
-    return Objects.equals(bookClubMemberRepository.getBookClubMemberRoleById(userId, clubId), BookClubMemberRole.ADMIN);
+    log.info("[BookClubMemberService] isMemberAdmin | clubId={} userId={}", clubId, userId);
+    return bookClubMemberRepository.existsByBookClubIdAndUserIdAndRole(clubId, userId, BookClubMemberRole.ADMIN);
   }
 
   @Transactional(readOnly = true)
@@ -123,7 +123,7 @@ public class BookClubMemberService {
 
   @Transactional(readOnly = true)
   public Boolean isClubMemberActive(UUID clubId, UUID memberId) {
-    return !bookClubMemberRepository.isClubMemberBannedOrInactive(clubId, memberId, BookClubMemberStatus.ACTIVE);
+    return bookClubMemberRepository.isClubMemberActive(clubId, memberId, BookClubMemberStatus.ACTIVE);
   }
 
   @Transactional(readOnly = true)
@@ -138,6 +138,7 @@ public class BookClubMemberService {
     }
 
     if (isClubFull(bookClubId)) {
+      log.warn("[BookClubMemberService] validateBookClubMemberInsertion | FAILED - Club is full | clubId={}", bookClubId);
       throw new UnprocessableContentException("This book club has reached its maximum member capacity.");
     }
   }
@@ -155,9 +156,12 @@ public class BookClubMemberService {
   /* Authorization helpers */
 
   private void requireAdmin(UUID clubId, UUID requesterId) {
+    log.info("[BookClubMemberService] requireAdmin | clubId={} requesterId={}", clubId, requesterId);
     boolean isAdmin = bookClubMemberRepository
         .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
     if (!isAdmin) {
+      log.warn("[BookClubMemberService] requireAdmin | FAILED - Not an admin | clubId={} requesterId={}", clubId,
+          requesterId);
       throw new ForbiddenException("Only a club admin can perform this action.");
     }
   }
@@ -172,7 +176,9 @@ public class BookClubMemberService {
   }
 
   private void requireMember(UUID clubId, UUID userId) {
+    log.info("[BookClubMemberService] requireMember | clubId={} userId={}", clubId, userId);
     if (!bookClubMemberRepository.existsByBookClubIdAndUserId(clubId, userId)) {
+      log.warn("[BookClubMemberService] requireMember | FAILED - Not a member | clubId={} userId={}", clubId, userId);
       throw new ForbiddenException("Only club members can perform this action.");
     }
   }

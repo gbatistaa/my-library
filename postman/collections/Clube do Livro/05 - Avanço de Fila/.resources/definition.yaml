@@ -1,0 +1,5 @@
+$kind: collection
+name: 05 - Avanço de Fila
+description: |-
+  Avança a fila do clube para o próximo livro, iniciando um novo ciclo de leitura.
+order: 5

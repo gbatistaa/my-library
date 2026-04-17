@@ -1,0 +1,27 @@
+$kind: http-request
+name: 'AUTH-06 - Login Joao'
+method: POST
+url: '{{baseUrl}}/api/auth/login'
+order: 6000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "joao_silva",
+      "password": "Senha@123"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      const token = json.token || json.accessToken || json.access_token;
+      if (token) {
+        pm.environment.set("joaoToken", token);
+        console.log("joaoToken salvo.");
+      }
+      pm.test("Login João (200)", () => pm.response.to.have.status(200));
+      pm.test("Token recebido", () => pm.expect(token).to.be.a("string"));

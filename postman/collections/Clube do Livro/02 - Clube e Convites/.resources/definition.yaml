@@ -1,0 +1,6 @@
+$kind: collection
+name: 02 - Clube e Convites
+description: |-
+  Criação do clube de leitura e gestão de convites.
+  O admin cria o clube, convida os 3 membros, e cada membro aceita o convite.
+order: 2

@@ -1,0 +1,26 @@
+$kind: http-request
+name: 'PROGRESS-03 - Maria Registra Progresso'
+method: POST
+url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/progress'
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{mariaToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "currentPage": 412,
+      "totalPages": 412,
+      "notes": "Terminei! Obra-prima absoluta."
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Progresso registrado (200)", () => pm.response.to.have.status(200));

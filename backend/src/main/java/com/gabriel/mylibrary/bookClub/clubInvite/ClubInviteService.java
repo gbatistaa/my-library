@@ -3,6 +3,7 @@ package com.gabriel.mylibrary.bookClub.clubInvite;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,9 @@ import com.gabriel.mylibrary.user.UserEntity;
 import com.gabriel.mylibrary.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClubInviteService {
@@ -36,6 +39,8 @@ public class ClubInviteService {
 
   @Transactional
   public ClubInviteDTO create(CreateClubInviteDTO clubInvite, UUID inviterId) {
+    log.info("[ClubInviteService] create | clubId={} inviteeId={} inviterId={}",
+        clubInvite.getBookClubId(), clubInvite.getInviteeId(), inviterId);
 
     validateBookClubInvite(clubInvite, inviterId);
 
@@ -44,14 +49,19 @@ public class ClubInviteService {
     clubInviteEntity.setInviter(userRepository.getReferenceById(inviterId));
     clubInviteEntity.setInvitee(userRepository.getReferenceById(clubInvite.getInviteeId()));
     clubInviteEntity.setBookClub(bookClubRepository.getReferenceById(clubInvite.getBookClubId()));
-    clubInviteRepository.save(clubInviteEntity);
+    clubInviteEntity.setToken(UUID.randomUUID().toString());
+    clubInviteEntity.setStatus(InviteStatus.PENDING);
+    clubInviteEntity.setExpiresAt(LocalDate.now().plusDays(7));
 
-    return clubInviteMapper.toDto(clubInviteEntity);
+    ClubInviteEntity savedClubInvite = clubInviteRepository.save(clubInviteEntity);
+
+    return clubInviteMapper.toDto(savedClubInvite);
   }
 
   @Modifying
   @Transactional
   public AcceptedClubInviteProjection accept(UUID inviteId, UUID loggedUserId) throws ResourceNotFoundException {
+    log.info("[ClubInviteService] accept | inviteId={} loggedUserId={}", inviteId, loggedUserId);
     ClubInviteEntity clubInviteEntity = clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("The specified invitation could not be found."));
 
@@ -65,6 +75,7 @@ public class ClubInviteService {
 
   @Transactional
   public void reject(UUID inviteId, UserEntity loggedUser) throws ResourceNotFoundException {
+    log.info("[ClubInviteService] reject | inviteId={} loggedUserId={}", inviteId, loggedUser.getId());
     ClubInviteEntity clubInviteEntity = clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("The specified invitation could not be found."));
 
@@ -74,6 +85,7 @@ public class ClubInviteService {
 
   @Transactional
   public void revoke(UUID inviteId, UUID loggedUserId) throws ResourceNotFoundException {
+    log.info("[ClubInviteService] revoke | inviteId={} loggedUserId={}", inviteId, loggedUserId);
     ClubInviteEntity clubInviteEntity = clubInviteRepository.findById(inviteId)
         .orElseThrow(() -> new ResourceNotFoundException("The specified invitation could not be found."));
 
@@ -82,17 +94,24 @@ public class ClubInviteService {
   }
 
   private void validateBookClubInvite(CreateClubInviteDTO clubInvite, UUID inviterId) {
+    log.info("[ClubInviteService] validateBookClubInvite | clubId={} inviteeId={} inviterId={}",
+        clubInvite.getBookClubId(), clubInvite.getInviteeId(), inviterId);
     validateInviterPermissions(clubInvite, inviterId);
     validateEntitiesExist(clubInvite);
     validateInviteConstraints(clubInvite, inviterId);
   }
 
   private void validateInviterPermissions(CreateClubInviteDTO clubInvite, UUID inviterId) throws ForbiddenException {
+    log.info("[ClubInviteService] validateInviterPermissions | clubId={} inviterId={}",
+        clubInvite.getBookClubId(), inviterId);
     if (!bookClubMemberService.isMemberAdmin(clubInvite.getBookClubId(), inviterId)) {
       throw new ForbiddenException("Insufficient permissions to invite members. Admin role required.");
     }
 
-    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getBookClubId(), inviterId)) {
+    System.out.println(
+        "Inviter is active: " + bookClubMemberService.isClubMemberActive(clubInvite.getBookClubId(), inviterId));
+
+    if (!bookClubMemberService.isClubMemberActive(clubInvite.getBookClubId(), inviterId)) {
       throw new ForbiddenException("Your account status does not allow you to send invitations.");
     }
   }
@@ -108,15 +127,21 @@ public class ClubInviteService {
   }
 
   private void validateInviteConstraints(CreateClubInviteDTO clubInvite, UUID inviterId) {
+    log.info("[ClubInviteService] validateInviteConstraints | clubId={} inviteeId={} inviterId={}",
+        clubInvite.getBookClubId(), clubInvite.getInviteeId(), inviterId);
     if (inviterId.equals(clubInvite.getInviteeId())) {
       throw new ResourceConflictException("You cannot invite yourself to a book club.");
     }
 
-    if (bookClubMemberService.isUserAlreadyAMember(clubInvite.getBookClubId(), clubInvite.getInviteeId())) {
+    Boolean isInviteeMember = bookClubMemberService.isUserAlreadyAMember(clubInvite.getBookClubId(),
+        clubInvite.getInviteeId());
+
+    if (isInviteeMember) {
       throw new ResourceConflictException("The user is already a member of this book club.");
     }
 
-    if (bookClubMemberService.isClubMemberBannedOrInactive(clubInvite.getBookClubId(), clubInvite.getInviteeId())) {
+    if (!bookClubMemberService.isClubMemberActive(clubInvite.getBookClubId(), clubInvite.getInviteeId())
+        && isInviteeMember) {
       throw new ResourceConflictException(
           "The user you are trying to invite has been banned or is inactive in this club.");
     }

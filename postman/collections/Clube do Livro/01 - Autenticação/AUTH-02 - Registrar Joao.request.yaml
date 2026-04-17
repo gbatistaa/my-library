@@ -1,0 +1,24 @@
+$kind: http-request
+name: 'AUTH-02 - Registrar Joao'
+method: POST
+url: '{{baseUrl}}/api/auth/register'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "joao_silva",
+      "email": "joao@mylibrary.com",
+      "password": "Senha@123",
+      "name": "João Silva"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("João registrado (200 ou 201)", () => {
+        pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+      });

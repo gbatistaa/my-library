@@ -1,0 +1,6 @@
+$kind: collection
+name: 06 - Reviews
+description: |-
+  Submissão e consulta de reviews do livro lido no ciclo encerrado.
+  Os 4 membros submetem suas avaliações com nota e comentário.
+order: 6

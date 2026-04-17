@@ -1,0 +1,30 @@
+$kind: http-request
+name: 'CYCLE-01 - Ativar Livro Atual'
+method: POST
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/activate'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "queueEntryId": "{{queueEntry1Id}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json.id) {
+        pm.environment.set("cycleId", json.id);
+        console.log("cycleId salvo:", json.id);
+      }
+      pm.test("Ciclo ativado (200)", () => pm.response.to.have.status(200));
+      pm.test("Ciclo tem id", () => pm.expect(json.id).to.be.a("string"));

@@ -1,0 +1,5 @@
+$kind: collection
+name: 04 - Ciclo de Leitura
+description: |-
+  Ativação do livro atual, registro de progresso pelos 4 membros e encerramento do ciclo.
+order: 4

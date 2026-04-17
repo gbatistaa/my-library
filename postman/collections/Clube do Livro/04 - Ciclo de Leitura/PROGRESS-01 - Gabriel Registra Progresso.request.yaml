@@ -1,0 +1,26 @@
+$kind: http-request
+name: 'PROGRESS-01 - Gabriel Registra Progresso'
+method: POST
+url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/progress'
+order: 3000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "currentPage": 150,
+      "totalPages": 412,
+      "notes": "Incrível a construção do mundo de Arrakis!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Progresso registrado (200)", () => pm.response.to.have.status(200));

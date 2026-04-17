@@ -19,7 +19,9 @@ import com.gabriel.mylibrary.user.UserEntity;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/club-invites")
 @RequiredArgsConstructor
@@ -31,6 +33,8 @@ public class ClubInviteController {
   public ResponseEntity<ClubInviteDTO> create(@RequestBody @Valid CreateClubInviteDTO clubInvite,
       @AuthenticationPrincipal UserEntity user)
       throws ResourceConflictException {
+    log.info("[ClubInviteController] create | requesterId={} clubId={} inviteeId={}",
+        user.getId(), clubInvite.getBookClubId(), clubInvite.getInviteeId());
     ClubInviteDTO clubInviteDTO = this.clubInviteService.create(clubInvite, user.getId());
     return ResponseEntity.ok(clubInviteDTO);
   }
@@ -39,6 +43,7 @@ public class ClubInviteController {
   public ResponseEntity<AcceptedClubInviteProjection> accept(@PathVariable UUID inviteId,
       @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
+    log.info("[ClubInviteController] accept | requesterId={} inviteId={}", user.getId(), inviteId);
     AcceptedClubInviteProjection acceptedClubInviteProjection = this.clubInviteService.accept(inviteId, user.getId());
     return ResponseEntity.ok(acceptedClubInviteProjection);
   }

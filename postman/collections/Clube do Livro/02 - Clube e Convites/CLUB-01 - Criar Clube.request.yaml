@@ -1,0 +1,33 @@
+$kind: http-request
+name: 'CLUB-01 - Criar Clube'
+method: POST
+url: '{{baseUrl}}/api/book-clubs'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ficção Galáctica",
+      "description": "Explorando os confins do universo através das páginas.",
+      "maxMembers": 10
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json.id) {
+        pm.environment.set("clubId", json.id);
+        console.log("clubId salvo:", json.id);
+      }
+      pm.test("Clube criado com sucesso (200)", () => pm.response.to.have.status(200));
+      pm.test("Clube tem id", () => pm.expect(json.id).to.be.a("string"));
+      pm.test("Nome do clube correto", () => pm.expect(json.name).to.eql("Ficção Galáctica"));

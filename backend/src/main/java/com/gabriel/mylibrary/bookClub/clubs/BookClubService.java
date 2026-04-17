@@ -32,7 +32,9 @@ import com.gabriel.mylibrary.common.errors.ResourceNotFoundException;
 import com.gabriel.mylibrary.user.UserEntity;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookClubService {
@@ -45,6 +47,7 @@ public class BookClubService {
 
   @Transactional
   public BookClubDTO create(CreateBookClubDTO bookClub, UserEntity admin) {
+    log.info("[BookClubService] create | clubName={} adminId={}", bookClub.getName(), admin.getId());
     BookClubEntity bookClubEntity = bookClubMapper.toEntity(bookClub);
     bookClubEntity.setAdmin(admin);
     bookClubEntity.setStatus(BookClubStatus.ACTIVE);
@@ -163,9 +166,12 @@ public class BookClubService {
   }
 
   private void requireAdmin(UUID clubId, UUID requesterId) {
+    log.info("[BookClubService] requireAdmin | clubId={} requesterId={}", clubId, requesterId);
     boolean isAdmin = bookClubMemberRepository
         .existsByBookClubIdAndUserIdAndRole(clubId, requesterId, BookClubMemberRole.ADMIN);
     if (!isAdmin) {
+      log.warn("[BookClubService] requireAdmin | FAILED - Not an admin | clubId={} requesterId={}", clubId,
+          requesterId);
       throw new ForbiddenException("Only a club admin can perform this action.");
     }
   }

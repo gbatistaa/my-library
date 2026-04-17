@@ -1,0 +1,30 @@
+$kind: http-request
+name: 'INVITE-02 - Convidar Maria'
+method: POST
+url: '{{baseUrl}}/club-invites'
+order: 5000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{adminToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "bookClubId": "{{clubId}}",
+      "inviteeUsername": "maria_oli"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const json = pm.response.json();
+      if (json.id) {
+        pm.environment.set("inv2Id", json.id);
+        console.log("inv2Id salvo:", json.id);
+      }
+      pm.test("Convite criado (200)", () => pm.response.to.have.status(200));

@@ -14,9 +14,12 @@ import com.gabriel.mylibrary.bookClub.clubInvite.enums.InviteStatus;
 
 @Repository
 public interface ClubInviteRepository extends JpaRepository<ClubInviteEntity, UUID> {
-  Boolean existsByBookClubIdAndInviteeId(UUID clubId, UUID inviteeId);
+  @Query("SELECT COUNT(i) > 0 FROM ClubInviteEntity i WHERE i.bookClub.id = :clubId AND i.invitee.id = :inviteeId")
+  Boolean existsByBookClubIdAndInviteeId(@Param("clubId") UUID clubId, @Param("inviteeId") UUID inviteeId);
 
-  Boolean existsByBookClubIdAndInviteeIdAndStatus(UUID clubId, UUID inviteeId, InviteStatus status);
+  @Query("SELECT COUNT(i) > 0 FROM ClubInviteEntity i WHERE i.bookClub.id = :clubId AND i.invitee.id = :inviteeId AND i.status = :status")
+  Boolean existsByBookClubIdAndInviteeIdAndStatus(@Param("clubId") UUID clubId, @Param("inviteeId") UUID inviteeId,
+      @Param("status") InviteStatus status);
 
   Boolean existsByStatusIn(List<InviteStatus> statuses);
 

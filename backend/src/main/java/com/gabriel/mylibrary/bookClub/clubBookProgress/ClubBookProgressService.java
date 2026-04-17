@@ -91,20 +91,20 @@ public class ClubBookProgressService {
     checkAndAutoClose(clubBook);
 
     log.info("[ClubBookProgressService] updateProgress | complete progressId={} status={}", progressId, saved.getStatus());
-    return mapper.toDTO(saved);
+    return mapper.toDTOWithPercent(saved);
   }
 
   @Transactional(readOnly = true)
   public ClubBookProgressDTO findById(UUID id) {
     return repository.findById(id)
-        .map(mapper::toDTO)
+        .map(mapper::toDTOWithPercent)
         .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
   }
 
   @Transactional(readOnly = true)
   public ClubBookProgressDTO findByMemberAndClubBook(UUID memberId, UUID clubBookId) {
     return repository.findByMemberIdAndClubBookId(memberId, clubBookId)
-        .map(mapper::toDTO)
+        .map(mapper::toDTOWithPercent)
         .orElseThrow(() -> new ResourceNotFoundException("Club book progress not found."));
   }
 
@@ -113,7 +113,7 @@ public class ClubBookProgressService {
     requireMember(clubId, requesterId);
     requireClubBookExists(clubId, clubBookId);
     return repository.findAllByClubBookId(clubBookId).stream()
-        .map(mapper::toDTO)
+        .map(mapper::toDTOWithPercent)
         .toList();
   }
 
@@ -122,7 +122,7 @@ public class ClubBookProgressService {
     BookClubMemberEntity member = requireActiveMember(clubId, requesterId);
     requireClubBookExists(clubId, clubBookId);
     return repository.findByMemberIdAndClubBookId(member.getId(), clubBookId)
-        .map(mapper::toDTO)
+        .map(mapper::toDTOWithPercent)
         .orElseThrow(() -> new ResourceNotFoundException("Progress record not found for this member and book."));
   }
 

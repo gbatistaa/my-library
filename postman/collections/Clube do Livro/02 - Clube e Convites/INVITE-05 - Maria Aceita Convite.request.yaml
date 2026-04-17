@@ -1,0 +1,15 @@
+$kind: http-request
+name: 'INVITE-05 - Maria Aceita Convite'
+method: POST
+url: '{{baseUrl}}/club-invites/{{inv2Id}}/accept'
+order: 8000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{mariaToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Maria aceitou convite (200)", () => pm.response.to.have.status(200));
