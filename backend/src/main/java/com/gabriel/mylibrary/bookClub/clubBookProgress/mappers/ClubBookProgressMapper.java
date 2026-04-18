@@ -1,9 +1,7 @@
 package com.gabriel.mylibrary.bookClub.clubBookProgress.mappers;
 
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.gabriel.mylibrary.bookClub.clubBookProgress.ClubBookProgressEntity;

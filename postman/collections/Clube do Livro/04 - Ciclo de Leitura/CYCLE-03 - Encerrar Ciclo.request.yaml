@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CYCLE-03 - Encerrar Ciclo'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/{{cycleId}}/close'
+url: '{{baseUrl}}/book-clubs/{{clubId}}/reading-cycle/{{cycleId}}/close'
 order: 8000
 auth:
   type: bearer

@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CLUB-01 - Criar Clube'
 method: POST
-url: '{{baseUrl}}/api/book-clubs'
+url: '{{baseUrl}}/book-clubs'
 order: 1000
 auth:
   type: bearer

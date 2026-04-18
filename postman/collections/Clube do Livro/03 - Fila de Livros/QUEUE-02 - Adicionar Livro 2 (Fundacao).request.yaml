@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'QUEUE-02 - Adicionar Livro 2 (Fundacao)'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue'
+url: '{{baseUrl}}/book-clubs/{{clubId}}/queue'
 order: 2000
 auth:
   type: bearer

@@ -1,11 +1,10 @@
 $kind: http-request
-name: 'AUTH-04 - Registrar Ana'
+name: AUTH-04 - Registrar Ana
 method: POST
-url: '{{baseUrl}}/api/auth/register'
+url: "{{baseUrl}}/auth/register"
 order: 4000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
@@ -17,8 +16,8 @@ body:
     }
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test("Ana registrada (200 ou 201)", () => {
         pm.expect(pm.response.code).to.be.oneOf([200, 201]);
       });
+    language: text/javascript

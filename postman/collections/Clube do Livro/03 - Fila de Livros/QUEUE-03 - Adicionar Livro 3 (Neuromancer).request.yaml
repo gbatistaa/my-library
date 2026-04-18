@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'QUEUE-03 - Adicionar Livro 3 (Neuromancer)'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue'
+url: '{{baseUrl}}/book-clubs/{{clubId}}/queue'
 order: 3000
 auth:
   type: bearer

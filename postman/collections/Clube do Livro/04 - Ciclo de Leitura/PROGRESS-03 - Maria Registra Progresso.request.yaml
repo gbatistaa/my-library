@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'PROGRESS-03 - Maria Registra Progresso'
 method: POST
-url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/progress'
+url: '{{baseUrl}}/reading-cycles/{{cycleId}}/progress'
 order: 5000
 auth:
   type: bearer

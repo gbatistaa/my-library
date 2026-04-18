@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CYCLE-01 - Ativar Livro Atual'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/activate'
+url: '{{baseUrl}}/book-clubs/{{clubId}}/reading-cycle/activate'
 order: 1000
 auth:
   type: bearer

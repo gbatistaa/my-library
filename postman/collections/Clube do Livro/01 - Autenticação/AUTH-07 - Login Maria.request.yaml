@@ -1,11 +1,10 @@
 $kind: http-request
-name: 'AUTH-07 - Login Maria'
+name: AUTH-07 - Login Maria
 method: POST
-url: '{{baseUrl}}/api/auth/login'
+url: "{{baseUrl}}/auth/login"
 order: 7000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
@@ -15,7 +14,6 @@ body:
     }
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       const json = pm.response.json();
       const token = json.token || json.accessToken || json.access_token;
@@ -25,3 +23,4 @@ scripts:
       }
       pm.test("Login Maria (200)", () => pm.response.to.have.status(200));
       pm.test("Token recebido", () => pm.expect(token).to.be.a("string"));
+    language: text/javascript

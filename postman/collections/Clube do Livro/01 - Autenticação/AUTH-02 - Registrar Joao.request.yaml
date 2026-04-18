@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'AUTH-02 - Registrar Joao'
 method: POST
-url: '{{baseUrl}}/api/auth/register'
+url: '{{baseUrl}}/auth/register'
 order: 2000
 headers:
   - key: Content-Type

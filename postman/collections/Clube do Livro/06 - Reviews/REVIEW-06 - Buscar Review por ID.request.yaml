@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'REVIEW-06 - Buscar Review por ID'
 method: GET
-url: '{{baseUrl}}/api/reviews/{{review1Id}}'
+url: '{{baseUrl}}/reviews/{{review1Id}}'
 order: 6000
 auth:
   type: bearer

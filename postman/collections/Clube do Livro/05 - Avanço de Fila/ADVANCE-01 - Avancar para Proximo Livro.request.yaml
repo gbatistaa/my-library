@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'ADVANCE-01 - Avancar para Proximo Livro'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue/advance'
+url: '{{baseUrl}}/book-clubs/{{clubId}}/queue/advance'
 order: 1000
 auth:
   type: bearer
