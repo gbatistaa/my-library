@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CYCLE-02 - Buscar Ciclo Atual'
 method: GET
-url: '{{baseUrl}}/book-clubs/{{clubId}}/reading-cycle/current'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/current'
 order: 2000
 auth:
   type: bearer

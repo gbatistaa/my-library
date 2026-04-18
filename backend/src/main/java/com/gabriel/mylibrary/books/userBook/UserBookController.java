@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/user-books")
+@RequestMapping("/api/user-books")
 @RequiredArgsConstructor
 public class UserBookController {
 

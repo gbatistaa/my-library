@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'MEMBERS-01 - Listar Membros do Clube'
 method: GET
-url: '{{baseUrl}}/members/club/{{clubId}}'
+url: '{{baseUrl}}/api/members/club/{{clubId}}'
 order: 10000
 auth:
   type: bearer

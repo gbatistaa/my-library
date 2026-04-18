@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'PROGRESS-05 - Listar Progresso do Ciclo'
 method: GET
-url: '{{baseUrl}}/reading-cycles/{{cycleId}}/progress'
+url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/progress'
 order: 7000
 auth:
   type: bearer

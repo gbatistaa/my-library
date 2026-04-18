@@ -18,7 +18,7 @@ import com.gabriel.mylibrary.books.dtos.BookDTO;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/books")
 @RequiredArgsConstructor
 public class BookController {
 

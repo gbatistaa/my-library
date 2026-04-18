@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/reading-sessions")
+@RequestMapping("/api/reading-sessions")
 @RequiredArgsConstructor
 public class ReadingSessionController {
 

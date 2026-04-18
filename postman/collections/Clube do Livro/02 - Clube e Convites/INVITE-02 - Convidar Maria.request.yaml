@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'INVITE-02 - Convidar Maria'
 method: POST
-url: '{{baseUrl}}/club-invites'
+url: '{{baseUrl}}/api/club-invites'
 order: 5000
 auth:
   type: bearer

@@ -1,7 +1,7 @@
 $kind: http-request
 name: AUTH-05 - Login Gabriel
 method: POST
-url: "{{baseUrl}}/auth/login"
+url: "{{baseUrl}}/api/auth/login"
 order: 5000
 headers:
   Content-Type: application/json
@@ -10,7 +10,9 @@ body:
   content: |-
     {
       "username": "gabriel_admin",
-      "password": "Senha@123"
+      "password": "Senha@123",
+      "deviceId": "device-gabriel-001",
+      "deviceName": "{{deviceName}}"
     }
 scripts:
   - type: afterResponse

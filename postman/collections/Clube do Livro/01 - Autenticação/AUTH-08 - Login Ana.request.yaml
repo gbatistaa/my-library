@@ -1,7 +1,7 @@
 $kind: http-request
 name: AUTH-08 - Login Ana
 method: POST
-url: "{{baseUrl}}/auth/login"
+url: "{{baseUrl}}/api/auth/login"
 order: 8000
 headers:
   Content-Type: application/json
@@ -10,7 +10,9 @@ body:
   content: |-
     {
       "username": "ana_cruz",
-      "password": "Senha@123"
+      "password": "Senha@123",
+      "deviceId": "device-ana-001",
+      "deviceName": "{{deviceName}}"
     }
 scripts:
   - type: afterResponse

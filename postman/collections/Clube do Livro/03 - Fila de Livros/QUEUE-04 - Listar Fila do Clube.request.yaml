@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'QUEUE-04 - Listar Fila do Clube'
 method: GET
-url: '{{baseUrl}}/book-clubs/{{clubId}}/queue'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue'
 order: 4000
 auth:
   type: bearer

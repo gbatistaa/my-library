@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  * other endpoints for admin use.
  */
 @RestController
-@RequestMapping("/auth/sessions")
+@RequestMapping("/api/auth/sessions")
 @RequiredArgsConstructor
 public class RefreshTokenController {
 

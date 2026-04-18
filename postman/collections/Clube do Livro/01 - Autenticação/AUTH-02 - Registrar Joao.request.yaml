@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'AUTH-02 - Registrar Joao'
 method: POST
-url: '{{baseUrl}}/auth/register'
+url: '{{baseUrl}}/api/auth/register'
 order: 2000
 headers:
   - key: Content-Type
@@ -13,7 +13,10 @@ body:
       "username": "joao_silva",
       "email": "joao@mylibrary.com",
       "password": "Senha@123",
-      "name": "João Silva"
+      "name": "João Silva",
+      "birthDate": "1992-05-15",
+      "deviceId": "device-joao-001",
+      "deviceName": "{{deviceName}}"
     }
 scripts:
   - type: afterResponse

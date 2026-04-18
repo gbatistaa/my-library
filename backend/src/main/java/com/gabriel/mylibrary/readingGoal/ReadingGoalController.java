@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/reading-goals")
+@RequestMapping("/api/reading-goals")
 @RequiredArgsConstructor
 public class ReadingGoalController {
 

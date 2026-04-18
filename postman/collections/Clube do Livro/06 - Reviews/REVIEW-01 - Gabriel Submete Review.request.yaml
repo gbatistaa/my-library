@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'REVIEW-01 - Gabriel Submete Review'
 method: POST
-url: '{{baseUrl}}/reading-cycles/{{cycleId}}/reviews'
+url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/reviews'
 order: 1000
 auth:
   type: bearer

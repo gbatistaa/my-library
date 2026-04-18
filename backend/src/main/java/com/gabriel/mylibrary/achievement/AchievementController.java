@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/achievements")
+@RequestMapping("/api/achievements")
 @RequiredArgsConstructor
 public class AchievementController {
 

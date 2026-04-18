@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/library") // Isso define o prefixo da URL
+@RequestMapping("/api/library") // Isso define o prefixo da URL
 public class LibraryController {
 
   @GetMapping("/")

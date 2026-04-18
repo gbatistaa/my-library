@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CLUB-03 - Buscar Clube por ID'
 method: GET
-url: '{{baseUrl}}/book-clubs/{{clubId}}'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}'
 order: 3000
 auth:
   type: bearer

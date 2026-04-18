@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/sagas")
+@RequestMapping("/api/sagas")
 @RequiredArgsConstructor
 public class SagaController {
 

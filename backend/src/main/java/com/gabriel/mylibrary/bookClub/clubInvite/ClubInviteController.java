@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/club-invites")
+@RequestMapping("/api/club-invites")
 @RequiredArgsConstructor
 public class ClubInviteController {
 

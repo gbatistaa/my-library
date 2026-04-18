@@ -1,58 +1,44 @@
 name: MyLibrary Local
 values:
   - key: baseUrl
+    enabled: true
     value: 'http://localhost:8080'
-    type: default
-    enabled: true
   - key: adminToken
-    value: ''
-    type: secret
     enabled: true
+    value: ''
   - key: joaoToken
-    value: ''
-    type: secret
     enabled: true
+    value: ''
   - key: mariaToken
-    value: ''
-    type: secret
     enabled: true
+    value: ''
   - key: anaToken
-    value: ''
-    type: secret
     enabled: true
+    value: ''
   - key: clubId
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: b1Id
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: b2Id
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: b3Id
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: inv1Id
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: inv2Id
-    value: ''
-    type: default
     enabled: true
+    value: ''
   - key: inv3Id
+    enabled: true
     value: ''
-    type: default
-    enabled: true
   - key: deviceId
-    value: 'book-club-tester-001'
-    type: default
     enabled: true
+    value: book-club-tester-001
   - key: deviceName
-    value: 'Book Club Flow Tester'
-    type: default
     enabled: true
+    value: Book Club Flow Tester
