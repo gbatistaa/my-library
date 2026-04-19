@@ -13,4 +13,6 @@ public interface BookMapper {
   BookEntity toEntity(GoogleBookVolumeDTO volume);
 
   BookDTO toDto(BookEntity bookEntity);
+
+  BookDTO toDto(GoogleBookVolumeDTO volume);
 }

@@ -8,6 +8,7 @@ export interface BookCategoryDTO {
 
 export interface BookDTO {
   id: string;
+  googleBooksId?: string;
   title: string;
   author: string;
   rating: number | null;
@@ -20,6 +21,17 @@ export interface BookDTO {
   startDate: string | null;
   finishDate: string | null;
   notes: string | null;
+}
+
+export interface CatalogBookDTO {
+  id: string | null;
+  googleBooksId: string;
+  title: string;
+  author: string;
+  pages: number;
+  coverUrl: string | null;
+  description: string | null;
+  publishedDate: string | null;
 }
 
 export interface SagaDTO {

@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books.googleBooks;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +18,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 import com.gabriel.mylibrary.books.googleBooks.dto.GoogleBookVolumeDTO;
 import com.gabriel.mylibrary.books.googleBooks.dto.GoogleVolumeResponse;
+import com.gabriel.mylibrary.books.googleBooks.dto.GoogleVolumesListResponse;
 import com.gabriel.mylibrary.books.googleBooks.dto.GoogleVolumeResponse.IndustryIdentifier;
 import com.gabriel.mylibrary.books.googleBooks.dto.GoogleVolumeResponse.VolumeInfo;
 import com.gabriel.mylibrary.common.errors.GoogleBooksException;
@@ -60,6 +62,40 @@ public class DefaultGoogleBooksClientService implements GoogleBooksClientService
     } catch (ResourceAccessException e) {
       log.warn("Google Books API network failure for volume {}: {}", googleBooksId, e.getMessage());
       throw new GoogleBooksException("Google Books API is unreachable.", e);
+    }
+  }
+
+  @Override
+  public List<GoogleBookVolumeDTO> searchByTitle(String query, int maxResults) {
+    try {
+      GoogleVolumesListResponse response = googleBooksRestClient.get()
+          .uri(uriBuilder -> uriBuilder
+              .path("/volumes")
+              .queryParam("q", query)
+              .queryParam("maxResults", maxResults)
+              .queryParam("printType", "books")
+              .queryParam("orderBy", "relevance")
+              .queryParamIfPresent("key", props.hasApiKey() ? Optional.of(props.apiKey()) : Optional.empty())
+              .build())
+          .retrieve()
+          .body(GoogleVolumesListResponse.class);
+
+      if (response == null || response.items() == null) {
+        return List.of();
+      }
+
+      List<GoogleBookVolumeDTO> results = new ArrayList<>();
+      for (GoogleVolumeResponse item : response.items()) {
+        try {
+          results.add(toVolumeDto(item));
+        } catch (Exception e) {
+          log.debug("Skipping Google Books volume {}: {}", item.id(), e.getMessage());
+        }
+      }
+      return results;
+    } catch (Exception e) {
+      log.warn("Google Books search failed for query '{}': {}", query, e.getMessage());
+      return List.of();
     }
   }
 

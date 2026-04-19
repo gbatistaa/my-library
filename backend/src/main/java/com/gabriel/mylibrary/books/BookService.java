@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -44,6 +45,12 @@ public class BookService {
     String query = title == null ? "" : title;
     return bookRepository.findByTitleContainingIgnoreCase(query, pageable)
         .map(bookMapper::toDto);
+  }
+
+  public List<BookDTO> searchGoogleBooks(String query) {
+    return googleBooksClientService.searchByTitle(query, 10).stream()
+        .map(volume -> bookMapper.toDto(volume))
+        .toList();
   }
 
   /**

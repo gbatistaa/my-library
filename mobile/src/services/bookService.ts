@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { BookDTO, BookStatus } from "@/src/types/book";
+import type { BookDTO, BookStatus, CatalogBookDTO } from "@/src/types/book";
 
 export interface CreateBookPayload {
   title: string;
@@ -86,4 +86,16 @@ export async function updateBook(id: string, payload: UpdateBookPayload): Promis
 
 export async function deleteBook(id: string): Promise<void> {
   await api.delete(`/books/${id}`);
+}
+
+export async function searchGoogleBooks(query: string): Promise<CatalogBookDTO[]> {
+  const { data } = await api.get<CatalogBookDTO[]>("/books/google-search", {
+    params: { q: query },
+  });
+  return data ?? [];
+}
+
+export async function addToLibrary(googleBooksId: string, status: BookStatus): Promise<BookDTO> {
+  const { data } = await api.post<BookDTO>("/user-books", { googleBooksId, status });
+  return data;
 }

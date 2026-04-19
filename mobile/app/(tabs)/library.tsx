@@ -7,8 +7,10 @@ import {
   TextInput,
   Pressable,
   Image,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -22,12 +24,13 @@ import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
-import { getAllBooks, searchBooks } from "@/src/services/bookService";
+import { getAllBooks, searchBooks, searchGoogleBooks, addToLibrary } from "@/src/services/bookService";
 import { getSagas } from "@/src/services/sagaService";
 import { getCategories } from "@/src/services/categoryService";
 import type {
   BookDTO,
   BookStatus,
+  CatalogBookDTO,
   SagaDTO,
   CategoryDTO,
 } from "@/src/types/book";
@@ -288,6 +291,175 @@ function FABMenu({
   );
 }
 
+/* ─── GoogleBookRow ─── */
+
+function GoogleBookRow({
+  book,
+  onAdd,
+}: {
+  book: CatalogBookDTO;
+  onAdd: (book: CatalogBookDTO) => void;
+}) {
+  return (
+    <View className="flex-row items-center gap-3 py-3 border-b border-slate-100 dark:border-slate-800">
+      {book.coverUrl ? (
+        <Image
+          source={{ uri: book.coverUrl }}
+          className="rounded-lg w-10 h-14"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="justify-center items-center bg-slate-100 dark:bg-slate-900 rounded-lg w-10 h-14">
+          <Text className="text-xl">📖</Text>
+        </View>
+      )}
+      <View className="flex-1">
+        <Text
+          className="font-semibold text-slate-900 dark:text-slate-50 text-[13px] leading-[17px]"
+          numberOfLines={2}
+        >
+          {book.title}
+        </Text>
+        <Text className="mt-0.5 text-slate-500 dark:text-slate-400 text-[11px]" numberOfLines={1}>
+          {book.author}
+        </Text>
+        {book.pages > 0 && (
+          <Text className="mt-0.5 text-slate-400 dark:text-slate-600 text-[10px]">
+            {book.pages} pages
+          </Text>
+        )}
+      </View>
+      <Pressable
+        onPress={() => onAdd(book)}
+        className="justify-center items-center bg-violet-600 dark:bg-violet-500 active:opacity-70 rounded-full w-8 h-8"
+        hitSlop={8}
+      >
+        <Feather name="plus" size={16} color="#fff" />
+      </Pressable>
+    </View>
+  );
+}
+
+/* ─── AddToLibraryModal ─── */
+
+const STATUS_OPTIONS: { value: BookStatus; label: string; color: string }[] = [
+  { value: "TO_READ", label: "To Read", color: "#94A3B8" },
+  { value: "READING", label: "Reading", color: "#f59e0b" },
+  { value: "COMPLETED", label: "Completed", color: "#10b981" },
+  { value: "DROPPED", label: "Dropped", color: "#ef4444" },
+];
+
+function AddToLibraryModal({
+  book,
+  visible,
+  onClose,
+  onConfirm,
+  loading,
+}: {
+  book: CatalogBookDTO | null;
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: (status: BookStatus) => void;
+  loading: boolean;
+}) {
+  const [selectedStatus, setSelectedStatus] = useState<BookStatus>("TO_READ");
+
+  useEffect(() => {
+    if (visible) setSelectedStatus("TO_READ");
+  }, [visible]);
+
+  if (!book) return null;
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable
+        className="flex-1 justify-end bg-black/50"
+        onPress={onClose}
+      >
+        <Pressable
+          className="bg-white dark:bg-slate-900 px-6 pt-6 pb-10 rounded-t-3xl"
+          onPress={(e) => e.stopPropagation()}
+        >
+          {/* Book preview */}
+          <View className="flex-row items-center gap-4 mb-6">
+            {book.coverUrl ? (
+              <Image
+                source={{ uri: book.coverUrl }}
+                className="rounded-xl w-14 h-20"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="justify-center items-center bg-slate-100 dark:bg-slate-800 rounded-xl w-14 h-20">
+                <Text className="text-2xl">📖</Text>
+              </View>
+            )}
+            <View className="flex-1">
+              <Text
+                className="font-bold text-slate-900 dark:text-slate-50 text-[15px] leading-[19px]"
+                numberOfLines={2}
+              >
+                {book.title}
+              </Text>
+              <Text className="mt-1 text-slate-500 dark:text-slate-400 text-[12px]">
+                {book.author}
+              </Text>
+              {book.pages > 0 && (
+                <Text className="mt-0.5 text-slate-400 dark:text-slate-600 text-[11px]">
+                  {book.pages} pages
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Status picker */}
+          <Text className="mb-3 font-bold text-slate-400 dark:text-slate-500 text-xs uppercase tracking-widest">
+            Add as
+          </Text>
+          <View className="flex-row flex-wrap gap-2 mb-6">
+            {STATUS_OPTIONS.map((opt) => (
+              <Pressable
+                key={opt.value}
+                onPress={() => setSelectedStatus(opt.value)}
+                className="px-4 py-2 rounded-full"
+                style={{
+                  backgroundColor:
+                    selectedStatus === opt.value ? opt.color : "transparent",
+                  borderWidth: 1.5,
+                  borderColor: opt.color,
+                }}
+              >
+                <Text
+                  className="font-bold text-[12px]"
+                  style={{
+                    color: selectedStatus === opt.value ? "#fff" : opt.color,
+                  }}
+                >
+                  {opt.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Confirm button */}
+          <Pressable
+            onPress={() => onConfirm(selectedStatus)}
+            disabled={loading}
+            className="justify-center items-center bg-violet-600 dark:bg-violet-500 active:opacity-80 py-4 rounded-2xl"
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="font-bold text-white text-[15px]">
+                Add to Library
+              </Text>
+            )}
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
 /* ─── Empty state ─── */
 
 function EmptyBooks({ hasSearch }: { hasSearch: boolean }) {
@@ -312,11 +484,13 @@ export default function LibraryScreen() {
   const router = useRouter();
   const { mode } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [fabOpen, setFabOpen] = useState(false);
+  const [selectedGoogleBook, setSelectedGoogleBook] = useState<CatalogBookDTO | null>(null);
   const searchAnimatedValue = useSharedValue(0);
 
   const iconColor = mode === "dark" ? "#A78BFA" : "#6b38d4";
@@ -336,7 +510,7 @@ export default function LibraryScreen() {
   }), [purple, inactiveBorder]);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(searchQuery), 500);
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 300);
     return () => clearTimeout(t);
   }, [searchQuery]);
 
@@ -350,6 +524,22 @@ export default function LibraryScreen() {
     queryKey: ["books", "all"],
     queryFn: () => getAllBooks(),
     enabled: debouncedQuery.length === 0,
+  });
+
+  const { data: googleResults, isFetching: googleFetching } = useQuery({
+    queryKey: ["google-books", "search", debouncedQuery],
+    queryFn: () => searchGoogleBooks(debouncedQuery),
+    enabled: debouncedQuery.length > 1,
+    staleTime: 60_000,
+  });
+
+  const { mutate: doAddToLibrary, isPending: addingToLibrary } = useMutation({
+    mutationFn: ({ googleBooksId, status }: { googleBooksId: string; status: BookStatus }) =>
+      addToLibrary(googleBooksId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+      setSelectedGoogleBook(null);
+    },
   });
 
   const { data: categories } = useQuery({
@@ -371,6 +561,14 @@ export default function LibraryScreen() {
       )
     : rawBooks;
 
+  // Filter Google Books results to exclude books already in the user's library (by title)
+  const libraryTitles = new Set(
+    rawBooks.map((b) => b.title.toLowerCase().trim()),
+  );
+  const filteredGoogleResults = (googleResults ?? []).filter(
+    (g) => !libraryTitles.has(g.title.toLowerCase().trim()),
+  );
+
   const safeCategories: CategoryDTO[] = Array.isArray(categories)
     ? categories
     : [];
@@ -379,6 +577,18 @@ export default function LibraryScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-slate-950">
       <StatusBar style={mode === "dark" ? "light" : "dark"} />
+
+      <AddToLibraryModal
+        book={selectedGoogleBook}
+        visible={selectedGoogleBook !== null}
+        onClose={() => setSelectedGoogleBook(null)}
+        onConfirm={(status) => {
+          if (selectedGoogleBook?.googleBooksId) {
+            doAddToLibrary({ googleBooksId: selectedGoogleBook.googleBooksId, status });
+          }
+        }}
+        loading={addingToLibrary}
+      />
 
       <FABMenu
         open={fabOpen}
@@ -556,7 +766,7 @@ export default function LibraryScreen() {
         <Animated.View entering={FadeIn.duration(400).delay(180)}>
           <View className="flex-row justify-between items-center mb-5 px-1">
             <Text className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-[3px]">
-              Books
+              {debouncedQuery.length > 0 ? "Your Library" : "Books"}
             </Text>
             <Text className="font-bold text-slate-400 dark:text-slate-700 text-xs">
               {filteredBooks.length} Items
@@ -573,6 +783,55 @@ export default function LibraryScreen() {
             </View>
           )}
         </Animated.View>
+
+        {/* Google Books section — only during search */}
+        {debouncedQuery.length > 1 && (googleFetching || filteredGoogleResults.length > 0) && (
+          <Animated.View
+            entering={FadeInDown.duration(300)}
+            className="mt-10"
+          >
+            <View className="flex-row justify-between items-center mb-4 px-1">
+              <Text className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-[3px]">
+                Add from Google Books
+              </Text>
+              {googleFetching ? (
+                <ActivityIndicator size="small" color={iconColor} />
+              ) : (
+                <Text className="font-bold text-slate-400 dark:text-slate-700 text-xs">
+                  {filteredGoogleResults.length} Results
+                </Text>
+              )}
+            </View>
+
+            {googleFetching ? (
+              /* Skeleton rows while loading */
+              <View className="bg-slate-50 dark:bg-slate-900 px-4 rounded-2xl overflow-hidden">
+                {[0, 1, 2].map((i) => (
+                  <View
+                    key={i}
+                    className="flex-row items-center gap-3 py-3 border-b border-slate-100 dark:border-slate-800"
+                  >
+                    <View className="bg-slate-200 dark:bg-slate-800 rounded-lg w-10 h-14" />
+                    <View className="flex-1 gap-2">
+                      <View className="bg-slate-200 dark:bg-slate-800 rounded w-3/4 h-3" />
+                      <View className="bg-slate-200 dark:bg-slate-800 rounded w-1/2 h-2.5" />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View className="bg-slate-50 dark:bg-slate-900 px-4 rounded-2xl overflow-hidden">
+                {filteredGoogleResults.map((book) => (
+                  <GoogleBookRow
+                    key={book.googleBooksId}
+                    book={book}
+                    onAdd={setSelectedGoogleBook}
+                  />
+                ))}
+              </View>
+            )}
+          </Animated.View>
+        )}
       </ScrollView>
     </View>
   );

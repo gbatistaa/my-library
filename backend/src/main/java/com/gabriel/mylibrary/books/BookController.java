@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -39,5 +40,10 @@ public class BookController {
       @RequestParam(required = false) String title,
       @PageableDefault(size = 10, sort = "title") Pageable pageable) {
     return ResponseEntity.ok(bookService.searchCatalog(title, pageable));
+  }
+
+  @GetMapping(value = "/google-search", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<BookDTO>> googleSearch(@RequestParam String q) {
+    return ResponseEntity.ok(bookService.searchGoogleBooks(q));
   }
 }

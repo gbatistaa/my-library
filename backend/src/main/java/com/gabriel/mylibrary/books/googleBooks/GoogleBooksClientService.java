@@ -1,5 +1,6 @@
 package com.gabriel.mylibrary.books.googleBooks;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.gabriel.mylibrary.books.googleBooks.dto.GoogleBookVolumeDTO;
@@ -16,4 +17,11 @@ public interface GoogleBooksClientService {
    * required by the catalog (title, author, pageCount).
    */
   Optional<GoogleBookVolumeDTO> fetchByVolumeId(String googleBooksId);
+
+  /**
+   * Searches Google Books by title query. Returns up to {@code maxResults} volumes.
+   * Volumes missing title, author, or page count are silently skipped.
+   * Returns an empty list on network errors instead of throwing.
+   */
+  List<GoogleBookVolumeDTO> searchByTitle(String query, int maxResults);
 }

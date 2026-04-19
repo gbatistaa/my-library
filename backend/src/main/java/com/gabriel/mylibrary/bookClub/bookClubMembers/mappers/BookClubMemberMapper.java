@@ -10,12 +10,13 @@ import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberEntity;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.BookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.CreateBookClubMemberDTO;
 import com.gabriel.mylibrary.bookClub.bookClubMembers.dtos.UpdateBookClubMemberDTO;
+import com.gabriel.mylibrary.user.mappers.UserMapper;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = { UserMapper.class }, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface BookClubMemberMapper {
 
   @Mapping(target = "bookClubId", source = "bookClub.id")
-  @Mapping(target = "userId", source = "user.id")
+  @Mapping(target = "user", source = "user")
   @Mapping(target = "joinedAt", source = "createdAt")
   BookClubMemberDTO toDto(BookClubMemberEntity bookClubMember);
 
