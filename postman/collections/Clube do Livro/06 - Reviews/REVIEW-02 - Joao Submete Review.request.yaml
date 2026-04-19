@@ -16,7 +16,7 @@ body:
   content: |-
     {
       "rating": 4,
-      "comment": "Excelente livro, mas a densidade da narrativa exige paciência. Vale muito a pena."
+      "reviewText": "Excelente livro, mas a densidade da narrativa exige paciência. Vale muito a pena."
     }
 scripts:
   - type: afterResponse

@@ -3,7 +3,6 @@ package com.gabriel.mylibrary.bookClub.clubInvite;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

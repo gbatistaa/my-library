@@ -16,7 +16,7 @@ body:
   content: |-
     {
       "rating": 5,
-      "comment": "Simplesmente perfeito. A jornada de Paul Atreides é inesquecível."
+      "reviewText": "Simplesmente perfeito. A jornada de Paul Atreides é inesquecível."
     }
 scripts:
   - type: afterResponse

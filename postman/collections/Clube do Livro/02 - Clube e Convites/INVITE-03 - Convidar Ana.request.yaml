@@ -16,7 +16,7 @@ body:
   content: |-
     {
       "bookClubId": "{{clubId}}",
-      "inviteeUsername": "ana_cruz"
+      "inviteeId": "{{anaId}}"
     }
 scripts:
   - type: afterResponse

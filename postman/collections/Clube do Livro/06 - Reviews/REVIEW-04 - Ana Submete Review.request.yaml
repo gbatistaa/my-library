@@ -16,7 +16,7 @@ body:
   content: |-
     {
       "rating": 4,
-      "comment": "Muito bom! A ecologia de Arrakis é um personagem por si só."
+      "reviewText": "Muito bom! A ecologia de Arrakis é um personagem por si só."
     }
 scripts:
   - type: afterResponse

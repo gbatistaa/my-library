@@ -16,7 +16,7 @@ body:
   content: |-
     {
       "rating": 5,
-      "comment": "Duna é uma obra-prima da ficção científica. A construção do universo é incomparável, com política, religião e ecologia entrelaçados de forma magistral."
+      "reviewText": "Duna é uma obra-prima da ficção científica. A construção do universo é incomparável, com política, religião e ecologia entrelaçados de forma magistral."
     }
 scripts:
   - type: afterResponse

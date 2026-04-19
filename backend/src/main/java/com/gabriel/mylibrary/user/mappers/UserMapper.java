@@ -7,10 +7,15 @@ import com.gabriel.mylibrary.user.dtos.CreateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UpdateUserDTO;
 import com.gabriel.mylibrary.user.dtos.UserDTO;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
+
   UserDTO toDTO(UserEntity user);
 
+  @Mapping(target = "password", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "id", ignore = true)
   UserEntity toEntity(CreateUserDTO user);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

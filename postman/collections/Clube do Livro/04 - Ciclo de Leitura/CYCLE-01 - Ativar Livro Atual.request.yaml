@@ -8,15 +8,6 @@ auth:
   credentials:
     - key: token
       value: '{{adminToken}}'
-headers:
-  - key: Content-Type
-    value: application/json
-body:
-  type: json
-  content: |-
-    {
-      "queueEntryId": "{{queueEntry1Id}}"
-    }
 scripts:
   - type: afterResponse
     language: text/javascript

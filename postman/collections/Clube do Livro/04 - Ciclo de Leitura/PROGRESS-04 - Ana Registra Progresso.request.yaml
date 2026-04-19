@@ -15,9 +15,7 @@ body:
   type: json
   content: |-
     {
-      "currentPage": 300,
-      "totalPages": 412,
-      "notes": "A linguagem é densa mas vale cada página."
+      "currentPage": 300
     }
 scripts:
   - type: afterResponse

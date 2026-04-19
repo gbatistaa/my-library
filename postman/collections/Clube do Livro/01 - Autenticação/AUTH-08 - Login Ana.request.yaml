@@ -22,6 +22,16 @@ scripts:
       if (token) {
         pm.environment.set("anaToken", token);
         console.log("anaToken salvo.");
+        pm.sendRequest({
+          url: pm.environment.get("baseUrl") + "/api/auth/me",
+          method: "GET",
+          header: { "Authorization": "Bearer " + token }
+        }, (err, res) => {
+          if (!err && res.json().id) {
+            pm.environment.set("anaId", res.json().id);
+            console.log("anaId salvo:", res.json().id);
+          }
+        });
       }
       pm.test("Login Ana (200)", () => pm.response.to.have.status(200));
       pm.test("Token recebido", () => pm.expect(token).to.be.a("string"));
