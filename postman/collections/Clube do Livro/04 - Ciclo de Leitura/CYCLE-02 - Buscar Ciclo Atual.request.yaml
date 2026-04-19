@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CYCLE-02 - Buscar Ciclo Atual'
 method: GET
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/current'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/books/{{b1Id}}'
 order: 2000
 auth:
   type: bearer
@@ -13,4 +13,4 @@ scripts:
     language: text/javascript
     code: |-
       pm.test("Status 200", () => pm.response.to.have.status(200));
-      pm.test("Ciclo está ativo", () => pm.expect(pm.response.json().status).to.eql("ACTIVE"));
+      pm.test("Livro está ativo", () => pm.expect(pm.response.json().isCurrent).to.be.true);

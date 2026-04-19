@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.gabriel.mylibrary.bookClub.clubBookProgress.enums.MemberProgressStatus;
+
 @Repository
 public interface ClubBookProgressRepository extends JpaRepository<ClubBookProgressEntity, UUID> {
   @EntityGraph(attributePaths = { "clubBook.book" })
@@ -20,6 +22,8 @@ public interface ClubBookProgressRepository extends JpaRepository<ClubBookProgre
   List<ClubBookProgressEntity> findAllByClubBookId(UUID clubBookId);
 
   boolean existsByMemberIdAndClubBookId(UUID memberId, UUID clubBookId);
+
+  List<ClubBookProgressEntity> findAllByClubBookIdAndStatus(UUID clubBookId, MemberProgressStatus status);
 
   @Query("""
       SELECT p FROM ClubBookProgressEntity p

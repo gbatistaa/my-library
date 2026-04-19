@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'REVIEW-03 - Maria Submete Review'
 method: POST
-url: '{{baseUrl}}/api/reading-cycles/{{cycleId}}/reviews'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/books/{{b1Id}}/reviews'
 order: 3000
 auth:
   type: bearer
@@ -27,5 +27,5 @@ scripts:
         pm.environment.set("review3Id", json.id);
         console.log("review3Id salvo:", json.id);
       }
-      pm.test("Review criado (200)", () => pm.response.to.have.status(200));
+      pm.test("Review criado (201)", () => pm.response.to.have.status(201));
       pm.test("Rating correto", () => pm.expect(json.rating).to.eql(5));

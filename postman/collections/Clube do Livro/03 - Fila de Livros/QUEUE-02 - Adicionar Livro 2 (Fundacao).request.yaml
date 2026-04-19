@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'QUEUE-02 - Adicionar Livro 2 (Fundacao)'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/books'
 order: 2000
 auth:
   type: bearer
@@ -15,7 +15,8 @@ body:
   type: json
   content: |-
     {
-      "googleBooksId": "nnAqAAAAMAAJ"
+      "googleBooksId": "nnAqAAAAMAAJ",
+      "deadline": "2026-07-31"
     }
 scripts:
   - type: afterResponse
@@ -23,8 +24,8 @@ scripts:
     code: |-
       const json = pm.response.json();
       if (json.id) {
-        pm.environment.set("queueEntry2Id", json.id);
-        console.log("queueEntry2Id salvo:", json.id);
+        pm.environment.set("b2Id", json.id);
+        console.log("b2Id salvo:", json.id);
       }
-      pm.test("Livro 2 adicionado à fila (200)", () => pm.response.to.have.status(200));
+      pm.test("Livro 2 adicionado à fila (201)", () => pm.response.to.have.status(201));
       pm.test("Resposta tem id", () => pm.expect(json.id).to.be.a("string"));

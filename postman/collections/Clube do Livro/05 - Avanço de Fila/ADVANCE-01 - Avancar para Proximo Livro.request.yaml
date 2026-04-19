@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'ADVANCE-01 - Avancar para Proximo Livro'
 method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/queue/advance'
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/books/advance'
 order: 1000
 auth:
   type: bearer
@@ -14,8 +14,8 @@ scripts:
     code: |-
       const json = pm.response.json();
       if (json.id) {
-        pm.environment.set("cycle2Id", json.id);
-        console.log("cycle2Id salvo:", json.id);
+        pm.environment.set("b2Id", json.id);
+        console.log("b2Id (próximo livro ativo) salvo:", json.id);
       }
       pm.test("Fila avançada (200)", () => pm.response.to.have.status(200));
-      pm.test("Novo ciclo tem id", () => pm.expect(json.id).to.be.a("string"));
+      pm.test("Novo livro ativo tem id", () => pm.expect(json.id).to.be.a("string"));

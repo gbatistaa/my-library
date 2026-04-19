@@ -1,7 +1,7 @@
 $kind: http-request
 name: 'CYCLE-03 - Encerrar Ciclo'
-method: POST
-url: '{{baseUrl}}/api/book-clubs/{{clubId}}/reading-cycle/{{cycleId}}/close'
+method: GET
+url: '{{baseUrl}}/api/book-clubs/{{clubId}}/books/{{b1Id}}/progress'
 order: 8000
 auth:
   type: bearer
@@ -12,5 +12,5 @@ scripts:
   - type: afterResponse
     language: text/javascript
     code: |-
-      pm.test("Ciclo encerrado (200)", () => pm.response.to.have.status(200));
-      pm.test("Status é CLOSED", () => pm.expect(pm.response.json().status).to.eql("CLOSED"));
+      pm.test("Status 200", () => pm.response.to.have.status(200));
+      pm.test("Todos os membros registraram progresso", () => pm.expect(pm.response.json().length).to.eql(4));

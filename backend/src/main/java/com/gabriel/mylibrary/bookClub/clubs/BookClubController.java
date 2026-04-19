@@ -36,6 +36,11 @@ public class BookClubController {
     return ResponseEntity.ok(bookClubService.findAll(pageable));
   }
 
+  @GetMapping("/me")
+  public ResponseEntity<Page<BookClubDTO>> findMyClubs(Pageable pageable, @AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(bookClubService.findAllByUserId(user.getId(), pageable));
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<BookClubDTO> findById(@PathVariable UUID id) throws ResourceNotFoundException {
     return ResponseEntity.ok(bookClubService.findById(id));

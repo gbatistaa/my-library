@@ -221,6 +221,15 @@ public class ClubBookProgressService {
   }
 
   @Transactional
+  public void markReadingAsUnfinished(ClubBookEntity clubBook) {
+    List<ClubBookProgressEntity> reading = repository
+        .findAllByClubBookIdAndStatus(clubBook.getId(), MemberProgressStatus.READING);
+    reading.forEach(p -> p.setStatus(MemberProgressStatus.UNFINISHED));
+    repository.saveAll(reading);
+    log.info("[ClubBookProgressService] markReadingAsUnfinished | clubBookId={} affected={}", clubBook.getId(), reading.size());
+  }
+
+  @Transactional
   public int markAllOverdueAsUnfinished() {
     log.info("[ClubBookProgressService] markAllOverdueAsUnfinished | starting");
     LocalDate today = LocalDate.now();

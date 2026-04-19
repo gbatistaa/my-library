@@ -34,4 +34,6 @@ public interface ClubInviteRepository extends JpaRepository<ClubInviteEntity, UU
       """)
   Optional<AcceptedClubInviteProjection> getAcceptedInviteData(@Param("inviteId") UUID inviteId);
 
+  List<ClubInviteEntity> findAllByInviteeIdAndStatus(UUID inviteeId, InviteStatus status);
+
 }

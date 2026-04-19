@@ -12,7 +12,6 @@ public interface UserMapper {
 
   UserDTO toDTO(UserEntity user);
 
-  @Mapping(target = "password", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "id", ignore = true)

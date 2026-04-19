@@ -64,6 +64,11 @@ public class BookClubService {
   }
 
   @Transactional(readOnly = true)
+  public Page<BookClubDTO> findAllByUserId(UUID userId, Pageable pageable) {
+    return bookClubRepository.findAllByUserId(userId, pageable).map(bookClubMapper::toDto);
+  }
+
+  @Transactional(readOnly = true)
   public Page<BookClubDTO> findAllByAdminId(UUID adminId, Pageable pageable) {
     return bookClubRepository.findAllByAdminId(adminId, pageable).map(bookClubMapper::toDto);
   }

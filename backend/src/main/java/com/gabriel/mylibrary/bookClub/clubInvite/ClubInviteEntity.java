@@ -32,7 +32,7 @@ public class ClubInviteEntity extends BaseEntity {
   @Column(name = "token", nullable = false)
   private String token;
 
-  @Column(name = "accepted_at", nullable = false)
+  @Column(name = "accepted_at")
   private LocalDateTime acceptedAt;
 
   @Column(name = "expires_at", nullable = false)

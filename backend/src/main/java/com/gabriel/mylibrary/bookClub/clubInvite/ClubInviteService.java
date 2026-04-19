@@ -57,6 +57,12 @@ public class ClubInviteService {
     return clubInviteMapper.toDto(savedClubInvite);
   }
 
+  @Transactional(readOnly = true)
+  public java.util.List<ClubInviteDTO> findAllPendingByInviteeId(UUID inviteeId) {
+    return clubInviteRepository.findAllByInviteeIdAndStatus(inviteeId, InviteStatus.PENDING)
+        .stream().map(clubInviteMapper::toDto).toList();
+  }
+
   @Modifying
   @Transactional
   public AcceptedClubInviteProjection accept(UUID inviteId, UUID loggedUserId) throws ResourceNotFoundException {

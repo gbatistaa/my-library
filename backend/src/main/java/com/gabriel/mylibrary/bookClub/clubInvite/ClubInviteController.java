@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +41,12 @@ public class ClubInviteController {
     return ResponseEntity.ok(clubInviteDTO);
   }
 
-  @PostMapping("/{inviteId}/accept")
+  @GetMapping("/me/pending")
+  public ResponseEntity<java.util.List<ClubInviteDTO>> findMyPendingInvites(@AuthenticationPrincipal UserEntity user) {
+    return ResponseEntity.ok(clubInviteService.findAllPendingByInviteeId(user.getId()));
+  }
+
+  @PatchMapping("/{inviteId}/accept")
   public ResponseEntity<AcceptedClubInviteProjection> accept(@PathVariable UUID inviteId,
       @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
@@ -48,14 +55,14 @@ public class ClubInviteController {
     return ResponseEntity.ok(acceptedClubInviteProjection);
   }
 
-  @PostMapping("/{inviteId}/reject")
+  @PatchMapping("/{inviteId}/reject")
   public ResponseEntity<Void> reject(@PathVariable UUID inviteId, @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
     this.clubInviteService.reject(inviteId, user);
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/{inviteId}/revoke")
+  @PatchMapping("/{inviteId}/revoke")
   public ResponseEntity<Void> revoke(@PathVariable UUID inviteId, @AuthenticationPrincipal UserEntity user)
       throws ResourceNotFoundException, ResourceConflictException {
     this.clubInviteService.revoke(inviteId, user.getId());

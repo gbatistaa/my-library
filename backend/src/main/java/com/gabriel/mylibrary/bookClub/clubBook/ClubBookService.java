@@ -56,6 +56,7 @@ public class ClubBookService {
     entity.setBook(book);
     entity.setOrderIndex(clubBookRepository.findMaxOrderIndexByClubId(clubId) + 1);
     entity.setIsCurrent(false);
+    entity.setDeadline(dto.getDeadline());
 
     return clubBookMapper.toDto(clubBookRepository.save(entity));
   }
@@ -146,6 +147,7 @@ public class ClubBookService {
 
     // Close current book if it is still marked as active
     clubBookRepository.findByClubIdAndIsCurrentTrue(clubId).ifPresent(current -> {
+      clubBookProgressService.markReadingAsUnfinished(current);
       current.setIsCurrent(false);
       if (current.getFinishedAt() == null) {
         current.setFinishedAt(LocalDate.now());

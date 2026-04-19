@@ -14,4 +14,6 @@ public class BookClubDTO {
   private Integer maxMembers;
   private UUID adminId;
   private BookClubStatus status;
+  private Integer activeMembersCount;
+  private Integer totalBooksCount;
 }

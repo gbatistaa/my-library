@@ -18,4 +18,7 @@ public interface BookClubRepository extends JpaRepository<BookClubEntity, UUID> 
   Page<BookClubEntity> findAllByAdminId(UUID adminId, Pageable pageable);
 
   Boolean existsByStatusIn(List<BookClubMemberStatus> statusList);
+
+  @org.springframework.data.jpa.repository.Query("SELECT bc FROM BookClubEntity bc JOIN BookClubMemberEntity bcm ON bc.id = bcm.bookClub.id WHERE bcm.user.id = :userId")
+  Page<BookClubEntity> findAllByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId, Pageable pageable);
 }

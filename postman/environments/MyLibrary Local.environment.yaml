@@ -42,3 +42,24 @@ values:
   - key: deviceName
     enabled: true
     value: Book Club Flow Tester
+  - key: joaoId
+    enabled: true
+    value: ''
+  - key: mariaId
+    enabled: true
+    value: ''
+  - key: anaId
+    enabled: true
+    value: ''
+  - key: review1Id
+    enabled: true
+    value: ''
+  - key: review2Id
+    enabled: true
+    value: ''
+  - key: review3Id
+    enabled: true
+    value: ''
+  - key: review4Id
+    enabled: true
+    value: ''

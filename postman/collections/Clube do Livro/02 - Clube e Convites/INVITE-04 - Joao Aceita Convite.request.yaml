@@ -1,6 +1,6 @@
 $kind: http-request
 name: 'INVITE-04 - Joao Aceita Convite'
-method: POST
+method: PATCH
 url: '{{baseUrl}}/api/club-invites/{{inv1Id}}/accept'
 order: 7000
 auth:
@@ -11,5 +11,4 @@ auth:
 scripts:
   - type: afterResponse
     language: text/javascript
-    code: |-
-      pm.test("Joao aceitou convite (200)", () => pm.response.to.have.status(200));
+    code: pm.test("Joao aceitou convite (200)", () => pm.response.to.have.status(200));
