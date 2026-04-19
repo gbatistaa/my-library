@@ -1,6 +1,0 @@
-$kind: collection
-name: 03 - Fila de Livros
-description: |-
-  Adição de livros à fila do clube via Google Books ID.
-  Livros adicionados: Duna, Fundação e Neuromancer.
-order: 3

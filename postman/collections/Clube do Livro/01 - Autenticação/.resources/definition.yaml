@@ -1,6 +1,0 @@
-$kind: collection
-name: 01 - Autenticação
-description: |-
-  Registro e login dos 4 usuários do clube.
-  Execute todos os requests em ordem para popular os tokens no ambiente.
-order: 1

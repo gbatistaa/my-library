@@ -507,7 +507,18 @@ export default function ProfileScreen() {
               </>
             )}
 
-            {/* Profile Content (Always Centered) */}
+            {/* Achievements button — top-right */}
+            <Pressable
+              onPress={() => router.push("/(tabs)/awards")}
+              className="top-3 right-4 z-20 absolute justify-center items-center active:opacity-70"
+              hitSlop={12}
+            >
+              <View className="justify-center items-center bg-white/20 rounded-full w-10 h-10">
+                <Ionicons name="trophy" size={20} color="#fff" />
+              </View>
+            </Pressable>
+
+          {/* Profile Content (Always Centered) */}
             <View className="items-center z-10">
               <View style={{ position: "relative" }} className="shadow-2xl shadow-black/40">
                 <XpProgressRing
