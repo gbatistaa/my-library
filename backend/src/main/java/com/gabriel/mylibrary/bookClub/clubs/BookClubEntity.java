@@ -3,6 +3,7 @@ package com.gabriel.mylibrary.bookClub.clubs;
 import java.util.List;
 
 import com.gabriel.mylibrary.bookClub.bookClubMembers.BookClubMemberEntity;
+import com.gabriel.mylibrary.bookClub.clubBook.ClubBookEntity;
 import com.gabriel.mylibrary.bookClub.clubs.enums.BookClubStatus;
 import com.gabriel.mylibrary.common.BaseEntity;
 import com.gabriel.mylibrary.user.UserEntity;
@@ -48,4 +49,7 @@ public class BookClubEntity extends BaseEntity {
 
   @OneToMany(mappedBy = "bookClub", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<BookClubMemberEntity> members;
+
+  @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<ClubBookEntity> books;
 }

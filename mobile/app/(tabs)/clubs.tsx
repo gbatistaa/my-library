@@ -95,7 +95,7 @@ export default function ClubsScreen() {
         {clubs.length > 0 ? (
           <View>
             {clubs.map((club, index) => (
-              <BookClubCard key={club.clubId} club={club} index={index} />
+              <BookClubCard key={club.id} club={club} index={index} />
             ))}
           </View>
         ) : (

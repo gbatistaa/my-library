@@ -10,6 +10,8 @@ export interface BookClubDTO {
   description: string;
   maxMembers: number;
   status: BookClubStatus;
+  activeMembersCount: number;
+  totalBooksCount: number;
 }
 
 export interface ClubDashboardDTO {

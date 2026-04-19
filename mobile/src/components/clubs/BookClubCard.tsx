@@ -4,10 +4,10 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 
 import { useAppTheme } from "@/src/hooks/useAppTheme";
-import { ClubDashboardDTO, BookClubStatus } from "@/src/types/club";
+import { BookClubDTO, BookClubStatus } from "@/src/types/club";
 
 interface BookClubCardProps {
-  club: ClubDashboardDTO;
+  club: BookClubDTO;
   index: number;
 }
 
@@ -22,12 +22,12 @@ export function BookClubCard({ club, index }: BookClubCardProps) {
   const { colors, mode } = useAppTheme();
   
   const status = statusConfig[club.status] || statusConfig.INACTIVE;
-  const hasBook = !!club.currentBook;
+  const hasBook = false; // BookClubDTO doesn't have currentBook info yet
 
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(index * 50)} className="mb-4">
       <Pressable
-        onPress={() => router.push(`/club/${club.clubId}`)}
+        onPress={() => router.push(`/club/${club.id}`)}
         className="active:opacity-80 active:scale-[0.98] transition-transform"
       >
         <View 
@@ -48,7 +48,7 @@ export function BookClubCard({ club, index }: BookClubCardProps) {
                 numberOfLines={1}
                 style={{ color: colors.text }}
               >
-                {club.clubName}
+                {club.name}
               </Text>
             </View>
             <View className={`px-2 py-1 rounded-md ${status.bg}`}>
@@ -74,14 +74,14 @@ export function BookClubCard({ club, index }: BookClubCardProps) {
             <View className="flex-row items-center gap-1.5">
               <Feather name="users" size={14} color={colors.textSecondary} />
               <Text className="font-semibold text-xs" style={{ color: colors.textSecondary }}>
-                {club.activeMembers}/{club.maxMembers} members
+                {club.activeMembersCount}/{club.maxMembers} members
               </Text>
             </View>
             <View className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
             <View className="flex-row items-center gap-1.5">
               <Feather name="book" size={14} color={colors.textSecondary} />
               <Text className="font-semibold text-xs" style={{ color: colors.textSecondary }}>
-                {club.totalBooks} books
+                {club.totalBooksCount} books
               </Text>
             </View>
           </View>
@@ -91,14 +91,14 @@ export function BookClubCard({ club, index }: BookClubCardProps) {
             className="rounded-xl px-4 py-3 flex-row items-center"
             style={{ backgroundColor: mode === "dark" ? "rgba(0,0,0,0.2)" : "#f8fafc" }}
           >
-            {club.currentBook ? (
+            {false ? (
               <View className="flex-1">
                 <View className="flex-row justify-between items-center mb-2">
                   <Text className="text-xs font-medium" style={{ color: colors.textSecondary }}>
-                    Reading now: <Text className="font-bold" style={{ color: colors.text }}>{club.currentBook.bookTitle}</Text>
+                    Reading now: <Text className="font-bold" style={{ color: colors.text }}>{(club as any).currentBook.bookTitle}</Text>
                   </Text>
                   <Text className="text-xs font-bold" style={{ color: colors.primary }}>
-                    {club.currentBook.averageProgressPercent}%
+                    {(club as any).currentBook.averageProgressPercent}%
                   </Text>
                 </View>
                 {/* Progress bar */}
@@ -106,7 +106,7 @@ export function BookClubCard({ club, index }: BookClubCardProps) {
                   <View 
                     className="h-full rounded-full" 
                     style={{ 
-                      width: `${club.currentBook.averageProgressPercent}%`, 
+                      width: `${(club as any).currentBook.averageProgressPercent}%`, 
                       backgroundColor: colors.primary 
                     }} 
                   />
