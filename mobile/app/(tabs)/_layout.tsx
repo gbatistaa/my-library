@@ -56,15 +56,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="clubs"
-        options={{
-          title: "Clubs",
-          tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "people" : "people-outline"} size={size} color={color} />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="awards"
         options={{
